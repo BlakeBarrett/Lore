@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "746892433042",
+    "project_id": "lore-5b6b8",
+    "storage_bucket": "lore-5b6b8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746892433042:android:97209abc4739852fccf84b",
+        "android_client_info": {
+          "package_name": "com.example.l2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "746892433042-1vgc220dla5atpluop124n4u0e4rjnok.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDa8AAb-WTtkiXyCPNE2itfdb5Lik_5CE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "746892433042-1vgc220dla5atpluop124n4u0e4rjnok.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
