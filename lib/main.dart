@@ -68,7 +68,7 @@ class _LoreHomePageState extends State<LoreHomePage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -101,12 +101,15 @@ class _LoreHomePageState extends State<LoreHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // Ultimately we want:
+            //   WebView(topicUrl),
+            //   DiscussionView(topic),
             const Text(
               'You have pushed the button this many times:',
             ),
             Text(
               '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
