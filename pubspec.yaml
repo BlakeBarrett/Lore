@@ -40,6 +40,9 @@ dependencies:
   md5_file_checksum: ^1.0.4
   flutter_svg: ^2.0.1
   firebase_database: ^10.0.16
+  file_picker: ^5.2.9
+  cloud_firestore: ^4.5.1
+  uuid: ^3.0.7
   # chatview: ^1.0.1
 
 dev_dependencies:
