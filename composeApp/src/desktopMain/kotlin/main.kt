@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Card
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.NavigationRail
 import androidx.compose.material.Scaffold
+import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -33,18 +35,18 @@ import com.blakebarrett.extensions.md5sum
 import com.blakebarrett.extensions.onFileDrop
 import com.blakebarrett.extensions.onTextDrop
 
-@Composable
 @Preview
+@Composable
 fun App() {
     MaterialTheme {
         var droppedDataResultList by remember { mutableStateOf<List<DropDataResult>?>(value = null) }
         Scaffold (modifier = Modifier
             .fillMaxSize()
-            .onFileDrop(true) {
-                droppedDataResultList = it
+            .onFileDrop(true) { list ->
+                droppedDataResultList = list
             }
-            .onTextDrop(true) {
-                droppedDataResultList = it
+            .onTextDrop(true) { list ->
+                droppedDataResultList = list
             }
         ) {
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -55,8 +57,8 @@ fun App() {
                 NavigationRail(
                     modifier = Modifier.fillMaxWidth(),
                     content = {
-                        droppedDataResultList?.let {
-                            DroppedItemFeed(items = it, modifier = Modifier.fillMaxWidth())
+                        droppedDataResultList?.let { items ->
+                            DroppedItemFeed(items = items, modifier = Modifier.fillMaxSize())
                         }
                     }
                 )
@@ -67,10 +69,13 @@ fun App() {
 
 @Composable
 fun DroppedItemFeed(items: List<DropDataResult>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        items.forEach { item ->
+    items.forEach { item ->
+        Column(modifier = modifier.background(Color.Magenta)) {
+            Row {
+                Text(text = item.md5sum)
+            }
             Row(
-                modifier = Modifier.fillMaxWidth().background(Color.Magenta),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Card {
                     Text(text = item.droppedData.md5sum())

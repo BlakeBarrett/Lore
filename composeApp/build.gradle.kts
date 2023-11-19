@@ -39,6 +39,8 @@ kotlin {
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
+            implementation(compose.uiTooling)
+            implementation(compose.ui)
         }
         commonMain.dependencies {
             implementation(projects.shared)
