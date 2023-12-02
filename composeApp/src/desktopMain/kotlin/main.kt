@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import com.blakebarrett.extensions.DropDataResult
 import com.blakebarrett.extensions.onFileDrop
 import com.blakebarrett.extensions.onTextDrop
@@ -41,7 +42,10 @@ import kotlinx.coroutines.launch
 import java.nio.file.Files
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication, title = "Lore") {
+    Window(onCloseRequest = ::exitApplication,
+        title = "Lore",
+        state = rememberWindowState(width = 600.dp, height = 1000.dp)
+        ) {
         App()
     }
 }
@@ -73,8 +77,8 @@ fun App() {
                 .background(Color.Magenta)
                 .onClick {
                     coroutineScope.launch {
+                        toggleDrawerState(scaffoldState.drawerState)
                         scaffoldState.snackbarHostState.showSnackbar("Hello there!")
-                            toggleDrawerState(scaffoldState.drawerState)
                     }
                 }
             ) {
@@ -105,6 +109,7 @@ fun DroppedItemFeed(items: List<DropDataResult>? = null,
                     item: DropDataResult? = null,
                     modifier: Modifier = Modifier
                         .padding(16.dp)) {
+    item?.let { DroppedItem(item = it, modifier = modifier) }
     items?.forEach { item -> DroppedItem(item = item, modifier = modifier) }
 }
 
