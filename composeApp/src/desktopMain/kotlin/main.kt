@@ -51,7 +51,7 @@ import java.nio.file.Files
 fun main() = application {
     Window(onCloseRequest = ::exitApplication,
         title = "Lore",
-        state = rememberWindowState(width = 600.dp, height = 1000.dp)
+        state = rememberWindowState(width = 600.dp, height = 700.dp)
         ) {
         App()
     }
@@ -78,10 +78,17 @@ fun App() {
                 }
             },
             drawerShape = MaterialTheme.shapes.small,
+            bottomBar = {
+                val currentUser = User(id = "1")
+                CommentArea(modifier = Modifier.padding(0.dp).fillMaxWidth(), currentUser) { comment ->
+                    postNewComment(comment)
+                }
+            },
         ) {
             val coroutineScope = rememberCoroutineScope()
             Column(modifier = Modifier
                 .background(Color.Magenta)
+                .fillMaxSize()
                 .onClick {
                     coroutineScope.launch {
                         toggleDrawerState(scaffoldState.drawerState)
@@ -146,9 +153,13 @@ fun DroppedItem(item: DropDataResult,
             }
         }
         Discourse(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(8.dp).weight(1f),
             history = commentHistory)
     }
+}
+
+@Composable
+fun CommentArea(modifier: Modifier = Modifier, user: User, onSubmit: (comment: Comment) -> Unit) {
     Row(modifier = Modifier.fillMaxWidth()) {
         var commentText by remember { mutableStateOf("") }
         TextField(value = commentText,
@@ -161,19 +172,18 @@ fun DroppedItem(item: DropDataResult,
             onClick = {
                 Comment(
                     commentText,
-                    currentUser,
+                    user,
                     commentText,
                     System.currentTimeMillis().toString()).also { comment ->
-                        postNewComment(comment)
-                        commentHistory = commentHistory.plus(comment)
+                    onSubmit(comment)
                 }
                 commentText = ""
-        }) {
+            }) {
             Icon(Icons.Default.Send, contentDescription = "Post Comment")
         }
     }
 }
 
 fun postNewComment(comment: Comment) {
-    // go tell the server about this comment
+    // go tell it on the server
 }
