@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.onClick
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -24,6 +26,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
@@ -35,6 +38,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -97,7 +101,7 @@ fun App() {
                 }
             ) {
                 droppedDataResultList?.let { items ->
-                    DroppedItemFeed(items = items)
+                    DroppedItemFeed(items)
                 }
             }
         }
@@ -113,12 +117,40 @@ suspend fun toggleDrawerState(drawerState: DrawerState) {
 }
 
 @Composable
-fun DroppedItemFeed(items: List<DropDataResult>? = null,
-                    item: DropDataResult? = null,
+fun DroppedItemFeed(list: List<DropDataResult>,
                     modifier: Modifier = Modifier
                         .padding(16.dp)) {
-    item?.let { DroppedItem(item = it, modifier = modifier) }
-    items?.forEach { item -> DroppedItem(item = item, modifier = modifier) }
+    Column {
+        var selectedTab by remember { mutableStateOf(0) }
+        var tabs by remember { mutableStateOf(list) }
+        var selectedItem by mutableStateOf( tabs.get(selectedTab) )
+        if (tabs.size > 1) {
+            LazyRow (modifier = Modifier.fillMaxWidth()) {
+                items(tabs, key = { it.md5sum }) { dropDataResult ->
+                    Button(
+                        modifier = Modifier.padding(8.dp),
+                        onClick = {
+                            selectedTab = list.indexOf(dropDataResult)
+                        }) {
+                        Text(
+                            text = "${dropDataResult.file?.name})",
+                            style = if (selectedTab == list.indexOf(dropDataResult)) MaterialTheme.typography.button else MaterialTheme.typography.caption,
+                            textDecoration = if (selectedTab == list.indexOf(dropDataResult)) TextDecoration.Underline else TextDecoration.None)
+                        Button(
+                            modifier = Modifier.padding(8.dp, 2.dp, 2.dp, 2.dp),
+                            onClick = {
+                                tabs = tabs.filterIndexed({ index, dropDataResult -> index != selectedTab })
+                                selectedTab = 0
+                                selectedItem = tabs.get(selectedTab)
+                            }) {
+                            Icon(Icons.Default.Close, contentDescription = "Close")
+                        }
+                    }
+                }
+            }
+        }
+        DroppedItem(item = selectedItem, modifier = modifier)
+    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
