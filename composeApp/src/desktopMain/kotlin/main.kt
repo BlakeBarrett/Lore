@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import com.blakebarrett.Artifact
 import com.blakebarrett.Comment
 import com.blakebarrett.Discourse
 import com.blakebarrett.User
@@ -83,9 +84,12 @@ fun App() {
             },
             drawerShape = MaterialTheme.shapes.small,
             bottomBar = {
-                val currentUser = User(id = "1")
-                CommentArea(modifier = Modifier.padding(0.dp).fillMaxWidth(), currentUser) { comment ->
-                    postNewComment(comment)
+                val signedInUser: User?
+                signedInUser = User(id = "1")
+                signedInUser.let {
+                    CommentArea(modifier = Modifier.padding(0.dp).fillMaxWidth(), it) { comment, user ->
+                        postNewComment(comment, user)
+                    }
                 }
             },
         ) {
@@ -158,12 +162,11 @@ fun DroppedItemFeed(list: List<DropDataResult>,
 fun DroppedItem(item: DropDataResult,
                 currentUser: User = User(id = "1"),
                 modifier: Modifier = Modifier) {
-    var commentHistory by remember { mutableStateOf<List<Comment>>(
-        listOf(Comment("1", User(id = "1"), "Hello World!", System.currentTimeMillis().toString()),
+    var commentHistory by remember { mutableStateOf(listOf(Comment("1", currentUser, "Hello World!", System.currentTimeMillis().toString()),
             Comment("2", User(id = "2"), "Hello World!", System.currentTimeMillis().toString()),
             Comment("3", User(id = "3"), "DICKSAUCE!", System.currentTimeMillis().toString(), true),
-        )
-    ) }
+        ))}
+    var artifact by remember { mutableStateOf( Artifact(md5sum = item.md5sum, comments = commentHistory) ) }
     Column {
         Card(modifier = modifier) {
             Column {
@@ -186,12 +189,12 @@ fun DroppedItem(item: DropDataResult,
         }
         Discourse(
             modifier = Modifier.padding(8.dp).weight(1f),
-            history = commentHistory)
+            artifact = artifact)
     }
 }
 
 @Composable
-fun CommentArea(modifier: Modifier = Modifier, user: User, onSubmit: (comment: Comment) -> Unit) {
+fun CommentArea(modifier: Modifier = Modifier, user: User, onSubmit: (comment: Comment, loggedInUser: User) -> Unit) {
     Row(modifier = Modifier.fillMaxWidth()) {
         var commentText by remember { mutableStateOf("") }
         TextField(value = commentText,
@@ -207,7 +210,7 @@ fun CommentArea(modifier: Modifier = Modifier, user: User, onSubmit: (comment: C
                     user,
                     commentText,
                     System.currentTimeMillis().toString()).also { comment ->
-                    onSubmit(comment)
+                    onSubmit(comment, user)
                 }
                 commentText = ""
             }) {
@@ -216,6 +219,6 @@ fun CommentArea(modifier: Modifier = Modifier, user: User, onSubmit: (comment: C
     }
 }
 
-fun postNewComment(comment: Comment) {
+fun postNewComment(comment: Comment, user: User) {
     // go tell it on the server
 }

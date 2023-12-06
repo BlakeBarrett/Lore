@@ -17,36 +17,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-data class User (
-    val id: String,
-    val displayName: String = "",
-    val email: String = "",
-    val creationDate: String = "",
-)
-
-data class Comment(
-    val commentId: String,
-    val commenter: User,
-    val remark: String,
-    val creationDate: String,
-    var flagged: Boolean = false)
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun Discourse(history: List<Comment>, modifier: Modifier = Modifier) {
-    LazyColumn {
-        items(history, key = { it.commentId }) {comment ->
-            if (comment.flagged) {
-                Spacer(modifier = Modifier.height(0.dp))
-                return@items
-            }
-            Card (modifier = modifier.padding(8.dp)) {
-                ListItem (
-                    modifier = Modifier.fillMaxWidth(),
-                    text = { Text(text = "${comment.remark}") },
-                    secondaryText = { Text(text = comment.creationDate) },
-                    icon = { Icon(Icons.Default.Person, contentDescription = "${comment.commenter.displayName}") },
-                )
+fun Discourse(artifact: Artifact, modifier: Modifier = Modifier) {
+    artifact.comments?.let { comments ->
+        LazyColumn {
+            items(items = comments, key = { it.commentId }) { comment ->
+                if (comment.flagged) {
+                    Spacer(modifier = Modifier.height(0.dp))
+                    return@items
+                }
+                Card (modifier = modifier.padding(8.dp)) {
+                    ListItem (
+                        modifier = Modifier.fillMaxWidth(),
+                        text = { Text(text = "${comment.remark}") },
+                        secondaryText = { Text(text = comment.creationDate) },
+                        icon = { Icon(Icons.Default.Person, contentDescription = "${comment.commenter.displayName}") },
+                    )
+                }
             }
         }
     }
