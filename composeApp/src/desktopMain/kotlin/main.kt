@@ -134,7 +134,7 @@ fun DroppedItemFeed(list: List<DropDataResult>,
                             selectedTab = list.indexOf(dropDataResult)
                         }) {
                         Text(
-                            text = "${dropDataResult.file?.name})",
+                            text = "${dropDataResult.file?.name}",
                             style = if (selectedTab == list.indexOf(dropDataResult)) MaterialTheme.typography.button else MaterialTheme.typography.caption,
                             textDecoration = if (selectedTab == list.indexOf(dropDataResult)) TextDecoration.Underline else TextDecoration.None)
                         Button(
