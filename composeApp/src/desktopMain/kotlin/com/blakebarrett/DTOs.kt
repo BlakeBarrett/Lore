@@ -1,11 +1,13 @@
 package com.blakebarrett
 
+import java.io.File
+
 data class User (
     val id: String,
     val displayName: String = "",
     val email: String = "",
     val creationDate: String = "",
-    val JWT: String = ""
+    val JWT_Token: String? = null
 )
 
 data class Comment(
@@ -17,5 +19,7 @@ data class Comment(
 
 data class Artifact(
     val md5sum: String,
+    val name: String? = null,
+    val file: File? = null,
     val comments: List<Comment>?
 )

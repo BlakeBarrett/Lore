@@ -1,12 +1,11 @@
+
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -17,7 +16,6 @@ import androidx.compose.material.DrawerState
 import androidx.compose.material.DrawerValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
-import androidx.compose.material.ListItem
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
@@ -27,7 +25,6 @@ import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.Composable
@@ -44,6 +41,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.blakebarrett.Artifact
+import com.blakebarrett.ArtifactDetails
 import com.blakebarrett.Comment
 import com.blakebarrett.Discourse
 import com.blakebarrett.User
@@ -51,7 +49,6 @@ import com.blakebarrett.extensions.DropDataResult
 import com.blakebarrett.extensions.onFileDrop
 import com.blakebarrett.extensions.onTextDrop
 import kotlinx.coroutines.launch
-import java.nio.file.Files
 
 fun main() = application {
     Window(onCloseRequest = ::exitApplication,
@@ -166,26 +163,18 @@ fun DroppedItem(item: DropDataResult,
             Comment("2", User(id = "2"), "Hello World!", System.currentTimeMillis().toString()),
             Comment("3", User(id = "3"), "DICKSAUCE!", System.currentTimeMillis().toString(), true),
         ))}
-    var artifact by remember { mutableStateOf( Artifact(md5sum = item.md5sum, comments = commentHistory) ) }
+    var artifact by remember { mutableStateOf(
+        Artifact(
+            md5sum = item.md5sum,
+            comments = commentHistory,
+            file = item.file,
+            name = item.file?.name) ) }
     Column {
         Card(modifier = modifier) {
-            Column {
-    //            val icon = FileSystemView.getFileSystemView().getSystemIcon( item.file )
-                ListItem (
-                    modifier = Modifier.fillMaxWidth(),
-                    text = { Text(text = "${item.file?.name}") },
-                    secondaryText = { Text(text = item.md5sum) },
-                    icon = { Icon(Icons.Default.Info, contentDescription = "${item.file?.name}") },
-                )
-                item.file?.let {file ->
-                    Files.readAttributes(file.toPath(), "*").let { attributes ->
-                        attributes.keys.sorted().forEach { key ->
-                            Text(text = "$key: ${attributes[key]}", modifier = Modifier.padding(8.dp, 0.dp))
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+            ArtifactDetails(
+                artifact,
+                modifier
+            )
         }
         Discourse(
             modifier = Modifier.padding(8.dp).weight(1f),
