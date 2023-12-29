@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -46,7 +47,9 @@ class _ChatWidgetState extends State<ChatWidget>
             _scrollController.jumpTo(value);
           });
         } catch (error) {
-          print('$error'); // just ignore it
+          if (kDebugMode) {
+            print('$error');
+          } // just ignore it
         }
       });
     controller.forward();
