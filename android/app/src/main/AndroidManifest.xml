@@ -1,7 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.l2">
-   <application
-        android:label="l2"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:label="lore"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
