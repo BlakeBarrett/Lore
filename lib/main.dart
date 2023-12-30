@@ -1,6 +1,13 @@
+import 'dart:io';
+
+import 'package:desktop_window/desktop_window.dart' as window_size;
 import 'package:flutter/material.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    window_size.DesktopWindow.setWindowSize(const Size(600, 1000));
+  }
   runApp(const LoreApp());
 }
 
@@ -24,8 +31,36 @@ class LoreHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('LORE'),
       ),
-      body: const ArtifactViewWidget(),
+      body: const SafeArea(
+        child: Expanded(child: 
+          Column(children: [
+            ArtifactViewWidget(),
+            CommentArea(),
+            CommentInputArea()
+          ],)
+        )
+        // ArtifactSliverScrollViewWidget()
+      ),
+      drawer: const DrawerViewWidget(),
     );
+  }
+}
+
+class DrawerViewWidget extends StatelessWidget {
+  const DrawerViewWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+        child: ListView(padding: EdgeInsets.zero, children: [
+      const DrawerHeader(child: Text("User Profile")),
+      ListTile(
+        title: const Text("Logout"),
+        onTap: () {
+          Navigator.pop(context);
+        },
+      )
+    ]));
   }
 }
 
@@ -35,19 +70,62 @@ class ArtifactViewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 1.0, // Makes the container square
-      child: Container(
-        color: Colors.blue,
-        child: Column(
-          children: [
-            ElevatedButton(
-                onPressed: () => Scaffold.of(context)
-                    .showBottomSheet((context) => const CommentBottomSheet()),
-                child: const Text('Your Box Content')),
-          ],
+        aspectRatio: 1.0, // Makes the container square
+        child: Container(
+          color: Colors.blue,
+          child: const Text('Your Box Content')
+          // child: Column(
+          //   children: [
+          //     ElevatedButton(
+          //         onPressed: () => Scaffold.of(context)
+          //             .showBottomSheet((context) => const CommentInputArea()),
+          //         child: 
+          //         const Text('Your Box Content')
+          //         ),
+          //   ],
+          // ),
         ),
-      ),
+      );
+  }
+}
+
+
+class ArtifactSliverScrollViewWidget extends StatelessWidget {
+  const ArtifactSliverScrollViewWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+        child: CustomScrollView(
+      slivers: <Widget>[
+        SliverPersistentHeader(
+          pinned: true,
+          floating: false,
+          delegate: ArtifactPersistentHeaderDelegate()),
+        const CommentArea()
+      ],
+    ));
+  }
+}
+
+class ArtifactPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return const Expanded(
+      child: ArtifactViewWidget()
     );
+  }
+
+  @override
+  double get maxExtent => 300.0;
+
+  @override
+  double get minExtent => 50.0;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
+    return false;
   }
 }
 
@@ -65,12 +143,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       duration: const Duration(milliseconds: 300),
       height: 400,
       child: const Expanded(
-        child: Column(
-          children: [
-            CommentArea(),
-            CommentInputArea(),
-          ],
-        ),
+        child: CommentInputArea(),
       ),
     );
   }
