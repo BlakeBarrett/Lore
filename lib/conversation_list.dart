@@ -15,7 +15,7 @@ class ConversationViewModel {
 @immutable
 class ChatWidget extends StatefulWidget {
   final List<ConversationViewModel> values;
-  const ChatWidget({Key? key, required this.values}) : super(key: key);
+  const ChatWidget({super.key, required this.values});
   @override
   _ChatWidgetState createState() => _ChatWidgetState(conversations: values);
 }
