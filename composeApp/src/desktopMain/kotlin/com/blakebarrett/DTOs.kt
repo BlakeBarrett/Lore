@@ -1,5 +1,6 @@
 package com.blakebarrett
 
+import androidx.lifecycle.ViewModel
 import java.io.File
 
 data class User (
@@ -22,4 +23,4 @@ data class Artifact(
     val name: String? = null,
     val file: File? = null,
     val comments: List<Comment>?
-)
+) : ViewModel()

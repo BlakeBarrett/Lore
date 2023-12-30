@@ -1,5 +1,5 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.ExperimentalComposeLibrary
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -41,6 +41,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(compose.uiTooling)
             implementation(compose.ui)
+            implementation(libs.multiplatform.viewmodel)
         }
         commonMain.dependencies {
             implementation(projects.shared)
@@ -49,6 +50,8 @@ kotlin {
             implementation(compose.material)
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.multiplatform.viewmodel)
         }
     }
 }
@@ -91,6 +94,9 @@ android {
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
     }
+}
+dependencies {
+    implementation(project(":shared"))
 }
 
 compose.desktop {
