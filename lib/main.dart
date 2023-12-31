@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:Lore/md5_utils.dart';
-import 'package:desktop_window/desktop_window.dart' as window_size;
 import 'package:desktop_drop/desktop_drop.dart';
+import 'package:desktop_window/desktop_window.dart' as window_size;
+import 'package:file_icon/file_icon.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -24,8 +25,15 @@ class LoreApp extends StatelessWidget {
   }
 }
 
-class LoreScaffoldWidget extends StatelessWidget {
+class LoreScaffoldWidget extends StatefulWidget {
   const LoreScaffoldWidget({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _LoreScaffoldWidgetState();
+}
+
+class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
+  Artifact? artifact;
 
   @override
   Widget build(BuildContext context) {
@@ -34,23 +42,27 @@ class LoreScaffoldWidget extends StatelessWidget {
           appBar: AppBar(
             title: const Text('LORE'),
           ),
-          body: const SafeArea(
+          body: SafeArea(
               child: Expanded(
                   child: Column(
-            children: [ArtifactViewWidget(), CommentArea(), CommentInputArea()],
-          ))
-              // ArtifactSliverScrollViewWidget()
-              ),
+            children: [
+              ArtifactViewWidget(artifact: artifact),
+              const CommentArea(),
+              const CommentInputArea()
+            ],
+          ))),
           drawer: const DrawerViewWidget(),
         ),
         onDragDone: (details) {
-          var files = details.files;
+          final files = details.files;
           if (files.isNotEmpty) {
             files.forEach((element) async {
-              final path = element.path;
-              final File file = File(path);
-              final md5sum = await calculateMD5(file);
-              Artifact artifact = Artifact(element.name, element.path, md5sum);
+              final File file = File(element.path);
+              final String md5sum = await calculateMD5(file);
+              setState(() {
+                artifact = Artifact(element.path, md5sum);
+              });
+              // artifact = Artifact(element.path, md5sum);
               print(artifact);
             });
           }
@@ -59,11 +71,20 @@ class LoreScaffoldWidget extends StatelessWidget {
 }
 
 class Artifact {
-  final String name;
   final String path;
   final String md5sum;
 
-  const Artifact(this.name, this.path, this.md5sum);
+  final String? mimeType;
+  final int? length;
+
+  const Artifact(this.path, this.md5sum, {this.mimeType, this.length});
+
+  String get name => path.substring(path.lastIndexOf('/'));
+
+  @override
+  String toString() {
+    return '$md5sum $path';
+  }
 }
 
 class DrawerViewWidget extends StatelessWidget {
@@ -85,25 +106,28 @@ class DrawerViewWidget extends StatelessWidget {
 }
 
 class ArtifactViewWidget extends StatelessWidget {
-  const ArtifactViewWidget({super.key});
+  const ArtifactViewWidget({super.key, this.artifact});
+
+  final Artifact? artifact;
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1.0, // Makes the container square
-      child: Container(color: Colors.blue, child: const Text('Your Box Content')
-          // child: Column(
-          //   children: [
-          //     ElevatedButton(
-          //         onPressed: () => Scaffold.of(context)
-          //             .showBottomSheet((context) => const CommentInputArea()),
-          //         child:
-          //         const Text('Your Box Content')
-          //         ),
-          //   ],
-          // ),
-          ),
-    );
+    if (artifact == null) {
+      return const Spacer();
+    }
+
+    return Container(
+        color: Colors.blue,
+        padding: const EdgeInsets.all(36.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FileIcon('${artifact?.name}', size: 180),
+            Text('File path: ${artifact?.path}'),
+            Text('md5: ${artifact?.md5sum}')
+          ],
+        ));
   }
 }
 
@@ -148,7 +172,7 @@ class CommentBottomSheet extends StatefulWidget {
   const CommentBottomSheet({super.key});
 
   @override
-  _CommentBottomSheetState createState() => _CommentBottomSheetState();
+  createState() => _CommentBottomSheetState();
 }
 
 class _CommentBottomSheetState extends State<CommentBottomSheet> {
