@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:Lore/md5_utils.dart';
 import 'package:desktop_window/desktop_window.dart' as window_size;
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -17,33 +19,51 @@ class LoreApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: LoreHomePage(),
+      home: LoreScaffoldWidget(),
     );
   }
 }
 
-class LoreHomePage extends StatelessWidget {
-  const LoreHomePage({super.key});
+class LoreScaffoldWidget extends StatelessWidget {
+  const LoreScaffoldWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('LORE'),
-      ),
-      body: const SafeArea(
-        child: Expanded(child: 
-          Column(children: [
-            ArtifactViewWidget(),
-            CommentArea(),
-            CommentInputArea()
-          ],)
-        )
-        // ArtifactSliverScrollViewWidget()
-      ),
-      drawer: const DrawerViewWidget(),
-    );
+    return DropTarget(
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('LORE'),
+          ),
+          body: const SafeArea(
+              child: Expanded(
+                  child: Column(
+            children: [ArtifactViewWidget(), CommentArea(), CommentInputArea()],
+          ))
+              // ArtifactSliverScrollViewWidget()
+              ),
+          drawer: const DrawerViewWidget(),
+        ),
+        onDragDone: (details) {
+          var files = details.files;
+          if (files.isNotEmpty) {
+            files.forEach((element) async {
+              final path = element.path;
+              final File file = File(path);
+              final md5sum = await calculateMD5(file);
+              Artifact artifact = Artifact(element.name, element.path, md5sum);
+              print(artifact);
+            });
+          }
+        });
   }
+}
+
+class Artifact {
+  final String name;
+  final String path;
+  final String md5sum;
+
+  const Artifact(this.name, this.path, this.md5sum);
 }
 
 class DrawerViewWidget extends StatelessWidget {
@@ -70,25 +90,22 @@ class ArtifactViewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-        aspectRatio: 1.0, // Makes the container square
-        child: Container(
-          color: Colors.blue,
-          child: const Text('Your Box Content')
+      aspectRatio: 1.0, // Makes the container square
+      child: Container(color: Colors.blue, child: const Text('Your Box Content')
           // child: Column(
           //   children: [
           //     ElevatedButton(
           //         onPressed: () => Scaffold.of(context)
           //             .showBottomSheet((context) => const CommentInputArea()),
-          //         child: 
+          //         child:
           //         const Text('Your Box Content')
           //         ),
           //   ],
           // ),
-        ),
-      );
+          ),
+    );
   }
 }
-
 
 class ArtifactSliverScrollViewWidget extends StatelessWidget {
   const ArtifactSliverScrollViewWidget({super.key});
@@ -99,9 +116,9 @@ class ArtifactSliverScrollViewWidget extends StatelessWidget {
         child: CustomScrollView(
       slivers: <Widget>[
         SliverPersistentHeader(
-          pinned: true,
-          floating: false,
-          delegate: ArtifactPersistentHeaderDelegate()),
+            pinned: true,
+            floating: false,
+            delegate: ArtifactPersistentHeaderDelegate()),
         const CommentArea()
       ],
     ));
@@ -112,9 +129,7 @@ class ArtifactPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return const Expanded(
-      child: ArtifactViewWidget()
-    );
+    return const Expanded(child: ArtifactViewWidget());
   }
 
   @override
