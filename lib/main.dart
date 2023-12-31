@@ -46,7 +46,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               child: Expanded(
                   child: Column(
             children: [
-              ArtifactViewWidget(artifact: artifact),
+              ArtifactDetailsWidget(artifact: artifact),
               const CommentArea(),
               const CommentInputArea()
             ],
@@ -105,8 +105,8 @@ class DrawerViewWidget extends StatelessWidget {
   }
 }
 
-class ArtifactViewWidget extends StatelessWidget {
-  const ArtifactViewWidget({super.key, this.artifact});
+class ArtifactDetailsWidget extends StatelessWidget {
+  const ArtifactDetailsWidget({super.key, this.artifact});
 
   final Artifact? artifact;
 
@@ -153,7 +153,7 @@ class ArtifactPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return const Expanded(child: ArtifactViewWidget());
+    return const Expanded(child: ArtifactDetailsWidget());
   }
 
   @override
