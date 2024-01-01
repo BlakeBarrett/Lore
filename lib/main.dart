@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:Lore/artifact_details.dart';
-import 'package:Lore/comment_widget.dart';
 import 'package:Lore/lore_app.dart';
 import 'package:desktop_window/desktop_window.dart' as window_size;
 import 'package:flutter/material.dart';

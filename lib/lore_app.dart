@@ -27,6 +27,7 @@ class LoreScaffoldWidget extends StatefulWidget {
 
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? artifact;
+  int artifactsCalculating = 0;
 
   @override
   Widget build(final BuildContext context) {
@@ -38,6 +39,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           body: SafeArea(
               child: Column(
             children: [
+              (artifactsCalculating > 0)
+                  ? const LinearProgressIndicator()
+                  : const SizedBox.shrink(),
               ArtifactDetailsWidget(artifact: artifact),
               const CommentArea(),
               const CommentInputArea()
@@ -50,11 +54,12 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           if (files.isNotEmpty) {
             files.forEach((element) async {
               final File file = File(element.path);
+              setState(() => artifactsCalculating++);
               final String md5sum = await calculateMD5(file);
               setState(() {
+                artifactsCalculating--;
                 artifact = Artifact(element.path, md5sum);
               });
-              // artifact = Artifact(element.path, md5sum);
               print(artifact);
             });
           }
