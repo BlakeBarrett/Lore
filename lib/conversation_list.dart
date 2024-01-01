@@ -1,3 +1,4 @@
+import 'package:Lore/artifact_details.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -65,23 +66,22 @@ class _ChatWidgetState extends State<ChatWidget>
   Widget build(final BuildContext context) {
     // Dismiss keyboard
     FocusScope.of(context).requestFocus(FocusNode());
-    return Center(
-      child: CustomScrollView(
-        controller: _scrollController,
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        slivers: [
-          // SliverFillRemaining(
-          //   fillOverscroll: false,
-          // ),
-          SliverList(
-            delegate: SliverChildListDelegate(
-              conversations
-                  .map((final value) => getConversationCard(value))
-                  .toList(),
-            ),
+    return CustomScrollView(
+      controller: _scrollController,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      slivers: [
+        const ArtifactSliverScrollViewWidget(),
+        // SliverFillRemaining(
+        //   fillOverscroll: false,
+        // ),
+        SliverList(
+          delegate: SliverChildListDelegate(
+            conversations
+                .map((final value) => getConversationCard(value))
+                .toList(),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
