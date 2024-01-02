@@ -22,8 +22,8 @@ class ArtifactDetailsWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("File name: ${artifact?.name}"),
             FileIcon('${artifact?.name}', size: 180),
+            Text("File name: ${artifact?.name}"),
             Text('File path: ${artifact?.path}'),
             Text('md5: ${artifact?.md5sum}')
           ],

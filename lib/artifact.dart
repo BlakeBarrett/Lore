@@ -7,7 +7,7 @@ class Artifact {
 
   const Artifact(this.path, this.md5sum, {this.mimeType, this.length});
 
-  String get name => path.substring(path.lastIndexOf('/'));
+  String get name => path.substring(path.lastIndexOf('/') + 1);
 
   @override
   String toString() {
