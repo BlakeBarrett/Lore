@@ -16,12 +16,13 @@ class ArtifactDetailsWidget extends StatelessWidget {
     return Container(
         color: Colors.blue,
         padding: const EdgeInsets.all(36.0),
-        alignment: AlignmentGeometry.lerp(
-            Alignment.topCenter, Alignment.center, 0.5),
+        alignment:
+            AlignmentGeometry.lerp(Alignment.topCenter, Alignment.center, 0.5),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text("File name: ${artifact?.name}"),
             FileIcon('${artifact?.name}', size: 180),
             Text('File path: ${artifact?.path}'),
             Text('md5: ${artifact?.md5sum}')
@@ -48,7 +49,6 @@ class ArtifactPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
     return false;
   }
 }
-
 
 class ArtifactSliverScrollViewWidget extends StatelessWidget {
   const ArtifactSliverScrollViewWidget({super.key});
