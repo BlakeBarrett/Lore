@@ -6,6 +6,7 @@ import 'package:Lore/comment_widget.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dropzone/flutter_dropzone.dart';
 
 class LoreApp extends StatelessWidget {
   const LoreApp({super.key});
@@ -31,39 +32,72 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
   @override
   Widget build(final BuildContext context) {
-    return DropTarget(
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('LORE'),
-          ),
-          body: SafeArea(
-              child: Column(
-            children: [
-              (artifactsCalculating > 0)
-                  ? const LinearProgressIndicator()
-                  : const SizedBox.shrink(),
-              ArtifactDetailsWidget(artifact: artifact),
-              const CommentArea(),
-              const CommentInputArea()
-            ],
-          )),
-          drawer: const DrawerViewWidget(),
-        ),
-        onDragDone: (details) {
-          final files = details.files;
-          if (files.isNotEmpty) {
-            files.forEach((element) async {
-              final File file = File(element.path);
-              setState(() => artifactsCalculating++);
-              final String md5sum = await calculateMD5(file);
-              setState(() {
-                artifactsCalculating--;
-                artifact = Artifact(element.path, md5sum);
+    bool isDesktop = false;
+    try {
+      isDesktop = Platform.isWindows ||
+          Platform.isLinux ||
+          Platform.isFuchsia ||
+          Platform.isMacOS;
+    } catch (e) {
+      isDesktop = false;
+    }
+
+    final scaffold = Scaffold(
+      appBar: AppBar(
+        title: const Text('LORE'),
+      ),
+      body: SafeArea(
+          child: Column(
+        children: [
+          (artifactsCalculating > 0)
+              ? const LinearProgressIndicator()
+              : const SizedBox.shrink(),
+          ArtifactDetailsWidget(artifact: artifact),
+          const CommentArea(),
+          const CommentInputArea()
+        ],
+      )),
+      drawer: const DrawerViewWidget(),
+    );
+
+    if (isDesktop) {
+      return DropTarget(
+          child: scaffold,
+          onDragDone: (details) {
+            final files = details.files;
+            if (files.isNotEmpty) {
+              files.forEach((element) async {
+                final File file = File(element.path);
+                setState(() => artifactsCalculating++);
+                calculateMD5(file).then((md5sum) {
+                  setState(() {
+                    artifactsCalculating--;
+                    artifact = Artifact(file.path, md5sum);
+                  });
+                  print(artifact);
+                });
               });
-              print(artifact);
-            });
-          }
-        });
+            }
+          });
+    } else {
+      return Stack(
+        children: [
+          DropzoneView(
+              cursor: CursorType.grab,
+              onDrop: (ev) {
+                final file = ev.first;
+                setState(() => artifactsCalculating++);
+                calculateMD5(file).then((md5sum) {
+                  setState(() {
+                    artifactsCalculating--;
+                    artifact = Artifact(file.path, md5sum);
+                  });
+                });
+              }),
+          scaffold
+        ],
+      );
+    }
   }
 }
 

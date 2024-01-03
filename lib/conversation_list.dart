@@ -18,7 +18,8 @@ class ChatWidget extends StatefulWidget {
   final List<ConversationViewModel> values;
   const ChatWidget({super.key, required this.values});
   @override
-  _ChatWidgetState createState() => _ChatWidgetState(conversations: values);
+  State<StatefulWidget> createState() =>
+      _ChatWidgetState(conversations: values);
 }
 
 class _ChatWidgetState extends State<ChatWidget>

@@ -6,8 +6,15 @@ import 'package:flutter/material.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    window_size.DesktopWindow.setWindowSize(const Size(600, 1000));
+  try {
+    if (Platform.isWindows ||
+        Platform.isLinux ||
+        Platform.isFuchsia ||
+        Platform.isMacOS) {
+      window_size.DesktopWindow.setWindowSize(const Size(600, 1000));
+    }
+  } catch (e) {
+    print(e);
   }
   runApp(const LoreApp());
 }
