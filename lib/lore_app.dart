@@ -84,6 +84,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         children: [
           DropzoneView(
               cursor: CursorType.grab,
+              operation: DragOperation.all,
               onDrop: (ev) {
                 final file = ev.first;
                 setState(() => artifactsCalculating++);
