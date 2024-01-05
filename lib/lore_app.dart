@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
@@ -29,6 +30,8 @@ class LoreScaffoldWidget extends StatefulWidget {
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? artifact;
   int artifactsCalculating = 0;
+
+  late DropzoneViewController dropzoneController;
 
   @override
   Widget build(final BuildContext context) {
@@ -74,7 +77,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
                     artifactsCalculating--;
                     artifact = Artifact(file.path, md5sum);
                   });
-                  print(artifact);
+                  debugPrint('$artifact');
                 });
               });
             }
@@ -85,17 +88,19 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           DropzoneView(
               cursor: CursorType.grab,
               operation: DragOperation.all,
-              onDrop: (ev) {
-                final file = ev.first;
+              onCreated: (ctrl) => dropzoneController = ctrl,
+              onDrop: (value) {
                 setState(() => artifactsCalculating++);
-                calculateMD5(file).then((md5sum) {
+                dropzoneController.getFileStream(value).listen((data) async {
+                  var md5sum = md5Convert(data).toString();
+                  var path = await dropzoneController.getFilename(value);
                   setState(() {
                     artifactsCalculating--;
-                    artifact = Artifact(file.path, md5sum);
+                    artifact = Artifact(path, md5sum);
                   });
                 });
               }),
-          scaffold
+          scaffold,
         ],
       );
     }
