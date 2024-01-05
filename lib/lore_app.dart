@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
