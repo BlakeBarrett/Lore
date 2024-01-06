@@ -1,5 +1,4 @@
 import 'package:Lore/artifact_details.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -18,14 +17,12 @@ class ChatWidget extends StatefulWidget {
   final List<ConversationViewModel> values;
   const ChatWidget({super.key, required this.values});
   @override
-  State<StatefulWidget> createState() =>
-      _ChatWidgetState(conversations: values);
+  State<StatefulWidget> createState() => _ChatWidgetState();
 }
 
 class _ChatWidgetState extends State<ChatWidget>
     with SingleTickerProviderStateMixin {
-  List<ConversationViewModel> conversations = [];
-  _ChatWidgetState({required this.conversations});
+  _ChatWidgetState();
 
   final _scrollController = ScrollController(keepScrollOffset: true);
 
@@ -49,9 +46,7 @@ class _ChatWidgetState extends State<ChatWidget>
             _scrollController.jumpTo(value);
           });
         } catch (error) {
-          if (kDebugMode) {
-            print('$error');
-          } // just ignore it
+          debugPrint('$error');
         }
       });
     controller.forward();
@@ -77,7 +72,7 @@ class _ChatWidgetState extends State<ChatWidget>
         // ),
         SliverList(
           delegate: SliverChildListDelegate(
-            conversations
+            widget.values
                 .map((final value) => getConversationCard(value))
                 .toList(),
           ),

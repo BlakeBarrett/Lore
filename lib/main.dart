@@ -14,7 +14,7 @@ void main() {
       window_size.DesktopWindow.setWindowSize(const Size(600, 1000));
     }
   } catch (e) {
-    print(e);
+    debugPrint('$e');
   }
   runApp(const LoreApp());
 }

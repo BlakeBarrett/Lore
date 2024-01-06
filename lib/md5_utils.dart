@@ -19,9 +19,7 @@ Future<String> calculateMD5(final File file) async {
     input.close();
     return sink.value.toString();
   } catch (e) {
-    if (kDebugMode) {
-      print('Error calculating MD5 checksum: $e');
-    }
+    debugPrint('Error calculating MD5 checksum: $e');
     return '';
   }
 }
