@@ -5,6 +5,7 @@ import 'package:Lore/artifact_details.dart';
 import 'package:Lore/comment_widget.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:desktop_drop/desktop_drop.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
 
@@ -102,7 +103,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               });
             }
           });
-    } else {
+    } else if (kIsWeb) {
       return Stack(
         children: [
           DropzoneView(
@@ -123,6 +124,8 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           scaffold,
         ],
       );
+    } else {
+      return scaffold;
     }
   }
 }
