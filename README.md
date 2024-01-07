@@ -7,7 +7,7 @@ The shared, single source of truth for everything.
  It is a place for people to leave comments or notes on any file. 
 
 ## Where is the data stored?
-At present, the data is stored in Firebase; In the future data could be moved to a blockchain, or perhaps in the case of an on-prem solution, a managed database.
+At present, the plan is to store the data in Supabase. In the future data could be hosted in a managed or on-prem db.
 
 ## Installation
 ### Geting setup:
