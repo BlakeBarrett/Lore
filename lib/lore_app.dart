@@ -111,15 +111,28 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               operation: DragOperation.all,
               onCreated: (ctrl) => dropzoneController = ctrl,
               onDrop: (value) {
-                setState(() => artifactsCalculating++);
-                dropzoneController.getFileStream(value).listen((data) async {
-                  var md5sum = md5Convert(data).toString();
-                  var path = await dropzoneController.getFilename(value);
+                if (value is File) {
+                  setState(() => artifactsCalculating++);
+                  debugPrint(value.toString());
+                  dropzoneController.getFileStream(value).listen((data) async {
+                    var md5sum = md5Convert(data).toString();
+                    var path = await dropzoneController.getFilename(value);
+                    setState(() {
+                      artifactsCalculating--;
+                      artifact = Artifact(path, md5sum);
+                    });
+                  });
+                } else if (value is String) {
+                  debugPrint('Received String: $value');
+                  setState(() => artifactsCalculating++);
+                  var md5sum = md5SumFor(value);
                   setState(() {
                     artifactsCalculating--;
-                    artifact = Artifact(path, md5sum);
+                    artifact = Artifact('', md5sum);
                   });
-                });
+                } else {
+                  debugPrint('Received unkown: $value');
+                }
               }),
           scaffold,
         ],
