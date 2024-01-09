@@ -15,6 +15,7 @@ class LoreApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      title: 'LORE',
       home: LoreScaffoldWidget(),
     );
   }
@@ -32,6 +33,25 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   int artifactsCalculating = 0;
 
   late DropzoneViewController dropzoneController;
+  final List<Remark> remarks = [
+    Remark('Hello', 'me', DateTime.now()),
+    Remark('Hi', 'them', DateTime.now()),
+    Remark('How are you?', 'me', DateTime.now()),
+    Remark('Fine', 'them', DateTime.now()),
+    Remark('What are your lunch plans for today?', 'me', DateTime.now()),
+    Remark('I am going to the park', 'them', DateTime.now()),
+    Remark('That sounds lovely!', 'them', DateTime.now()),
+    Remark('Yes, it is a beautiful day', 'them', DateTime.now()),
+    Remark(
+        'I think I will go to the park as well; if you don\'t mind me copying your idea.',
+        'them',
+        DateTime.now()),
+    Remark('Not at all', 'me', DateTime.now()),
+    Remark('Great!', 'them', DateTime.now()),
+    Remark('I will see you there', 'them', DateTime.now()),
+    Remark('Goodbye', 'me', DateTime.now()),
+    Remark('Bye', 'them', DateTime.now()),
+  ];
 
   @override
   Widget build(final BuildContext context) {
@@ -57,26 +77,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               : const SizedBox.shrink(),
           ArtifactDetailsWidget(artifact: artifact),
           CommentArea(
-            remarks: [
-              Remark('Hello', 'me', DateTime.now()),
-              Remark('Hi', 'them', DateTime.now()),
-              Remark('How are you?', 'me', DateTime.now()),
-              Remark('Fine', 'them', DateTime.now()),
-              Remark(
-                  'What are your lunch plans for today?', 'me', DateTime.now()),
-              Remark('I am going to the park', 'them', DateTime.now()),
-              Remark('That sounds lovely!', 'them', DateTime.now()),
-              Remark('Yes, it is a beautiful day', 'them', DateTime.now()),
-              Remark(
-                  'I think I will go to the park as well; if you don\'t mind me copying your idea.',
-                  'them',
-                  DateTime.now()),
-              Remark('Not at all', 'me', DateTime.now()),
-              Remark('Great!', 'them', DateTime.now()),
-              Remark('I will see you there', 'them', DateTime.now()),
-              Remark('Goodbye', 'me', DateTime.now()),
-              Remark('Bye', 'them', DateTime.now()),
-            ],
+            remarks: remarks,
           ),
           const CommentInputArea()
         ],
