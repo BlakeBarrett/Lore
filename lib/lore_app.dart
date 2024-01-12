@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
 import 'package:Lore/comment_widget.dart';
+import 'package:Lore/main.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
+import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class LoreApp extends StatelessWidget {
   const LoreApp({super.key});
@@ -31,6 +34,7 @@ class LoreScaffoldWidget extends StatefulWidget {
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? artifact;
   int artifactsCalculating = 0;
+  String? accessToken = supabaseInstance.auth.currentSession?.accessToken;
 
   late DropzoneViewController dropzoneController;
   final List<Remark> remarks = [
@@ -53,18 +57,26 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     Remark('Bye', 'them', DateTime.now()),
   ];
 
+  late final StreamSubscription<AuthState> _authStateSubscription;
+
+  @override
+  void initState() {
+    _authStateSubscription =
+        supabaseInstance.auth.onAuthStateChange.listen((data) {
+      // Handle user redirection after magic link login
+      accessToken = data.session?.accessToken;
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _authStateSubscription.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(final BuildContext context) {
-    bool isDesktop = false;
-    try {
-      isDesktop = Platform.isWindows ||
-          Platform.isLinux ||
-          Platform.isFuchsia ||
-          Platform.isMacOS;
-    } catch (e) {
-      isDesktop = false;
-    }
-
     final scaffold = Scaffold(
       appBar: AppBar(
         title: const Text('LORE'),
@@ -151,10 +163,36 @@ class DrawerViewWidget extends StatelessWidget {
   Widget build(final BuildContext context) {
     return Drawer(
         child: ListView(padding: EdgeInsets.zero, children: [
-      const DrawerHeader(child: Text("User Profile")),
+      DrawerHeader(
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor,
+          ),
+          child: InkWell(
+              onTap: () => {
+                    if (supabaseInstance.auth.currentSession?.accessToken ==
+                        null)
+                      {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => Material(
+                                    child: SupaMagicAuth(
+                                  onSuccess: (Session response) {
+                                    debugPrint('$response');
+                                    Navigator.of(context).pop();
+                                  },
+                                  onError: (error) {
+                                    debugPrint('$error');
+                                    Navigator.of(context).pop();
+                                  },
+                                ))))
+                      }
+                  },
+              child: const Center(
+                child: Text('ಠ_ಠ'),
+              ))),
       ListTile(
         title: const Text("Logout"),
         onTap: () {
+          supabaseInstance.auth.signOut();
           Navigator.pop(context);
         },
       )
