@@ -8,7 +8,6 @@ import 'package:Lore/file_drop_handlers.dart';
 import 'package:Lore/main.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class LoreApp extends StatelessWidget {
@@ -31,12 +30,11 @@ class LoreScaffoldWidget extends StatefulWidget {
 }
 
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
-  Artifact? artifact;
-  int artifactsCalculating = 0;
-  String? accessToken = supabaseInstance.auth.currentSession?.accessToken;
+  Artifact? _artifact;
+  int _artifactsCalculating = 0;
+  String? _accessToken = supabaseInstance.auth.currentSession?.accessToken;
 
-  late DropzoneViewController dropzoneController;
-  final List<Remark> remarks = [
+  List<Remark> _remarks = [
     Remark('Hello', 'me', DateTime.now()),
     Remark('Hi', 'them', DateTime.now()),
     Remark('How are you?', 'me', DateTime.now()),
@@ -63,7 +61,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     _authStateSubscription =
         supabaseInstance.auth.onAuthStateChange.listen((data) {
       // Handle user redirection after magic link login
-      accessToken = data.session?.accessToken;
+      _accessToken = data.session?.accessToken;
     });
     super.initState();
   }
@@ -74,8 +72,38 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     super.dispose();
   }
 
+  Future<List<Remark>> loadRemarks() async {
+    return await supabaseInstance
+        .from('Remarks')
+        .select()
+        .eq('artifact_md5', _artifact?.md5sum ?? '')
+        .order('created_at', ascending: false)
+        .then((value) => value
+            .map((e) => Remark(e['remark'], e['user_id'], e['created_at']))
+            .toList());
+  }
+
+  Future<void> saveRemark(final String remark) async {
+    final userId = supabaseInstance.auth.currentUser!.id;
+    if (userId.isNotEmpty) {
+      await supabaseInstance.from('Remarks').insert({
+        'artifact_md5': _artifact?.md5sum,
+        'remark': remark,
+        'user_id': userId,
+      });
+    }
+  }
+
   @override
   Widget build(final BuildContext context) {
+    if (_artifact?.md5sum != null) {
+      loadRemarks().then((value) {
+        setState(() {
+          _remarks = value;
+        });
+      });
+    }
+
     final scaffold = Scaffold(
       appBar: AppBar(
         title: const Text('LORE'),
@@ -83,14 +111,24 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       body: SafeArea(
           child: Column(
         children: [
-          (artifactsCalculating > 0)
+          (_artifactsCalculating > 0)
               ? const LinearProgressIndicator()
               : const SizedBox.shrink(),
-          ArtifactDetailsWidget(artifact: artifact),
+          ArtifactDetailsWidget(artifact: _artifact),
           CommentArea(
-            remarks: remarks,
+            remarks: _remarks,
           ),
-          const CommentInputArea()
+          CommentInputArea(
+            onSubmitted: (value) {
+              saveRemark(value).then((_) {
+                loadRemarks().then((value) {
+                  setState(() {
+                    _remarks = value;
+                  });
+                });
+              });
+            },
+          )
         ],
       )),
       drawer: const DrawerViewWidget(),
@@ -100,14 +138,14 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       return DesktopFileDropHandler(
           onCalculating: (artifactsCalculating) {
             setState(() {
-              this.artifactsCalculating = artifactsCalculating;
+              _artifactsCalculating = artifactsCalculating;
             });
           },
           onDrop: (values) {
             if (values.isNotEmpty) {
               setState(() {
-                artifact = values.first;
-                artifactsCalculating = 0;
+                _artifact = values.first;
+                _artifactsCalculating = 0;
               });
             }
           },
@@ -116,14 +154,14 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       return WebFileDropHandler(
           onCalculating: (artifactsCalculating) {
             setState(() {
-              this.artifactsCalculating = artifactsCalculating;
+              _artifactsCalculating = artifactsCalculating;
             });
           },
           onDrop: (values) {
             if (values.isNotEmpty) {
               setState(() {
-                artifact = values.first;
-                artifactsCalculating = 0;
+                _artifact = values.first;
+                _artifactsCalculating = 0;
               });
             }
           },
