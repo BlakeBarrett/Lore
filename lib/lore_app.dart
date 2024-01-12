@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
 import 'package:Lore/comment_widget.dart';
+import 'package:Lore/drawer_view_widget.dart';
+import 'package:Lore/file_drop_handlers.dart';
 import 'package:Lore/main.dart';
-import 'package:Lore/md5_utils.dart';
-import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
@@ -97,108 +96,40 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       drawer: const DrawerViewWidget(),
     );
 
-    if (isDesktop) {
-      return DropTarget(
-          child: scaffold,
-          onDragDone: (details) {
-            final files = details.files;
-            if (files.isNotEmpty) {
-              files.forEach((element) async {
-                final File file = File(element.path);
-                setState(() => artifactsCalculating++);
-                calculateMD5(file).then((md5sum) {
-                  setState(() {
-                    artifactsCalculating--;
-                    artifact = Artifact(file.path, md5sum);
-                  });
-                  debugPrint('$artifact');
-                });
+    if (kIsDesktop) {
+      return DesktopFileDropHandler(
+          onCalculating: (artifactsCalculating) {
+            setState(() {
+              this.artifactsCalculating = artifactsCalculating;
+            });
+          },
+          onDrop: (values) {
+            if (values.isNotEmpty) {
+              setState(() {
+                artifact = values.first;
+                artifactsCalculating = 0;
               });
             }
-          });
+          },
+          child: scaffold);
     } else if (kIsWeb) {
-      return Stack(
-        children: [
-          DropzoneView(
-              cursor: CursorType.grab,
-              operation: DragOperation.all,
-              onCreated: (ctrl) => dropzoneController = ctrl,
-              onDrop: (value) {
-                if (value is File) {
-                  setState(() => artifactsCalculating++);
-                  debugPrint(value.toString());
-                  dropzoneController.getFileStream(value).listen((data) async {
-                    var md5sum = md5Convert(data).toString();
-                    var path = await dropzoneController.getFilename(value);
-                    setState(() {
-                      artifactsCalculating--;
-                      artifact = Artifact(path, md5sum);
-                    });
-                  });
-                } else if (value is String) {
-                  debugPrint('Received String: $value');
-                  setState(() => artifactsCalculating++);
-                  var md5sum = md5SumFor(value);
-                  setState(() {
-                    artifactsCalculating--;
-                    artifact = Artifact('', md5sum);
-                  });
-                } else {
-                  debugPrint('Received unkown: $value');
-                }
-              }),
-          scaffold,
-        ],
-      );
+      return WebFileDropHandler(
+          onCalculating: (artifactsCalculating) {
+            setState(() {
+              this.artifactsCalculating = artifactsCalculating;
+            });
+          },
+          onDrop: (values) {
+            if (values.isNotEmpty) {
+              setState(() {
+                artifact = values.first;
+                artifactsCalculating = 0;
+              });
+            }
+          },
+          child: scaffold);
     } else {
       return scaffold;
     }
-  }
-}
-
-class DrawerViewWidget extends StatelessWidget {
-  const DrawerViewWidget({super.key});
-
-  @override
-  Widget build(final BuildContext context) {
-    return Drawer(
-        child: ListView(padding: EdgeInsets.zero, children: [
-      DrawerHeader(
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
-          ),
-          child: InkWell(
-              onTap: () => {
-                    if (supabaseInstance.auth.currentSession?.accessToken ==
-                        null)
-                      {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => Scaffold(
-                                appBar:
-                                    AppBar(title: const Text('Authenticate')),
-                                body: Material(
-                                    child: SupaMagicAuth(
-                                  onSuccess: (Session response) {
-                                    debugPrint('$response');
-                                    Navigator.of(context).pop();
-                                  },
-                                  onError: (error) {
-                                    debugPrint('$error');
-                                    Navigator.of(context).pop();
-                                  },
-                                )))))
-                      }
-                  },
-              child: const Center(
-                child: Text('ಠ_ಠ'),
-              ))),
-      ListTile(
-        title: const Text("Logout"),
-        onTap: () {
-          supabaseInstance.auth.signOut();
-          Navigator.pop(context);
-        },
-      )
-    ]));
   }
 }

@@ -19,15 +19,15 @@ void main() async {
         Platform.isLinux ||
         Platform.isFuchsia ||
         Platform.isMacOS) {
-      isDesktop = true;
+      kIsDesktop = true;
       window_size.DesktopWindow.setWindowSize(const Size(600, 1000));
     }
   } catch (e) {
-    isDesktop = false;
+    kIsDesktop = false;
     debugPrint('$e');
   }
   runApp(const LoreApp());
 }
 
 final supabaseInstance = Supabase.instance.client;
-late final bool isDesktop;
+late final bool kIsDesktop;
