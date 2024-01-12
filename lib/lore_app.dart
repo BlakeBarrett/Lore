@@ -119,53 +119,41 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             remarks: _remarks,
           ),
           CommentInputArea(
-            onSubmitted: (value) {
-              saveRemark(value).then((_) {
-                loadRemarks().then((value) {
-                  setState(() {
-                    _remarks = value;
-                  });
+            onSubmitted: (value) async {
+              await saveRemark(value);
+              loadRemarks().then((values) {
+                setState(() {
+                  _remarks = values;
                 });
               });
             },
-          )
+          ),
         ],
       )),
       drawer: const DrawerViewWidget(),
     );
 
+    onDrop(values) {
+      if (values.isNotEmpty) {
+        setState(() {
+          _artifact = values.first;
+          _artifactsCalculating = 0;
+        });
+      }
+    }
+
+    onCalculating(artifactsCalculating) {
+      setState(() {
+        _artifactsCalculating = artifactsCalculating;
+      });
+    }
+
     if (kIsDesktop) {
       return DesktopFileDropHandler(
-          onCalculating: (artifactsCalculating) {
-            setState(() {
-              _artifactsCalculating = artifactsCalculating;
-            });
-          },
-          onDrop: (values) {
-            if (values.isNotEmpty) {
-              setState(() {
-                _artifact = values.first;
-                _artifactsCalculating = 0;
-              });
-            }
-          },
-          child: scaffold);
+          onCalculating: onCalculating, onDrop: onDrop, child: scaffold);
     } else if (kIsWeb) {
       return WebFileDropHandler(
-          onCalculating: (artifactsCalculating) {
-            setState(() {
-              _artifactsCalculating = artifactsCalculating;
-            });
-          },
-          onDrop: (values) {
-            if (values.isNotEmpty) {
-              setState(() {
-                _artifact = values.first;
-                _artifactsCalculating = 0;
-              });
-            }
-          },
-          child: scaffold);
+          onCalculating: onCalculating, onDrop: onDrop, child: scaffold);
     } else {
       return scaffold;
     }
