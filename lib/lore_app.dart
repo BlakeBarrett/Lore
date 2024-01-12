@@ -173,7 +173,10 @@ class DrawerViewWidget extends StatelessWidget {
                         null)
                       {
                         Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => Material(
+                            builder: (context) => Scaffold(
+                                appBar:
+                                    AppBar(title: const Text('Authenticate')),
+                                body: Material(
                                     child: SupaMagicAuth(
                                   onSuccess: (Session response) {
                                     debugPrint('$response');
@@ -183,7 +186,7 @@ class DrawerViewWidget extends StatelessWidget {
                                     debugPrint('$error');
                                     Navigator.of(context).pop();
                                   },
-                                ))))
+                                )))))
                       }
                   },
               child: const Center(
