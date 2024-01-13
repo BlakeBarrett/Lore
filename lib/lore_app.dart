@@ -73,10 +73,14 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   }
 
   Future<List<Remark>> loadRemarks() async {
+    final md5sum = _artifact?.md5sum;
+    if (md5sum == null) {
+      return [];
+    }
     return await supabaseInstance
         .from('Remarks')
         .select()
-        .eq('artifact_md5', _artifact?.md5sum ?? '')
+        .eq('artifact_md5', _artifact!.md5sum)
         .order('created_at', ascending: false)
         .then((value) => value
             .map((e) => Remark(e['remark'], e['user_id'], e['created_at']))
@@ -122,9 +126,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             onSubmitted: (value) async {
               await saveRemark(value);
               loadRemarks().then((values) {
-                setState(() {
-                  _remarks = values;
-                });
+                setState(
+                  () => _remarks = values,
+                );
               });
             },
           ),
