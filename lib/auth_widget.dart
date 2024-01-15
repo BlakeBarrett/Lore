@@ -43,7 +43,7 @@ class _AuthWidgetState extends State<AuthWidget> {
             textInputAction: TextInputAction.send,
             onSubmitted: (value) async {
               final AuthResponse res = await supabaseInstance.auth.verifyOTP(
-                type: OtpType.email,
+                type: OtpType.magiclink,
                 token: value,
                 email: email,
               );
