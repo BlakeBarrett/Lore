@@ -18,10 +18,10 @@ class DesktopFileDropHandler extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     return DropTarget(
         child: child,
-        onDragDone: (details) async {
+        onDragDone: (final details) async {
           final files = details.files;
           onCalculating(files.length);
           if (files.isNotEmpty) {
@@ -53,14 +53,14 @@ class WebFileDropHandler extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     late DropzoneViewController controller;
     return Stack(children: [
       DropzoneView(
           cursor: CursorType.grabbing,
           operation: DragOperation.all,
-          onCreated: (ctrl) => controller = ctrl,
-          onDrop: (value) async {
+          onCreated: (final ctrl) => controller = ctrl,
+          onDrop: (final value) async {
             debugPrint('DropzoneView.onDrop: $value');
             onCalculating(1);
             if (value is String) {
