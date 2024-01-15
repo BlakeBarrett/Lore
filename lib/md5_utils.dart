@@ -1,16 +1,14 @@
 import 'dart:convert';
 import 'dart:core';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 // ignore: implementation_imports
 import 'package:crypto/src/digest_sink.dart';
 import 'package:flutter/foundation.dart';
 
-Future<String> calculateMD5(final File file) async {
+Future<String> calculateMD5(final Stream<List<int>> byteStream) async {
   try {
     final sink = DigestSink();
-    final byteStream = file.openRead();
     final input = md5.startChunkedConversion(sink);
 
     await for (var data in byteStream) {
@@ -24,13 +22,13 @@ Future<String> calculateMD5(final File file) async {
   }
 }
 
-Digest md5Convert(List<int> data) {
+Digest md5Convert(final List<int> data) {
   final content = utf8.encode(utf8.decode(data));
   final digest = md5.convert(content);
   return digest;
 }
 
-String md5SumFor(String input) {
+String md5SumFor(final String input) {
   final content = utf8.encode(input);
   final digest = md5.convert(content);
   return digest.toString();

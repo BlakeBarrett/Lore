@@ -29,7 +29,8 @@ class DesktopFileDropHandler extends StatelessWidget {
             for (var i = 0; i < files.length; i++) {
               final element = files[i];
               final File file = File(element.path);
-              final md5sum = await calculateMD5(file);
+              final byteStream = file.openRead();
+              final md5sum = await calculateMD5(byteStream);
               final Artifact artifact = Artifact(file.path, md5sum);
               artifacts.add(artifact);
               debugPrint('$artifact');
@@ -53,24 +54,16 @@ class WebFileDropHandler extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DropzoneViewController? dropzoneController;
+    late DropzoneViewController controller;
     return Stack(children: [
       DropzoneView(
-          cursor: CursorType.grab,
+          cursor: CursorType.grabbing,
           operation: DragOperation.all,
-          onCreated: (ctrl) => dropzoneController = ctrl,
-          onDrop: (value) {
-            if (value is File) {
-              onCalculating(1);
-              debugPrint(value.toString());
-              dropzoneController?.getFileStream(value).listen((data) async {
-                var md5sum = md5Convert(data).toString();
-                var path = await dropzoneController?.getFilename(value) ?? '';
-                onDrop([Artifact(path, md5sum)]);
-              });
-            } else if (value is String) {
-              debugPrint('Received String: $value');
-              onCalculating(1);
+          onCreated: (ctrl) => controller = ctrl,
+          onDrop: (value) async {
+            debugPrint('DropzoneView.onDrop: $value');
+            onCalculating(1);
+            if (value is String) {
               var md5sum = '';
               try {
                 final uri = Uri.parse(value);
@@ -80,6 +73,18 @@ class WebFileDropHandler extends StatelessWidget {
                 md5sum = md5SumFor(value);
               }
               onDrop([Artifact('', md5sum)]);
+            } else if (value.toString() == '[object File]') {
+              try {
+                final path = await controller.getFilename(value);
+                controller.createFileUrl(value);
+                final bytes = await controller.getFileData(value);
+                final byteStream = Stream.fromIterable([bytes]);
+                final md5sum = await calculateMD5(byteStream);
+                onDrop([Artifact(path, md5sum)]);
+                controller.releaseFileUrl(value);
+              } catch (e) {
+                debugPrint('$e');
+              }
             } else {
               debugPrint('Received unkown: $value');
             }
