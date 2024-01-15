@@ -59,9 +59,3 @@ Contributions are welcome! Please read the [Contribution Guidelines](CONTRIBUTIN
 ## License
 
 This project is licensed under the [BSD 3-Clause License](LICENSE).
-
-```
-
-Remember to replace the placeholder information with details specific to your project. If you have a separate file for contributing guidelines (e.g., CONTRIBUTING.md), you can link to it in the README.
-
-Feel free to customize the structure and content based on your preferences and additional details you want to include.
