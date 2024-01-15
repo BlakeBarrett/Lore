@@ -71,7 +71,14 @@ class WebFileDropHandler extends StatelessWidget {
             } else if (value is String) {
               debugPrint('Received String: $value');
               onCalculating(1);
-              var md5sum = md5SumFor(value);
+              var md5sum = '';
+              try {
+                final uri = Uri.parse(value);
+                md5sum = md5SumFor(uri.toString());
+              } catch (e) {
+                debugPrint('$e');
+                md5sum = md5SumFor(value);
+              }
               onDrop([Artifact('', md5sum)]);
             } else {
               debugPrint('Received unkown: $value');
