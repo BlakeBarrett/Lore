@@ -45,9 +45,12 @@ class CommentArea extends StatelessWidget {
 }
 
 class CommentInputArea extends StatelessWidget {
-  const CommentInputArea({super.key, required this.onSubmitted});
+  const CommentInputArea(
+      {super.key, required this.onSubmitted, this.enabled = true, this.onTap});
 
+  final bool enabled;
   final Function(String value) onSubmitted;
+  final Function()? onTap;
 
   @override
   Widget build(final BuildContext context) {
@@ -55,8 +58,10 @@ class CommentInputArea extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       color: Colors.grey[200],
       child: TextField(
+        enabled: enabled,
         textInputAction: TextInputAction.send,
         onSubmitted: onSubmitted,
+        onTap: onTap,
         decoration: const InputDecoration(
           hintText: 'Add a remark...',
           border: OutlineInputBorder(),

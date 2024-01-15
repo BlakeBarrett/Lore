@@ -1,9 +1,11 @@
+import 'package:Lore/auth_widget.dart';
 import 'package:Lore/main.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class DrawerViewWidget extends StatelessWidget {
-  const DrawerViewWidget({super.key});
+  const DrawerViewWidget({super.key, this.authenticated = true});
+
+  final bool authenticated;
 
   @override
   Widget build(final BuildContext context) {
@@ -15,25 +17,8 @@ class DrawerViewWidget extends StatelessWidget {
           ),
           child: InkWell(
               onTap: () => {
-                    if (supabaseInstance.auth.currentSession?.accessToken ==
-                        null)
-                      {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => Scaffold(
-                                appBar:
-                                    AppBar(title: const Text('Authenticate')),
-                                body: Material(
-                                    child: SupaMagicAuth(
-                                  onSuccess: (Session response) {
-                                    debugPrint('$response');
-                                    Navigator.of(context).pop();
-                                  },
-                                  onError: (error) {
-                                    debugPrint('$error');
-                                    Navigator.of(context).pop();
-                                  },
-                                )))))
-                      }
+                    if (!authenticated)
+                      {AuthWidget.showAuthWidget(context)}
                   },
               child: const Center(
                 child: Text('ಠ_ಠ'),
@@ -44,7 +29,10 @@ class DrawerViewWidget extends StatelessWidget {
           supabaseInstance.auth.signOut();
           Navigator.pop(context);
         },
-      )
+      ),
+      const AboutListTile(
+        applicationName: 'Lore',
+      ),
     ]));
   }
 }

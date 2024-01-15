@@ -123,6 +123,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             remarks: _remarks,
           ),
           CommentInputArea(
+            enabled: _accessToken != null,
             onSubmitted: (value) async {
               await saveRemark(value);
               loadRemarks().then((values) {
@@ -134,7 +135,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           ),
         ],
       )),
-      drawer: const DrawerViewWidget(),
+      drawer: DrawerViewWidget(authenticated: _accessToken != null,),
     );
 
     onDrop(values) {
