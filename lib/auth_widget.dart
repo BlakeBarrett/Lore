@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class AuthWidget extends StatefulWidget {
+  const AuthWidget({super.key});
+
   @override
   State<StatefulWidget> createState() => _AuthWidgetState();
 
@@ -10,7 +12,7 @@ class AuthWidget extends StatefulWidget {
     Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => Scaffold(
               appBar: AppBar(title: const Text('Authenticate')),
-              body: AuthWidget(),
+              body: const AuthWidget(),
             )));
   }
 }

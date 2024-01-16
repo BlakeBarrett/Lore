@@ -9,25 +9,38 @@ class ArtifactDetailsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (artifact == null) {
-      return const Spacer();
-    }
+    final String name = artifact?.name ?? '';
+    final String path = artifact?.path ?? '';
+    final String md5sum = artifact?.md5sum ?? '';
 
     return Container(
-        color: Colors.blue,
-        padding: const EdgeInsets.all(36.0),
-        alignment:
-            AlignmentGeometry.lerp(Alignment.topCenter, Alignment.center, 0.5),
-        child: Column(
+      color: Colors.blue,
+      padding: const EdgeInsets.all(0.0),
+      alignment:
+          AlignmentGeometry.lerp(Alignment.topCenter, Alignment.center, 0.5),
+      child: Row(children: [
+        FileIcon(name, size: 180),
+        Column(
           mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
           children: [
-            FileIcon('${artifact?.name}', size: 180),
-            Text("File name: ${artifact?.name}"),
-            Text('File path: ${artifact?.path}'),
-            Text('md5: ${artifact?.md5sum}')
+            Text(
+              "Name: $name",
+              style: Theme.of(context).primaryTextTheme.bodyMedium,
+            ),
+            Text(
+              'Path: $path',
+              style: Theme.of(context).primaryTextTheme.bodyMedium,
+            ),
+            Text(
+              'md5: $md5sum',
+              style: Theme.of(context).primaryTextTheme.bodyMedium,
+            )
           ],
-        ));
+        ),
+      ]),
+    );
   }
 }
 
