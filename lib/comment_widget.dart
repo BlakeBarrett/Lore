@@ -1,12 +1,5 @@
+import 'package:Lore/remark.dart';
 import 'package:flutter/material.dart';
-
-class Remark {
-  final String text;
-  final String author;
-  final DateTime timestamp;
-
-  const Remark(this.text, this.author, this.timestamp);
-}
 
 @immutable
 class CommentArea extends StatelessWidget {
