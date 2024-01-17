@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
+// TODO: Integrate app_links to finish the magic link login flow: https://pub.dev/packages/app_links
 class LoreApp extends StatelessWidget {
   const LoreApp({super.key});
 
@@ -135,7 +136,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           ),
         ],
       )),
-      drawer: DrawerViewWidget(authenticated: _accessToken != null,),
+      drawer: DrawerViewWidget(
+        authenticated: _accessToken != null,
+      ),
     );
 
     onDrop(values) {
