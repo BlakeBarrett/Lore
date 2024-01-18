@@ -31,7 +31,8 @@ class DesktopFileDropHandler extends StatelessWidget {
               final File file = File(element.path);
               final byteStream = file.openRead();
               final md5sum = await calculateMD5(byteStream);
-              final Artifact artifact = Artifact(file.path, md5sum);
+              final Artifact artifact =
+                  Artifact(path: file.path, md5sum: md5sum);
               artifacts.add(artifact);
               debugPrint('$artifact');
             }
@@ -72,7 +73,7 @@ class WebFileDropHandler extends StatelessWidget {
                 debugPrint('$e');
                 md5sum = md5SumFor(value);
               }
-              onDrop([Artifact('', md5sum)]);
+              onDrop([Artifact(path: '', md5sum: md5sum)]);
             } else if (value.toString() == '[object File]') {
               try {
                 final path = await controller.getFilename(value);
@@ -80,7 +81,7 @@ class WebFileDropHandler extends StatelessWidget {
                 final bytes = await controller.getFileData(value);
                 final byteStream = Stream.fromIterable([bytes]);
                 final md5sum = await calculateMD5(byteStream);
-                onDrop([Artifact(path, md5sum)]);
+                onDrop([Artifact(path: path, md5sum: md5sum)]);
                 controller.releaseFileUrl(value);
               } catch (e) {
                 debugPrint('$e');

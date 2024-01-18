@@ -21,6 +21,7 @@ class _AuthWidgetState extends State<AuthWidget> {
   @override
   Widget build(BuildContext context) {
     String email = '';
+    pop() => Navigator.of(context).pop();
     return Material(
         child: InkWell(
       child: Column(
@@ -29,11 +30,11 @@ class _AuthWidgetState extends State<AuthWidget> {
               'To which e-mail address should we send a one time password?'),
           TextField(
             textInputAction: TextInputAction.send,
+            readOnly: email != '',
             onSubmitted: (value) async {
               email = value;
               await supabaseInstance.auth.signInWithOtp(
-                email: value,
-              );
+                  email: value, emailRedirectTo: 'lore://auth/callback');
             },
             decoration: const InputDecoration(
               hintText: 'e-mail address',
@@ -50,6 +51,7 @@ class _AuthWidgetState extends State<AuthWidget> {
                 email: email,
               );
               debugPrint('$res');
+              pop();
             },
             decoration: const InputDecoration(
               hintText: 'One Time Password...',

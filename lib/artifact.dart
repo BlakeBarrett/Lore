@@ -5,7 +5,8 @@ class Artifact {
   final String? mimeType;
   final int? length;
 
-  const Artifact(this.path, this.md5sum, {this.mimeType, this.length});
+  const Artifact(
+      {required this.path, required this.md5sum, this.mimeType, this.length});
 
   String get name => (path.isNotEmpty)
       ? path

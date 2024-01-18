@@ -4,6 +4,13 @@ class Remark {
   final DateTime timestamp;
 
   const Remark(this.text, this.author, this.timestamp);
+  Remark.fromAPIResponse(final Map<String, dynamic> response)
+      : text = response['remark'],
+        author = response['user_id'],
+        timestamp = DateTime.parse(response['created_at']).toLocal();
+
+  static DateTime getTimeStamp(final String value) =>
+      DateTime.parse(value).toLocal();
 
   static List<Remark> get dummyData => [
         Remark('First!', 'me', DateTime.now()),

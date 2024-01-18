@@ -7,6 +7,7 @@ import 'package:Lore/drawer_view_widget.dart';
 import 'package:Lore/file_drop_handlers.dart';
 import 'package:Lore/main.dart';
 import 'package:Lore/remark.dart';
+import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
@@ -39,9 +40,14 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   List<Remark> _remarks = Remark.dummyData;
 
   late final StreamSubscription<AuthState> _authStateSubscription;
+  final _appLinks = AppLinks();
 
   @override
   void initState() {
+    _appLinks.allUriLinkStream.listen((uri) {
+      // Do something (navigation, ...)
+      debugPrint('app_links uri: $uri');
+    });
     _authStateSubscription =
         supabaseInstance.auth.onAuthStateChange.listen((data) {
       // Handle user redirection after magic link login
@@ -56,36 +62,49 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     super.dispose();
   }
 
-  Future<List<Remark>> loadRemarks() async {
-    final md5sum = _artifact?.md5sum;
-    if (md5sum == null) {
-      return [];
-    }
+  Future<Artifact?> loadArtifact(final String md5sum) async {
+    return await supabaseInstance
+        .from('Artifacts')
+        .select()
+        .eq('md5', md5sum)
+        .single()
+        .then((value) =>
+            Artifact(path: value['name'] ?? '', md5sum: value['md5']));
+  }
+
+  Future<void> saveArtifact(final Artifact artifact) async {
+    await supabaseInstance.from('Artifacts').insert({
+      'name': artifact.name,
+      'md5': artifact.md5sum,
+    }).single();
+  }
+
+  Future<List<Remark>> loadRemarks({required final String md5sum}) async {
     return await supabaseInstance
         .from('Remarks')
         .select()
         .eq('artifact_md5', _artifact!.md5sum)
         .order('created_at', ascending: false)
-        .then((value) => value
-            .map((e) => Remark(e['remark'], e['user_id'], e['created_at']))
-            .toList());
+        .then((value) => value.map((e) => Remark.fromAPIResponse(e)).toList());
   }
 
-  Future<void> saveRemark(final String remark) async {
-    final userId = supabaseInstance.auth.currentUser!.id;
-    if (userId.isNotEmpty) {
+  Future<void> saveRemark(
+      {required final String remark,
+      required final String md5sum,
+      required final String? userId}) async {
+    if (userId?.isNotEmpty ?? false) {
       await supabaseInstance.from('Remarks').insert({
-        'artifact_md5': _artifact?.md5sum,
+        'artifact_md5': md5sum,
         'remark': remark,
         'user_id': userId,
-      });
+      }).single();
     }
   }
 
   @override
   Widget build(final BuildContext context) {
     if (_artifact?.md5sum != null) {
-      loadRemarks().then((value) {
+      loadRemarks(md5sum: _artifact!.md5sum).then((value) {
         setState(() {
           _remarks = value;
         });
@@ -109,8 +128,11 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           CommentInputArea(
             enabled: _accessToken != null,
             onSubmitted: (value) async {
-              await saveRemark(value);
-              loadRemarks().then((values) {
+              await saveRemark(
+                  remark: value,
+                  md5sum: _artifact!.md5sum,
+                  userId: supabaseInstance.auth.currentUser?.id);
+              loadRemarks(md5sum: _artifact!.md5sum).then((values) {
                 setState(
                   () => _remarks = values,
                 );
@@ -124,8 +146,12 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       ),
     );
 
-    onDrop(values) {
+    onDrop(values) async {
       if (values.isNotEmpty) {
+        await loadArtifact(values.first.md5sum)
+            .onError((error, stackTrace) async {
+          await saveArtifact(values.first);
+        });
         setState(() {
           _artifact = values.first;
           _artifactsCalculating = 0;
