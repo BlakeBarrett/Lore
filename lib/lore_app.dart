@@ -35,7 +35,7 @@ class LoreScaffoldWidget extends StatefulWidget {
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? _artifact;
   int _artifactsCalculating = 0;
-  String? _accessToken = supabaseInstance.auth.currentSession?.accessToken;
+  String? get _accessToken => supabaseInstance.auth.currentSession?.accessToken;
 
   List<Remark> _remarks = Remark.dummyData;
 
@@ -51,7 +51,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     _authStateSubscription =
         supabaseInstance.auth.onAuthStateChange.listen((data) {
       // Handle user redirection after magic link login
-      _accessToken = data.session?.accessToken;
+      debugPrint('Supabase AuthStateChange: $data');
     });
     super.initState();
   }
@@ -148,10 +148,14 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
     onDrop(values) async {
       if (values.isNotEmpty) {
-        await loadArtifact(values.first.md5sum)
-            .onError((error, stackTrace) async {
-          await saveArtifact(values.first);
-        });
+        try {
+          await loadArtifact(values.first.md5sum)
+              .onError((error, stackTrace) async {
+            await saveArtifact(values.first);
+          });
+        } catch (error) {
+          debugPrint('$error');
+        }
         setState(() {
           _artifact = values.first;
           _artifactsCalculating = 0;
