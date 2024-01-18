@@ -62,42 +62,39 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     super.dispose();
   }
 
-  Future<Artifact?> loadArtifact(final String md5sum) async {
-    return await supabaseInstance
-        .from('Artifacts')
-        .select()
-        .eq('md5', md5sum)
-        .single()
-        .then((value) =>
-            Artifact(path: value['name'] ?? '', md5sum: value['md5']));
-  }
-
   Future<void> saveArtifact(final Artifact artifact) async {
-    await supabaseInstance.from('Artifacts').insert({
+    await supabaseInstance.from('Artifacts').upsert({
       'name': artifact.name,
       'md5': artifact.md5sum,
-    }).single();
+    });
   }
 
   Future<List<Remark>> loadRemarks({required final String md5sum}) async {
     return await supabaseInstance
         .from('Remarks')
         .select()
-        .eq('artifact_md5', _artifact!.md5sum)
-        .order('created_at', ascending: false)
-        .then((value) => value.map((e) => Remark.fromAPIResponse(e)).toList());
+        .eq('artifact_md5', md5sum)
+        .order('created_at', ascending: true)
+        .then((value) =>
+            value.map((item) => Remark.fromAPIResponse(item)).toList());
   }
 
   Future<void> saveRemark(
       {required final String remark,
-      required final String md5sum,
+      required final String? md5sum,
       required final String? userId}) async {
-    if (userId?.isNotEmpty ?? false) {
-      await supabaseInstance.from('Remarks').insert({
+    if ((userId?.isNotEmpty ?? false) && (md5sum?.isNotEmpty ?? false)) {
+      final Map<String, dynamic> payload = {
         'artifact_md5': md5sum,
         'remark': remark,
         'user_id': userId,
-      }).single();
+      };
+      await supabaseInstance
+          .from('Remarks')
+          .insert(payload)
+          .catchError((error) {
+        debugPrint('Error saving remark: $error');
+      });
     }
   }
 
@@ -122,15 +119,17 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               ? const LinearProgressIndicator()
               : const SizedBox.shrink(),
           ArtifactDetailsWidget(artifact: _artifact),
-          CommentArea(
-            remarks: _remarks,
+          Expanded(
+            child: CommentArea(
+              remarks: _remarks,
+            ),
           ),
           CommentInputArea(
             enabled: _accessToken != null,
             onSubmitted: (value) async {
               await saveRemark(
                   remark: value,
-                  md5sum: _artifact!.md5sum,
+                  md5sum: _artifact?.md5sum,
                   userId: supabaseInstance.auth.currentUser?.id);
               loadRemarks(md5sum: _artifact!.md5sum).then((values) {
                 setState(
@@ -149,10 +148,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     onDrop(values) async {
       if (values.isNotEmpty) {
         try {
-          await loadArtifact(values.first.md5sum)
-              .onError((error, stackTrace) async {
-            await saveArtifact(values.first);
-          });
+          await saveArtifact(values.first);
         } catch (error) {
           debugPrint('$error');
         }

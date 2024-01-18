@@ -21,23 +21,21 @@ class CommentArea extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) => scrollToBottom());
-    return Expanded(
-      child: ListView.builder(
-        controller: _scrollController,
-        itemCount: _remarks.length,
-        itemBuilder: (context, index) {
-          Remark remark = _remarks[index];
-          return ListTile(
-            leading: const Icon(Icons.comment),
-            title: Text(remark.text),
-          );
-        },
-      ),
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: _remarks.length,
+      itemBuilder: (context, index) {
+        Remark remark = _remarks[index];
+        return ListTile(
+          leading: const Icon(Icons.comment),
+          title: Text(remark.text),
+        );
+      },
     );
   }
 }
 
-class CommentInputArea extends StatelessWidget {
+class CommentInputArea extends StatefulWidget {
   const CommentInputArea(
       {super.key, required this.onSubmitted, this.enabled = true, this.onTap});
 
@@ -46,15 +44,39 @@ class CommentInputArea extends StatelessWidget {
   final Function()? onTap;
 
   @override
+  State<CommentInputArea> createState() => _CommentInputAreaState();
+}
+
+class _CommentInputAreaState extends State<CommentInputArea> {
+  late final TextEditingController _controller;
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed from the
+    // widget tree.
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(final BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16.0),
       color: Colors.grey[200],
       child: TextField(
-        enabled: enabled,
+        controller: _controller,
+        enabled: widget.enabled,
         textInputAction: TextInputAction.send,
-        onSubmitted: onSubmitted,
-        onTap: onTap,
+        onSubmitted: (value) async {
+          widget.onSubmitted(value);
+          _controller.clear();
+        },
+        onTap: widget.onTap,
         decoration: const InputDecoration(
           hintText: 'Add a remark...',
           border: OutlineInputBorder(),
