@@ -58,7 +58,7 @@ class WebFileDropHandler extends StatelessWidget {
     late DropzoneViewController controller;
     return Stack(children: [
       DropzoneView(
-          cursor: CursorType.grabbing,
+          cursor: CursorType.Default,
           operation: DragOperation.all,
           onCreated: (final ctrl) => controller = ctrl,
           onDrop: (final value) async {
