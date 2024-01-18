@@ -32,6 +32,11 @@ class DrawerViewWidget extends StatelessWidget {
       ),
       const AboutListTile(
         applicationName: 'Lore',
+        aboutBoxChildren: [
+          Text('Lore Ⓒ 2024 Blake Barrett.'),
+          Text('Lore is Open Source and everything is available on GitHub:'),
+          Text('https://github.com/BlakeBarrett/Lore')
+        ],
       ),
     ]));
   }
