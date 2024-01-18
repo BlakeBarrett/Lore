@@ -66,6 +66,8 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     await supabaseInstance.from('Artifacts').upsert({
       'name': artifact.name,
       'md5': artifact.md5sum,
+    }).catchError((error) {
+      debugPrint('Error saving Artifact: $error');
     });
   }
 
@@ -147,11 +149,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
     onDrop(values) async {
       if (values.isNotEmpty) {
-        try {
-          await saveArtifact(values.first);
-        } catch (error) {
-          debugPrint('$error');
-        }
+        await saveArtifact(values.first);
         setState(() {
           _artifact = values.first;
           _artifactsCalculating = 0;

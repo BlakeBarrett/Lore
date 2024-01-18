@@ -16,8 +16,7 @@ class ArtifactDetailsWidget extends StatelessWidget {
     return Container(
       color: Colors.blue,
       padding: const EdgeInsets.all(0.0),
-      alignment:
-          AlignmentGeometry.lerp(Alignment.topCenter, Alignment.center, 0.5),
+      alignment: Alignment.center,
       child: Row(children: [
         FileIcon(name, size: 180),
         Column(
