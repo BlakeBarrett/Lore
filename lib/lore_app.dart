@@ -143,7 +143,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           ),
         ],
       )),
-      drawer: DrawerViewWidget(
+      drawer: DrawerWidget(
         authenticated: _accessToken != null,
         userEmail: supabaseInstance.auth.currentUser?.email,
         onLogout: () => supabaseInstance.auth.signOut(),

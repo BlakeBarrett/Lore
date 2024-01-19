@@ -18,7 +18,7 @@ void main() {
       // Build the DrawerViewWidget in a testable widget.
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
-          body: DrawerViewWidget(
+          body: DrawerWidget(
             userEmail: testEmail,
             authenticated: true,
             onLogout: onLogout.call,
@@ -46,7 +46,7 @@ void main() {
       // Build the DrawerViewWidget in a testable widget.
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
-          body: DrawerViewWidget(
+          body: DrawerWidget(
             userEmail: testEmail,
             authenticated: false, // User is not authenticated
             onShowAuthWidget: onShowAuthWidget.call, // Mocked function
@@ -70,7 +70,7 @@ void main() {
       // Build the DrawerViewWidget in a testable widget.
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
-          body: DrawerViewWidget(
+          body: DrawerWidget(
             userEmail: testEmail,
             authenticated: true, // User is authenticated
             onLogout: MockFunction().call,
