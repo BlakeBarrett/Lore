@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:Lore/drawer_view_widget.dart';
+import 'package:Lore/drawer_widget.dart';
 import 'package:mockito/mockito.dart';
 
 class MockFunction extends Mock {
