@@ -36,7 +36,7 @@ class _RemarkEntryWidgetState extends State<RemarkEntryWidget> {
   @override
   Widget build(final BuildContext context) {
     return Tooltip(
-        message: widget.enabled ? 'Add a remark...' : 'Login to add a remark',
+        message: widget.enabled ? 'Add a remark...' : 'Login to add a remark.\r\nClick to login.',
         child: GestureDetector(
             onTap: () {
               if (!widget.enabled) widget.onLogin?.call();
