@@ -13,14 +13,19 @@ class Remark {
       DateTime.parse(value).toLocal();
 
   static List<Remark> get dummyData => [
-        Remark('First!', 'me', DateTime.now()),
-        Remark('This is the best version of this file I\'ve found.', 'them',
-            DateTime.now()),
+        Remark('First!', '', DateTime.now()),
+        Remark('How did I get here?', 'You', DateTime.now()),
+        Remark('This is cool, how does it work?', 'You', DateTime.now()),
         Remark(
-            'When I downloaded this file, the mirror was slow and kept resetting.',
-            'them',
+            'Drop a file from anywhere on your computer into this window to start the conversation around it.',
+            'Lore',
             DateTime.now()),
-        Remark('This file was scanned for viruses and is safe to use.', 'me',
+        Remark('What happens to my file?', 'You', DateTime.now()),
+        Remark('Your file stays on your computer.', 'Lore', DateTime.now()),
+        Remark(
+            'A hash is generated and used as a stand in for the file. That\'s what the "md5" field is.',
+            'Lore',
             DateTime.now()),
+        Remark('Cool! I\'ll see you in the comments.', 'You', DateTime.now()),
       ];
 }
