@@ -4,6 +4,7 @@ import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
 import 'package:Lore/auth_widget.dart';
 import 'package:Lore/remark_entry_widget.dart';
+import 'package:Lore/remark_list_widget.dart';
 import 'package:Lore/drawer_widget.dart';
 import 'package:Lore/file_drop_handlers.dart';
 import 'package:Lore/main.dart';
