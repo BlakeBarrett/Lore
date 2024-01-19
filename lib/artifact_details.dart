@@ -14,7 +14,7 @@ class ArtifactDetailsWidget extends StatelessWidget {
     final String md5sum = artifact?.md5sum ?? '';
 
     return Container(
-      color: Colors.blue,
+      color: Theme.of(context).primaryColor,
       padding: const EdgeInsets.all(0.0),
       alignment: Alignment.center,
       child: Row(children: [
@@ -39,41 +39,6 @@ class ArtifactDetailsWidget extends StatelessWidget {
           ],
         ),
       ]),
-    );
-  }
-}
-
-class ArtifactPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return const Expanded(child: ArtifactDetailsWidget());
-  }
-
-  @override
-  double get maxExtent => 300.0;
-
-  @override
-  double get minExtent => 50.0;
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    return false;
-  }
-}
-
-class ArtifactSliverScrollViewWidget extends StatelessWidget {
-  const ArtifactSliverScrollViewWidget({super.key});
-
-  @override
-  Widget build(final BuildContext context) {
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverPersistentHeader(
-            pinned: true,
-            floating: false,
-            delegate: ArtifactPersistentHeaderDelegate()),
-      ],
     );
   }
 }

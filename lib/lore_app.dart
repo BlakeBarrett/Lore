@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
+import 'package:Lore/auth_widget.dart';
 import 'package:Lore/comment_widget.dart';
 import 'package:Lore/drawer_view_widget.dart';
 import 'package:Lore/file_drop_handlers.dart';
@@ -144,6 +145,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       )),
       drawer: DrawerViewWidget(
         authenticated: _accessToken != null,
+        userEmail: supabaseInstance.auth.currentUser?.email,
+        onLogout: () => supabaseInstance.auth.signOut(),
+        onShowAuthWidget: () => AuthWidget.showAuthWidget(context),
       ),
     );
 

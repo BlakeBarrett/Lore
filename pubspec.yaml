@@ -44,6 +44,8 @@ dependencies:
   supabase_auth_ui: ^0.4.0+1
   flutter_dotenv: ^5.1.0
   app_links: ^3.5.0
+  url_launcher: ^6.2.3
+  mockito: ^5.4.4
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +73,7 @@ flutter:
   assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+    - assets/account-outline.svg
     - supabase.env
 
   # An image asset can refer to one or more resolution-specific "variants", see

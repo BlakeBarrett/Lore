@@ -1,11 +1,19 @@
-import 'package:Lore/auth_widget.dart';
-import 'package:Lore/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class DrawerViewWidget extends StatelessWidget {
-  const DrawerViewWidget({super.key, this.authenticated = true});
+  const DrawerViewWidget(
+      {super.key,
+      this.userEmail = '',
+      this.authenticated = true,
+      required this.onLogout,
+      required this.onShowAuthWidget});
 
   final bool authenticated;
+  final String? userEmail;
+  final Function() onLogout;
+  final Function() onShowAuthWidget;
 
   @override
   Widget build(final BuildContext context) {
@@ -16,26 +24,38 @@ class DrawerViewWidget extends StatelessWidget {
             color: Theme.of(context).primaryColor,
           ),
           child: InkWell(
-              onTap: () => {
-                    if (!authenticated)
-                      {AuthWidget.showAuthWidget(context)}
-                  },
-              child: const Center(
-                child: Text('ಠ_ಠ'),
-              ))),
+              onTap: () => authenticated ? null : onShowAuthWidget(),
+              child: Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                    SvgPicture.asset(
+                      'assets/account-outline.svg',
+                    ),
+                    Text(userEmail ?? ''),
+                  ])))),
       ListTile(
+        enabled: authenticated,
         title: const Text("Logout"),
         onTap: () {
-          supabaseInstance.auth.signOut();
-          Navigator.pop(context);
+          Navigator.of(context).pop(context);
+          onLogout();
         },
       ),
-      const AboutListTile(
+      AboutListTile(
         applicationName: 'Lore',
         aboutBoxChildren: [
-          Text('Lore Ⓒ 2024 Blake Barrett.'),
-          Text('Lore is Open Source and everything is available on GitHub:'),
-          Text('https://github.com/BlakeBarrett/Lore')
+          const Text('Lore Ⓒ 2024 Blake Barrett.'),
+          const Text('Lore is Open Source, available on GitHub.'),
+          GestureDetector(
+            onTap: () async {
+              if (await canLaunchUrlString(
+                  'https://github.com/BlakeBarrett/Lore')) {
+                await launchUrlString('https://github.com/BlakeBarrett/Lore');
+              }
+            },
+            child: const Text('https://github.com/BlakeBarrett/Lore'),
+          ),
         ],
       ),
     ]));
