@@ -1,30 +1,55 @@
-import 'package:Lore/main.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 class AuthWidget extends StatefulWidget {
-  const AuthWidget({super.key});
+  final Function(String email) onEmailSubmitted;
+  final Function(String otp) onOtpSubmitted;
+
+  const AuthWidget({
+    super.key,
+    required this.onEmailSubmitted,
+    required this.onOtpSubmitted,
+  });
 
   @override
   State<StatefulWidget> createState() => _AuthWidgetState();
 
-  static void showAuthWidget(BuildContext context) {
+  static void showAuthWidget(
+    final BuildContext context,
+    final SupabaseClient supabaseInstance,
+  ) {
     Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => Scaffold(
-              appBar: AppBar(title: const Text('Authenticate')),
-              body: const AuthWidget(),
-            )));
+      builder: (final buildContext) {
+        String email = '';
+        return Scaffold(
+            appBar: AppBar(title: const Text('Authenticate')),
+            body: AuthWidget(onEmailSubmitted: (final String value) async {
+              email = value;
+              await supabaseInstance.auth.signInWithOtp(
+                  email: value, emailRedirectTo: 'lore://auth/callback');
+            }, onOtpSubmitted: (final String otp) async {
+              final AuthResponse res = await supabaseInstance.auth.verifyOTP(
+                type: OtpType.magiclink,
+                token: otp,
+                email: email,
+              );
+              debugPrint('Signed in with OTP: $res');
+              // ignore: use_build_context_synchronously
+              Navigator.of(context).pop();
+            }));
+      },
+    ));
   }
 }
 
 class _AuthWidgetState extends State<AuthWidget> {
+  String _email = '';
+
   @override
-  Widget build(BuildContext context) {
-    String email = '';
-    pop() => Navigator.of(context).pop();
+  Widget build(final BuildContext context) {
     return Material(
       color: Theme.of(context).colorScheme.background,
-        child: Container(
+      child: Container(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -37,12 +62,12 @@ class _AuthWidgetState extends State<AuthWidget> {
                     'To which e-mail address should we send a one time password?'),
                 TextField(
                   textInputAction: TextInputAction.send,
-                  readOnly: email != '',
+                  readOnly: _email != '',
                   onSubmitted: (value) async {
-                    email = value;
-                    await supabaseInstance.auth.signInWithOtp(
-                        email: value, emailRedirectTo: 'lore://auth/callback');
-                    setState(() {});
+                    setState(() {
+                      _email = value;
+                    });
+                    await widget.onEmailSubmitted(value);
                   },
                   decoration: const InputDecoration(
                     hintText: 'e-mail address',
@@ -58,19 +83,9 @@ class _AuthWidgetState extends State<AuthWidget> {
                 const Text('Now enter the one-time-password we sent.'),
                 TextField(
                   textInputAction: TextInputAction.send,
-                  enabled: email != '',
-                  readOnly: email != '',
-                  onSubmitted: (value) async {
-                    final AuthResponse res =
-                        await supabaseInstance.auth.verifyOTP(
-                      type: OtpType.magiclink,
-                      token: value,
-                      email: email,
-                    );
-                    debugPrint('$res');
-                    setState(() {});
-                    pop();
-                  },
+                  enabled: _email != '',
+                  readOnly: _email == '',
+                  onSubmitted: widget.onOtpSubmitted,
                   decoration: const InputDecoration(
                     hintText: 'One Time Password...',
                     border: OutlineInputBorder(),
@@ -78,21 +93,9 @@ class _AuthWidgetState extends State<AuthWidget> {
                 ),
               ],
             ),
-            const SizedBox(height: 40.0),
           ],
         ),
       ),
     );
   }
 }
-
-// SupaMagicAuth(
-//   onSuccess: (Session response) {
-//     debugPrint('$response');
-//     Navigator.of(context).pop();
-//   },
-//   onError: (error) {
-//     debugPrint('$error');
-//     Navigator.of(context).pop();
-//   },
-// )

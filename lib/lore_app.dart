@@ -130,7 +130,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           ),
           RemarkEntryWidget(
             enabled: _accessToken != null,
-            onLogin: () => AuthWidget.showAuthWidget(context),
+            onLogin: () => AuthWidget.showAuthWidget(context, supabaseInstance),
             onSubmitted: (value) async {
               await saveRemark(
                   remark: value,
@@ -149,7 +149,8 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         authenticated: _accessToken != null,
         userEmail: supabaseInstance.auth.currentUser?.email,
         onLogout: () => supabaseInstance.auth.signOut(),
-        onShowAuthWidget: () => AuthWidget.showAuthWidget(context),
+        onShowAuthWidget: () =>
+            AuthWidget.showAuthWidget(context, supabaseInstance),
       ),
     );
 

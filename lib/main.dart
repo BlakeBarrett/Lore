@@ -29,5 +29,5 @@ void main(List<String> args) async {
   runApp(const LoreApp());
 }
 
-final supabaseInstance = Supabase.instance.client;
+final SupabaseClient supabaseInstance = Supabase.instance.client;
 late final bool kIsDesktop;
