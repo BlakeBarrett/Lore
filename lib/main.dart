@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main(List<String> args) async {
+void main(final List<String> args) async {
+  debugPrint('main(args[]) = $args');
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: 'supabase.env');
   await Supabase.initialize(

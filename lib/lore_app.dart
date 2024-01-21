@@ -19,16 +19,23 @@ class LoreApp extends StatelessWidget {
   const LoreApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'LORE',
-      home: LoreScaffoldWidget(),
+  Widget build(final BuildContext context) {
+    String title = 'LORE';
+    return MaterialApp(
+      title: title,
+      home: LoreScaffoldWidget(
+        onTitleChange: (final String value) {
+          title = value;
+        },
+      ),
     );
   }
 }
 
 class LoreScaffoldWidget extends StatefulWidget {
-  const LoreScaffoldWidget({super.key});
+  const LoreScaffoldWidget({super.key, required this.onTitleChange});
+
+  final Function(String title) onTitleChange;
 
   @override
   State<StatefulWidget> createState() => _LoreScaffoldWidgetState();
@@ -43,6 +50,8 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
   late final StreamSubscription<AuthState> _authStateSubscription;
   final _appLinks = AppLinks();
+
+  String _title = 'LORE';
 
   @override
   void initState() {
@@ -114,7 +123,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
     final scaffold = Scaffold(
       appBar: AppBar(
-        title: const Text('LORE'),
+        title: Row(children: [
+          Text(_title),
+        ]),
       ),
       body: SafeArea(
           child: Column(
@@ -160,6 +171,8 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         setState(() {
           _artifact = values.first;
           _artifactsCalculating = 0;
+          _title = '${_artifact?.name} - LORE';
+          widget.onTitleChange(_title);
         });
       }
     }
