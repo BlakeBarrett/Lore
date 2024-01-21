@@ -23,6 +23,16 @@ class LoreApp extends StatelessWidget {
     String title = 'LORE';
     return MaterialApp(
       title: title,
+      theme: ThemeData(
+        primarySwatch: Colors.blueGrey,
+        primaryColor: Colors.deepOrange,
+        primaryTextTheme: const TextTheme(
+          bodyMedium: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+          ),
+        ),
+      ),
       home: LoreScaffoldWidget(
         onTitleChange: (final String value) {
           title = value;
@@ -123,8 +133,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
     final scaffold = Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).primaryColor,
         title: Row(children: [
-          Text(_title),
+          Text(_title, style: Theme.of(context).primaryTextTheme.displaySmall),
         ]),
       ),
       body: SafeArea(

@@ -30,9 +30,10 @@ class RemarkListWidget extends StatelessWidget {
   Widget build(final BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) => scrollToBottom());
     return ListView.builder(
+      shrinkWrap: true,
       controller: _scrollController,
       itemCount: _remarks.length,
-      itemBuilder: (context, index) {
+      itemBuilder: (final context, final index) {
         Remark remark = _remarks[index];
         return ListTile(
           leading: const Column(

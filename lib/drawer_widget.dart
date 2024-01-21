@@ -18,7 +18,7 @@ class DrawerWidget extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     return Drawer(
-        child: ListView(padding: EdgeInsets.zero, children: [
+        child: ListView(padding: EdgeInsets.zero, shrinkWrap: true, children: [
       DrawerHeader(
           decoration: BoxDecoration(
             color: Theme.of(context).primaryColor,
@@ -31,8 +31,15 @@ class DrawerWidget extends StatelessWidget {
                       children: [
                     SvgPicture.asset(
                       'assets/account-outline.svg',
+                      // ignore: deprecated_member_use
+                      color: Theme.of(context)
+                              .primaryTextTheme
+                              .titleSmall
+                              ?.color ??
+                          Colors.white,
                     ),
-                    Text(userEmail ?? ''),
+                    Text(userEmail ?? '',
+                        style: Theme.of(context).primaryTextTheme.titleSmall),
                   ])))),
       ListTile(
         enabled: authenticated,
