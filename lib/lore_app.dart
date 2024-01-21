@@ -3,15 +3,18 @@ import 'dart:async';
 import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
 import 'package:Lore/auth_widget.dart';
+import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
 import 'package:Lore/drawer_widget.dart';
 import 'package:Lore/file_drop_handlers.dart';
 import 'package:Lore/main.dart';
 import 'package:Lore/remark.dart';
+import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:regexpattern/regexpattern.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 // TODO: Integrate app_links to finish the magic link login flow: https://pub.dev/packages/app_links
@@ -62,6 +65,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   final _appLinks = AppLinks();
 
   String _title = 'LORE';
+  final _animatedSearchBarTextConroller = TextEditingController();
 
   @override
   void initState() {
@@ -121,6 +125,22 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     }
   }
 
+  Future<void> onSearch(final String value) async {
+    Artifact artifact;
+    if (value.isMD5()) {
+      artifact = Artifact.fromMd5(value);
+    } else if (value.isUri()) {
+      artifact = Artifact.fromURI(Uri.parse(value));
+    } else {
+      artifact = Artifact(path: value, md5sum: md5SumFor(value));
+    }
+    await saveArtifact(artifact);
+    await loadRemarks(md5sum: value);
+    setState(() {
+      _artifact = artifact;
+    });
+  }
+
   @override
   Widget build(final BuildContext context) {
     if (_artifact?.md5sum != null) {
@@ -134,9 +154,20 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     final scaffold = Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
-        title: Row(children: [
-          Text(_title, style: Theme.of(context).primaryTextTheme.displaySmall),
-        ]),
+        title: Expanded(
+          child: Row(children: [
+            Text(_title,
+                style: Theme.of(context).primaryTextTheme.displaySmall),
+            const Expanded(child: Spacer()),
+            AnimSearchBar(
+              width: 400,
+              textController: _animatedSearchBarTextConroller,
+              onSubmitted: onSearch,
+              onSuffixTap: () =>
+                  setState(() => _animatedSearchBarTextConroller.clear()),
+            ),
+          ]),
+        ),
       ),
       body: SafeArea(
           child: Column(

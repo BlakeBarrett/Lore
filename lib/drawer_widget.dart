@@ -52,17 +52,28 @@ class DrawerWidget extends StatelessWidget {
       AboutListTile(
         applicationName: 'Lore',
         aboutBoxChildren: [
-          const Text('Lore Ⓒ 2024 Blake Barrett.'),
-          const Text('Lore is Open Source, available on GitHub.'),
           GestureDetector(
-            onTap: () async {
-              if (await canLaunchUrlString(
-                  'https://github.com/BlakeBarrett/Lore')) {
-                await launchUrlString('https://github.com/BlakeBarrett/Lore');
-              }
-            },
-            child: const Text('https://github.com/BlakeBarrett/Lore'),
-          ),
+                onTap: () async {
+                  if (await canLaunchUrlString(
+                      'https://github.com/BlakeBarrett/Lore')) {
+                    await launchUrlString(
+                        'https://github.com/BlakeBarrett/Lore');
+                  }
+                },
+                child: Image.asset('assets/Lore_app_icon.png', width: 100, height: 100),
+              ),
+              const Text('Lore Ⓒ 2024 Blake Barrett.'),
+              const Text('Lore is Open Source, available on GitHub.'),
+              GestureDetector(
+                onTap: () async {
+                  if (await canLaunchUrlString(
+                      'https://github.com/BlakeBarrett/Lore')) {
+                    await launchUrlString(
+                        'https://github.com/BlakeBarrett/Lore');
+                  }
+                },
+                child: const Text('https://github.com/BlakeBarrett/Lore'),
+              ),
         ],
       ),
     ]));

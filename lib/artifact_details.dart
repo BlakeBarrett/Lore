@@ -38,7 +38,7 @@ class ArtifactDetailsWidget extends StatelessWidget {
                   )),
               Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(
+                  child: SelectableText(
                     md5sum,
                     style: Theme.of(context).primaryTextTheme.bodyMedium,
                   )),
