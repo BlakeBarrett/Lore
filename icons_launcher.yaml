@@ -1,0 +1,15 @@
+icons_launcher:
+  image_path: "assets/Lore_app_icon.png"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true
+    macos:
+      enable: true
+    linux:
+      enable: true
+    windows:
+      enable: true
+    web:
+      enable: true
