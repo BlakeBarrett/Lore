@@ -26,9 +26,8 @@ class LoreApp extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     String title = 'LORE';
-    return MaterialApp(
-      title: title,
-      theme: ThemeData(
+
+    final theme = ThemeData(
         primarySwatch: Colors.blueGrey,
         primaryColor: Colors.deepOrange,
         primaryTextTheme: const TextTheme(
@@ -37,7 +36,16 @@ class LoreApp extends StatelessWidget {
             fontSize: 18,
           ),
         ),
+      );
+
+    return MaterialApp(
+      title: title,
+      theme: theme,
+      darkTheme: ThemeData.dark().copyWith(
+        primaryColor: theme.primaryColor,
+        primaryTextTheme: theme.primaryTextTheme,
       ),
+      themeMode: ThemeMode.system,
       home: LoreScaffoldWidget(
         onTitleChange: (final String value) {
           title = value;
