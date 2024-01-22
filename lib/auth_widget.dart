@@ -18,11 +18,32 @@ class AuthWidget extends StatefulWidget {
     final BuildContext context,
     final SupabaseClient supabaseInstance,
   ) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (final buildContext) {
+    Navigator.of(context).push(PageRouteBuilder(
+      transitionsBuilder: (final context, final animation,
+          final secondaryAnimation, final child) {
+        const begin = Offset(-1.0, 0.0);
+        const end = Offset.zero;
+        const curve = Curves.ease;
+
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+      pageBuilder: (final context, final animation, final secondaryAnimation) {
         String email = '';
         return Scaffold(
-            appBar: AppBar(title: const Text('Authenticate')),
+            backgroundColor: Theme.of(context).colorScheme.background,
+            appBar: AppBar(
+              backgroundColor: Theme.of(context).primaryColor,
+              iconTheme: Theme.of(context).primaryIconTheme,
+              title: Text('Authenticate',
+                  overflow: TextOverflow.fade,
+                  style: Theme.of(context).primaryTextTheme.displaySmall),
+            ),
             body: AuthWidget(onEmailSubmitted: (final String value) async {
               email = value;
               await supabaseInstance.auth.signInWithOtp(
@@ -58,9 +79,12 @@ class _AuthWidgetState extends State<AuthWidget> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                    'To which e-mail address should we send a one time password?'),
+                Text(
+                  'To which e-mail address should we send a one time password?',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
                 TextField(
+                  style: Theme.of(context).textTheme.labelLarge,
                   textInputAction: TextInputAction.send,
                   readOnly: _email != '',
                   onSubmitted: (value) async {
@@ -80,8 +104,12 @@ class _AuthWidgetState extends State<AuthWidget> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Now enter the one-time-password we sent.'),
+                Text(
+                  'Now enter the one-time-password we sent.',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
                 TextField(
+                  style: Theme.of(context).textTheme.labelLarge,
                   textInputAction: TextInputAction.send,
                   enabled: _email != '',
                   readOnly: _email == '',

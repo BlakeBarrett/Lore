@@ -82,6 +82,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         supabaseInstance.auth.onAuthStateChange.listen((data) {
       // Handle user redirection after magic link login
       debugPrint('Supabase AuthStateChange: $data');
+      setState(() => {});
     });
     super.initState();
   }
@@ -263,12 +264,13 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         ],
       ),
       drawer: DrawerWidget(
-        authenticated: _accessToken != null,
-        userEmail: _userEmail,
-        onLogout: () => supabaseInstance.auth.signOut(),
-        onShowAuthWidget: () =>
-            AuthWidget.showAuthWidget(context, supabaseInstance),
-      ),
+          authenticated: _accessToken != null,
+          userEmail: _userEmail,
+          onLogout: () => supabaseInstance.auth.signOut(),
+          onShowAuthWidget: () {
+            Navigator.of(context).pop();
+            AuthWidget.showAuthWidget(context, supabaseInstance);
+          }),
     ));
 
     if (kIsDesktop) {
