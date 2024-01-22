@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:Lore/md5_utils.dart';
 
 class Artifact {
@@ -19,6 +21,14 @@ class Artifact {
 
   factory Artifact.fromMd5(final String value) {
     return Artifact(path: '', md5sum: value);
+  }
+
+  static Future<Artifact> fromFile(final File value) async {
+    final byteStream = value.openRead();
+              final md5sum = await calculateMD5(byteStream);
+              final Artifact artifact =
+                  Artifact(path: value.path, md5sum: md5sum);
+    return artifact;
   }
 
   String get name => (path.isNotEmpty)

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
@@ -12,6 +13,7 @@ import 'package:Lore/main.dart';
 import 'package:Lore/remark.dart';
 import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:app_links/app_links.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:regexpattern/regexpattern.dart';
@@ -56,20 +58,22 @@ class LoreScaffoldWidget extends StatefulWidget {
 
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? _artifact;
-  int _artifactsCalculating = 0;
+  bool _artifactsCalculating = false;
   String? get _accessToken => supabaseInstance.auth.currentSession?.accessToken;
-
+  String? get _userId => supabaseInstance.auth.currentUser?.id;
+  String? get _userEmail => supabaseInstance.auth.currentUser?.email;
   List<Remark> _remarks = Remark.dummyData;
-
-  late final StreamSubscription<AuthState> _authStateSubscription;
-  final _appLinks = AppLinks();
-
   String _title = 'LORE';
-  final _animatedSearchBarTextConroller = TextEditingController();
+
+  late final StreamSubscription<Uri> _appLinksSubscription;
+  late final StreamSubscription<AuthState> _authStateSubscription;
+
+  final TextEditingController _animatedSearchBarTextConroller =
+      TextEditingController();
 
   @override
   void initState() {
-    _appLinks.allUriLinkStream.listen((uri) {
+    _appLinksSubscription = AppLinks().allUriLinkStream.listen((uri) {
       // Do something (navigation, ...)
       debugPrint('app_links uri: $uri');
     });
@@ -83,6 +87,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
   @override
   void dispose() {
+    _appLinksSubscription.cancel();
     _authStateSubscription.cancel();
     super.dispose();
   }
@@ -126,6 +131,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   }
 
   Future<void> onSearch(final String value) async {
+    onCalculating(true);
     Artifact artifact;
     if (value.isMD5()) {
       artifact = Artifact.fromMd5(value);
@@ -135,9 +141,61 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       artifact = Artifact(path: value, md5sum: md5SumFor(value));
     }
     await saveArtifact(artifact);
-    await loadRemarks(md5sum: value);
+    await loadRemarks(md5sum: value).then((values) => setState(() {
+          _artifact = artifact;
+          _remarks = values;
+          _title = '${_artifact?.name} - LORE';
+        }));
+    onCalculating(false);
+  }
+
+  Future<void> onOpenFileTap() async {
+    final FilePickerResult? result = await FilePicker.platform
+        .pickFiles(type: FileType.any, allowMultiple: false);
+    if (result == null) {
+      return;
+    }
+    await onCalculating(true);
+    final PlatformFile first = result.files.first;
+    try {
+      if (first.bytes != null) {
+        final bytes = first.bytes!;
+        final byteStream = Stream.fromIterable([bytes]);
+        final md5sum = await calculateMD5(byteStream);
+        _artifact = Artifact(path: first.name, md5sum: md5sum);
+      } else {
+        final File file = File(first.path!);
+        _artifact = await Artifact.fromFile(file);
+      }
+    } catch (e) {
+      debugPrint('Error opening file: $e');
+      onCalculating(false);
+      return;
+    }
+    await saveArtifact(_artifact!);
+    await loadRemarks(md5sum: _artifact!.md5sum).then((values) {
+      setState(() {
+        _remarks = values;
+      });
+      onCalculating(false);
+    });
+  }
+
+  Future<void> onDrop(final dynamic values) async {
+    if (values.isNotEmpty) {
+      await saveArtifact(values.first);
+      setState(() {
+        _artifact = values.first;
+        _title = '${_artifact?.name} - LORE';
+        widget.onTitleChange(_title);
+      });
+      onCalculating(false);
+    }
+  }
+
+  Future<void> onCalculating(final bool artifactsCalculating) async {
     setState(() {
-      _artifact = artifact;
+      _artifactsCalculating = artifactsCalculating;
     });
   }
 
@@ -151,31 +209,41 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       });
     }
 
-    final scaffold = Scaffold(
+    final scaffold = SafeArea(
+        child: Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
-        title: Expanded(
-          child: Row(children: [
+        iconTheme: Theme.of(context).primaryIconTheme,
+        title: Row(
+          children: [
             Text(_title,
                 style: Theme.of(context).primaryTextTheme.displaySmall),
-            const Expanded(child: Spacer()),
-            AnimSearchBar(
-              width: 400,
-              textController: _animatedSearchBarTextConroller,
-              onSubmitted: onSearch,
-              onSuffixTap: () =>
-                  setState(() => _animatedSearchBarTextConroller.clear()),
-            ),
-          ]),
+          ],
         ),
+        actions: [
+          IconButton(
+              onPressed: onOpenFileTap, icon: const Icon(Icons.folder_open)),
+          AnimSearchBar(
+            width: MediaQuery.of(context).size.width - 80,
+            color: Theme.of(context).bannerTheme.backgroundColor,
+            textController: _animatedSearchBarTextConroller,
+            boxShadow: false,
+            helpText: 'Search by MD5 or URL',
+            onSubmitted: onSearch,
+            onSuffixTap: () =>
+                setState(() => _animatedSearchBarTextConroller.clear()),
+          ),
+        ],
       ),
-      body: SafeArea(
-          child: Column(
+      body: Flex(
+        direction: Axis.vertical,
+        mainAxisSize: MainAxisSize.max,
         children: [
-          (_artifactsCalculating > 0)
+          (_artifactsCalculating)
               ? const LinearProgressIndicator()
               : const SizedBox.shrink(),
-          ArtifactDetailsWidget(artifact: _artifact),
+          ArtifactDetailsWidget(
+              artifact: _artifact, onOpenFileTap: onOpenFileTap),
           Expanded(
             child: RemarkListWidget(
               remarks: _remarks,
@@ -186,9 +254,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             onLogin: () => AuthWidget.showAuthWidget(context, supabaseInstance),
             onSubmitted: (value) async {
               await saveRemark(
-                  remark: value,
-                  md5sum: _artifact?.md5sum,
-                  userId: supabaseInstance.auth.currentUser?.id);
+                  remark: value, md5sum: _artifact?.md5sum, userId: _userId);
               loadRemarks(md5sum: _artifact!.md5sum).then((values) {
                 setState(
                   () => _remarks = values,
@@ -197,33 +263,15 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             },
           ),
         ],
-      )),
+      ),
       drawer: DrawerWidget(
         authenticated: _accessToken != null,
-        userEmail: supabaseInstance.auth.currentUser?.email,
+        userEmail: _userEmail,
         onLogout: () => supabaseInstance.auth.signOut(),
         onShowAuthWidget: () =>
             AuthWidget.showAuthWidget(context, supabaseInstance),
       ),
-    );
-
-    onDrop(values) async {
-      if (values.isNotEmpty) {
-        await saveArtifact(values.first);
-        setState(() {
-          _artifact = values.first;
-          _artifactsCalculating = 0;
-          _title = '${_artifact?.name} - LORE';
-          widget.onTitleChange(_title);
-        });
-      }
-    }
-
-    onCalculating(artifactsCalculating) {
-      setState(() {
-        _artifactsCalculating = artifactsCalculating;
-      });
-    }
+    ));
 
     if (kIsDesktop) {
       return DesktopFileDropHandler(

@@ -50,6 +50,7 @@ dependencies:
   icons_launcher: ^2.1.7
   anim_search_bar: ^2.0.3
   regexpattern: ^2.6.0
+  file_picker: ^6.1.1
 
 dev_dependencies:
   flutter_test:

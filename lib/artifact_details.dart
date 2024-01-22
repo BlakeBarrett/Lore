@@ -3,8 +3,10 @@ import 'package:file_icon/file_icon.dart';
 import 'package:flutter/material.dart';
 
 class ArtifactDetailsWidget extends StatelessWidget {
-  const ArtifactDetailsWidget({super.key, this.artifact});
+  const ArtifactDetailsWidget(
+      {super.key, this.artifact, required this.onOpenFileTap});
 
+  final Function onOpenFileTap;
   final Artifact? artifact;
 
   @override
@@ -18,10 +20,23 @@ class ArtifactDetailsWidget extends StatelessWidget {
       width: MediaQuery.of(context).size.width,
       padding: const EdgeInsets.all(0.0),
       alignment: Alignment.center,
-      child: Row(children: [
-        FileIcon(name, size: 180),
-        Expanded(
+      child: Row(mainAxisSize: MainAxisSize.max, children: [
+        GestureDetector(
+            onTap: () {
+              onOpenFileTap();
+            },
+            child: Tooltip(
+                message: 'Browse for file',
+                child: SizedBox(
+                  width: 180,
+                  height: 180,
+                  child: FileIcon(name, size: 180),
+                ))),
+        Flexible(
+          flex: 2,
+          fit: FlexFit.loose,
           child: Column(
+            mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(

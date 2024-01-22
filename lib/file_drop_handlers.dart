@@ -5,6 +5,7 @@ import 'package:Lore/md5_utils.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
+import 'package:regexpattern/regexpattern.dart';
 
 class DesktopFileDropHandler extends StatelessWidget {
   const DesktopFileDropHandler(
@@ -14,7 +15,7 @@ class DesktopFileDropHandler extends StatelessWidget {
       required this.child});
 
   final Function(List<Artifact> values) onDrop;
-  final Function(int artifactsCalculating) onCalculating;
+  final Function(bool artifactsCalculating) onCalculating;
   final Widget child;
 
   @override
@@ -23,19 +24,14 @@ class DesktopFileDropHandler extends StatelessWidget {
         child: child,
         onDragDone: (final details) async {
           final files = details.files;
-          onCalculating(files.length);
+          onCalculating(files.isNotEmpty);
           if (files.isNotEmpty) {
             final List<Artifact> artifacts = [];
-            for (var i = 0; i < files.length; i++) {
-              final element = files[i];
-              final File file = File(element.path);
-              final byteStream = file.openRead();
-              final md5sum = await calculateMD5(byteStream);
-              final Artifact artifact =
-                  Artifact(path: file.path, md5sum: md5sum);
-              artifacts.add(artifact);
-              debugPrint('$artifact');
-            }
+            final element = files.first;
+            final File file = File(element.path);
+            final Artifact artifact = await Artifact.fromFile(file);
+            artifacts.add(artifact);
+            debugPrint('$artifact');
             onDrop(artifacts);
           }
         });
@@ -50,7 +46,7 @@ class WebFileDropHandler extends StatelessWidget {
       required this.child});
 
   final Function(List<Artifact> values) onDrop;
-  final Function(int artifactsCalculating) onCalculating;
+  final Function(bool artifactsCalculating) onCalculating;
   final Widget child;
 
   @override
@@ -63,28 +59,30 @@ class WebFileDropHandler extends StatelessWidget {
           onCreated: (final ctrl) => controller = ctrl,
           onDrop: (final value) async {
             debugPrint('DropzoneView.onDrop: $value');
-            onCalculating(1);
+            onCalculating(true);
             if (value is String) {
-              var md5sum = '';
-              try {
-                final uri = Uri.parse(value);
-                md5sum = md5SumFor(uri.toString());
-              } catch (e) {
-                debugPrint('$e');
-                md5sum = md5SumFor(value);
+              final Artifact artifact;
+              if (value.isMD5()) {
+                artifact = Artifact.fromMd5(value);
+              } else if (value.isUri()) {
+                artifact = Artifact.fromURI(Uri.parse(value));
+              } else {
+                artifact = Artifact(path: value, md5sum: md5SumFor(value));
               }
-              onDrop([Artifact(path: '', md5sum: md5sum)]);
+              onDrop([artifact]);
             } else if (value.toString() == '[object File]') {
               try {
-                final path = await controller.getFilename(value);
                 controller.createFileUrl(value);
+                final path = await controller.getFilename(value);
                 final bytes = await controller.getFileData(value);
                 final byteStream = Stream.fromIterable([bytes]);
                 final md5sum = await calculateMD5(byteStream);
-                onDrop([Artifact(path: path, md5sum: md5sum)]);
+                final artifact = Artifact(path: path, md5sum: md5sum);
+                onDrop([artifact]);
                 controller.releaseFileUrl(value);
               } catch (e) {
                 debugPrint('$e');
+                onCalculating(false);
               }
             } else {
               debugPrint('Received unkown: $value');
