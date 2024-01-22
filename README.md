@@ -1,3 +1,4 @@
+![Lore-AppIcon.png](./web/icons/Icon-512.png)
 # Lore
 
 The shared, single source of truth for everything.
@@ -10,6 +11,7 @@ The shared, single source of truth for everything.
 - [Clone the Repository](#clone-the-repository)
 - [Install dependencies](#install-dependencies)
 - [Run the App](#run-the-app)
+- [Deploy the Web App to Firebase](#deploy-the-web-app-to-firebase).
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -49,8 +51,14 @@ Navigate to the Lore project directory and run the app:
 cd Lore
 flutter run
 ```
-
 This command will build and run the app on your default device or emulator.
+
+## Deploy the Web App to Firebase
+```bash
+flutter build web --release
+firebase deploy
+```
+Firebase will deploy the web artifacts to: [https://lore-5b6b8.web.app/](https://lore-5b6b8.web.app/)
 
 ## Contributing
 
