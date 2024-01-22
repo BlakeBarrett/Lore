@@ -55,7 +55,7 @@ This command will build and run the app on your default device or emulator.
 
 ## Deploy the Web App to Firebase
 ```bash
-flutter build web --release
+flutter build web --release --no-tree-shake-icons
 firebase deploy
 ```
 Firebase will deploy the web artifacts to: [https://lore-5b6b8.web.app/](https://lore-5b6b8.web.app/)
