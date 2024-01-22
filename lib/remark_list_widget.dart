@@ -14,11 +14,15 @@ class RemarkListWidget extends StatelessWidget {
   final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
 
   void scrollToBottom() {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 420),
-      curve: Curves.easeOut,
-    );
+    try {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 420),
+        curve: Curves.easeOut,
+      );
+    } catch (e) {
+      debugPrint('$e');
+    }
   }
 
   String getFormattedDate(final Remark value) =>
