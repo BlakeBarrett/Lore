@@ -215,12 +215,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
         iconTheme: Theme.of(context).primaryIconTheme,
-        title: Row(
-          children: [
-            Text(_title,
-                style: Theme.of(context).primaryTextTheme.displaySmall),
-          ],
-        ),
+        title: Text(_title,
+            overflow: TextOverflow.fade,
+            style: Theme.of(context).primaryTextTheme.displaySmall),
         actions: [
           IconButton(
               onPressed: onOpenFileTap, icon: const Icon(Icons.folder_open)),
