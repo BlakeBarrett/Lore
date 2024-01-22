@@ -19,7 +19,6 @@ import 'package:flutter/material.dart';
 import 'package:regexpattern/regexpattern.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
-// TODO: Integrate app_links to finish the magic link login flow: https://pub.dev/packages/app_links
 // TODO: Replace "desktop_drop" and "flutter_dropzone" with https://pub.dev/packages/super_drag_and_drop
 class LoreApp extends StatelessWidget {
   const LoreApp({super.key});
