@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
 import 'package:Lore/auth_widget.dart';
+import 'package:Lore/lore_api.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
@@ -20,6 +21,9 @@ import 'package:regexpattern/regexpattern.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 // TODO: Replace "desktop_drop" and "flutter_dropzone" with https://pub.dev/packages/super_drag_and_drop
+// TODO: i18n for all the Strings
+// TODO: Add "Favorites" feature per user
+// TODO: Add image preview for media files
 class LoreApp extends StatelessWidget {
   const LoreApp({super.key});
 
@@ -28,15 +32,15 @@ class LoreApp extends StatelessWidget {
     String title = 'LORE';
 
     final theme = ThemeData(
-        primarySwatch: Colors.blueGrey,
-        primaryColor: Colors.deepOrange,
-        primaryTextTheme: const TextTheme(
-          bodyMedium: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-          ),
+      primarySwatch: Colors.blueGrey,
+      primaryColor: Colors.deepOrange,
+      primaryTextTheme: const TextTheme(
+        bodyMedium: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
         ),
-      );
+      ),
+    );
 
     return MaterialApp(
       title: title,
@@ -67,9 +71,6 @@ class LoreScaffoldWidget extends StatefulWidget {
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? _artifact;
   bool _artifactsCalculating = false;
-  String? get _accessToken => supabaseInstance.auth.currentSession?.accessToken;
-  String? get _userId => supabaseInstance.auth.currentUser?.id;
-  String? get _userEmail => supabaseInstance.auth.currentUser?.email;
   List<Remark> _remarks = Remark.dummyData;
   String _title = 'LORE';
 
@@ -101,61 +102,51 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     super.dispose();
   }
 
-  Future<void> saveArtifact(final Artifact artifact) async {
-    await supabaseInstance.from('Artifacts').upsert({
-      'name': artifact.name,
-      'md5': artifact.md5sum,
-    }).catchError((error) {
-      debugPrint('Error saving Artifact: $error');
-    });
-  }
-
-  Future<List<Remark>> loadRemarks({required final String md5sum}) async {
-    return await supabaseInstance
-        .from('Remarks')
-        .select()
-        .eq('artifact_md5', md5sum)
-        .order('created_at', ascending: true)
-        .then((value) =>
-            value.map((item) => Remark.fromAPIResponse(item)).toList());
-  }
-
-  Future<void> saveRemark(
-      {required final String remark,
-      required final String? md5sum,
-      required final String? userId}) async {
-    if ((userId?.isNotEmpty ?? false) && (md5sum?.isNotEmpty ?? false)) {
-      final Map<String, dynamic> payload = {
-        'artifact_md5': md5sum,
-        'remark': remark,
-        'user_id': userId,
-      };
-      await supabaseInstance
-          .from('Remarks')
-          .insert(payload)
-          .catchError((error) {
-        debugPrint('Error saving remark: $error');
-      });
-    }
-  }
-
-  Future<void> onSearch(final String value) async {
+  Future<void> onArtifactSelected(final dynamic value) async {
     onCalculating(true);
     Artifact artifact;
-    if (value.isMD5()) {
-      artifact = Artifact.fromMd5(value);
-    } else if (value.isUri()) {
-      artifact = Artifact.fromURI(Uri.parse(value));
+    if (value is Artifact) {
+      artifact = value;
+    } else if (value is PlatformFile) {
+      try {
+        if (value.bytes != null) {
+          final bytes = value.bytes!;
+          final byteStream = Stream.fromIterable([bytes]);
+          final md5sum = await calculateMD5(byteStream);
+          artifact = Artifact(path: value.name, md5sum: md5sum);
+        } else {
+          final File file = File(value.path!);
+          artifact = await Artifact.fromFile(file);
+        }
+      } catch (e) {
+        debugPrint('Error opening file: $e');
+        onCalculating(false);
+        return;
+      }
+    } else if (value is String) {
+      if (value.isMD5()) {
+        artifact = await Artifact.fromMd5(value);
+      } else if (value.isUri()) {
+        artifact = Artifact.fromURI(Uri.parse(value));
+      } else {
+        artifact = Artifact(path: value, md5sum: md5SumFor(value));
+      }
+    } else if (value is List) {
+      artifact = value.first;
     } else {
       artifact = Artifact(path: value, md5sum: md5SumFor(value));
     }
-    await saveArtifact(artifact);
-    await loadRemarks(md5sum: value).then((values) => setState(() {
-          _artifact = artifact;
-          _remarks = values;
-          _title = '${_artifact?.name} - LORE';
-        }));
+    await LoreAPI.saveArtifact(artifact);
+    await LoreAPI.loadRemarks(md5sum: artifact.md5sum)
+        .then((values) => setState(() {
+              _artifact = artifact;
+              _remarks = values;
+            }));
     onCalculating(false);
+  }
+
+  Future<void> onSearch(final String value) async {
+    return await onArtifactSelected(value);
   }
 
   Future<void> onOpenFileTap() async {
@@ -164,41 +155,13 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     if (result == null) {
       return;
     }
-    await onCalculating(true);
     final PlatformFile first = result.files.first;
-    try {
-      if (first.bytes != null) {
-        final bytes = first.bytes!;
-        final byteStream = Stream.fromIterable([bytes]);
-        final md5sum = await calculateMD5(byteStream);
-        _artifact = Artifact(path: first.name, md5sum: md5sum);
-      } else {
-        final File file = File(first.path!);
-        _artifact = await Artifact.fromFile(file);
-      }
-    } catch (e) {
-      debugPrint('Error opening file: $e');
-      onCalculating(false);
-      return;
-    }
-    await saveArtifact(_artifact!);
-    await loadRemarks(md5sum: _artifact!.md5sum).then((values) {
-      setState(() {
-        _remarks = values;
-      });
-      onCalculating(false);
-    });
+    return await onArtifactSelected(first);
   }
 
   Future<void> onDrop(final dynamic values) async {
     if (values.isNotEmpty) {
-      await saveArtifact(values.first);
-      setState(() {
-        _artifact = values.first;
-        _title = '${_artifact?.name} - LORE';
-        widget.onTitleChange(_title);
-      });
-      onCalculating(false);
+      return await onArtifactSelected(values.first);
     }
   }
 
@@ -211,9 +174,12 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   @override
   Widget build(final BuildContext context) {
     if (_artifact?.md5sum != null) {
-      loadRemarks(md5sum: _artifact!.md5sum).then((value) {
+      LoreAPI.loadRemarks(md5sum: _artifact!.md5sum).then((value) {
         setState(() {
           _remarks = value;
+          _title =
+              (_artifact?.name) != null ? '${_artifact?.name} - LORE' : 'LORE';
+          widget.onTitleChange(_title);
         });
       });
     }
@@ -255,24 +221,24 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               remarks: _remarks,
             ),
           ),
-          RemarkEntryWidget(
-            enabled: _accessToken != null,
-            onLogin: () => AuthWidget.showAuthWidget(context, supabaseInstance),
-            onSubmitted: (value) async {
-              await saveRemark(
-                  remark: value, md5sum: _artifact?.md5sum, userId: _userId);
-              loadRemarks(md5sum: _artifact!.md5sum).then((values) {
-                setState(
-                  () => _remarks = values,
-                );
-              });
-            },
-          ),
+          (_artifact == null)
+              ? const SizedBox.shrink()
+              : RemarkEntryWidget(
+                  enabled: LoreAPI.accessToken != null,
+                  onLogin: () =>
+                      AuthWidget.showAuthWidget(context, supabaseInstance),
+                  onSubmitted: (value) async {
+                    await LoreAPI.saveRemark(
+                        remark: value,
+                        md5sum: _artifact?.md5sum,
+                        userId: LoreAPI.userId);
+                  },
+                ),
         ],
       ),
       drawer: DrawerWidget(
-          authenticated: _accessToken != null,
-          userEmail: _userEmail,
+          authenticated: LoreAPI.accessToken != null,
+          userEmail: LoreAPI.userEmail,
           onLogout: () => supabaseInstance.auth.signOut(),
           onShowAuthWidget: () {
             Navigator.of(context).pop();

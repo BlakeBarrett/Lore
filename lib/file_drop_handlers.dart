@@ -63,7 +63,7 @@ class WebFileDropHandler extends StatelessWidget {
             if (value is String) {
               final Artifact artifact;
               if (value.isMD5()) {
-                artifact = Artifact.fromMd5(value);
+                artifact = await Artifact.fromMd5(value);
               } else if (value.isUri()) {
                 artifact = Artifact.fromURI(Uri.parse(value));
               } else {
