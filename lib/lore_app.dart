@@ -23,7 +23,6 @@ import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 // TODO: Replace "desktop_drop" and "flutter_dropzone" with https://pub.dev/packages/super_drag_and_drop
 // TODO: i18n for all the Strings
 // TODO: Add "Favorites" feature per user
-// TODO: Add image preview for media files
 class LoreApp extends StatelessWidget {
   const LoreApp({super.key});
 
