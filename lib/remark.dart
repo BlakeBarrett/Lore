@@ -4,7 +4,7 @@ class Remark {
   final String author;
   final DateTime timestamp;
 
-  const Remark(this.text, this.author, this.timestamp, [this.id]);
+  const Remark(this.text, this.author, this.timestamp, [this.id = -1]);
   Remark.fromAPIResponse(final Map<String, dynamic> response)
       : text = response['remark'],
         author = response['user_id'],

@@ -8,14 +8,14 @@ class RemarkListWidget extends StatelessWidget {
       {super.key,
       required List<Remark>? remarks,
       required String? currentUser,
-      required onDeleteRemark})
+      Function(Remark remark)? onDeleteRemark})
       : _remarks = remarks,
         _currentUser = currentUser,
         _onDeleteRemark = onDeleteRemark;
 
   final List<Remark>? _remarks;
   final String? _currentUser;
-  final Function(Remark remark) _onDeleteRemark;
+  final Function(Remark remark)? _onDeleteRemark;
   final ScrollController _scrollController = ScrollController(
     keepScrollOffset: true,
   );
@@ -43,15 +43,14 @@ class RemarkListWidget extends StatelessWidget {
       return PopupMenuButton(
         onSelected: (final value) {
           if (value == 'delete') {
-            _onDeleteRemark(remark);
+            _onDeleteRemark?.call(remark);
           }
         },
         itemBuilder: (context) {
           return [
-            PopupMenuItem(
+            const PopupMenuItem(
               value: 'delete',
-              child: const Text('Delete'),
-              onTap: () => _onDeleteRemark(remark),
+              child: Text('Delete'),
             ),
           ];
         },
