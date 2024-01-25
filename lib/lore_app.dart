@@ -6,6 +6,7 @@ import 'package:Lore/artifact_details.dart';
 import 'package:Lore/auth_widget.dart';
 import 'package:Lore/lore_api.dart';
 import 'package:Lore/md5_utils.dart';
+import 'package:Lore/remark.dart';
 import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
 import 'package:Lore/drawer_widget.dart';
@@ -201,7 +202,15 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               artifact: _artifact, onOpenFileTap: onOpenFileTap),
           Expanded(
             child: RemarkListWidget(
-              remarks: _artifact?.remarks,
+              remarks:
+                  (_artifact != null) ? _artifact?.remarks : Remark.dummyData,
+              currentUser: LoreAPI.userId,
+              onDeleteRemark: (final Remark deleteMe) async {
+                await LoreAPI.deleteRemark(remark: deleteMe).then((value) {
+                  _artifact?.remarks?.remove(deleteMe);
+                  setState(() {});
+                });
+              },
             ),
           ),
           (_artifact == null)

@@ -4,10 +4,18 @@ import 'package:intl/intl.dart';
 
 @immutable
 class RemarkListWidget extends StatelessWidget {
-  RemarkListWidget({super.key, required List<Remark>? remarks})
-      : _remarks = remarks;
+  RemarkListWidget(
+      {super.key,
+      required List<Remark>? remarks,
+      required String? currentUser,
+      required onDeleteRemark})
+      : _remarks = remarks,
+        _currentUser = currentUser,
+        _onDeleteRemark = onDeleteRemark;
 
   final List<Remark>? _remarks;
+  final String? _currentUser;
+  final Function(Remark remark) _onDeleteRemark;
   final ScrollController _scrollController = ScrollController(
     keepScrollOffset: true,
   );
@@ -30,6 +38,28 @@ class RemarkListWidget extends StatelessWidget {
   String getToolTipText(final Remark remark) =>
       'TimeStamp: ${getFormattedDate(remark)}\nAuthor: ${remark.author}';
 
+  PopupMenuButton? getContextMenu(final Remark remark) {
+    if (remark.author == _currentUser) {
+      return PopupMenuButton(
+        onSelected: (final value) {
+          if (value == 'delete') {
+            _onDeleteRemark(remark);
+          }
+        },
+        itemBuilder: (context) {
+          return [
+            PopupMenuItem(
+              value: 'delete',
+              child: const Text('Delete'),
+              onTap: () => _onDeleteRemark(remark),
+            ),
+          ];
+        },
+      );
+    }
+    return null;
+  }
+
   @override
   Widget build(final BuildContext context) {
     if (_remarks == null) return const Spacer(flex: 1);
@@ -45,12 +75,14 @@ class RemarkListWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [Icon(Icons.comment)]),
           title: Text(remark.text),
+          trailing: getContextMenu(remark),
           subtitle: Tooltip(
-              message: getToolTipText(remark),
-              child: Text(
-                getFormattedDate(remark),
-                style: Theme.of(context).textTheme.labelSmall,
-              )),
+            message: getToolTipText(remark),
+            child: Text(
+              getFormattedDate(remark),
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+          ),
         );
       },
     );

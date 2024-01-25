@@ -17,7 +17,7 @@ void main() {
 
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
-          body: RemarkListWidget(remarks: remarks),
+          body: RemarkListWidget(remarks: remarks, currentUser: '', onDeleteRemark: (){},),
         ),
       ));
 

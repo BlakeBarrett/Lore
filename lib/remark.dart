@@ -1,13 +1,15 @@
 class Remark {
+  final int? id;
   final String text;
   final String author;
   final DateTime timestamp;
 
-  const Remark(this.text, this.author, this.timestamp);
+  const Remark(this.text, this.author, this.timestamp, [this.id]);
   Remark.fromAPIResponse(final Map<String, dynamic> response)
       : text = response['remark'],
         author = response['user_id'],
-        timestamp = DateTime.parse(response['created_at']).toLocal();
+        timestamp = DateTime.parse(response['created_at']).toLocal(),
+        id = response['id'];
 
   static DateTime getTimeStamp(final String value) =>
       DateTime.parse(value).toLocal();

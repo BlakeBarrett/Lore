@@ -26,7 +26,6 @@ class ArtifactDetailsWidget extends StatelessWidget {
         color: Theme.of(context).primaryColor,
       );
     }
-    final bool hasImage = (image != null);
 
     return Container(
       color: Theme.of(context).primaryColor,
@@ -41,15 +40,22 @@ class ArtifactDetailsWidget extends StatelessWidget {
             child: Tooltip(
                 message: 'Browse for file',
                 child: SizedBox(
-                  width: size.width,
-                  height: size.height,
-                  child: (hasImage)
-                      ? Image(
-                          image: image.image,
-                          fit: BoxFit.contain,
-                        )
-                      : FileIcon(name, size: size.height),
-                ))),
+                    width: size.width,
+                    height: size.height,
+                    child: Stack(
+                      alignment: const Alignment(0, 0),
+                      fit: StackFit.expand,
+                      children: [
+                        FileIcon(name, size: size.height),
+                        (image != null)
+                            ? Image(
+                                image: image.image,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                              )
+                            : const SizedBox.shrink(),
+                      ],
+                    )))),
         Flexible(
           flex: 2,
           fit: FlexFit.tight,

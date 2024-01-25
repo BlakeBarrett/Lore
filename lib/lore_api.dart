@@ -56,4 +56,15 @@ abstract class LoreAPI {
       });
     }
   }
+
+  static Future<void> deleteRemark({required final Remark remark}) async {
+    if (remark.id == null) return;
+    await supabaseInstance
+        .from('Remarks')
+        .delete()
+        .eq('id', remark.id?.toInt() ?? -1)
+        .catchError((error) {
+      debugPrint('Error deleting remark: $error');
+    });
+  }
 }
