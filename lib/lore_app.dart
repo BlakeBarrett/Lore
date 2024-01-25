@@ -11,7 +11,6 @@ import 'package:Lore/remark_list_widget.dart';
 import 'package:Lore/drawer_widget.dart';
 import 'package:Lore/file_drop_handlers.dart';
 import 'package:Lore/main.dart';
-import 'package:Lore/remark.dart';
 import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:app_links/app_links.dart';
 import 'package:file_picker/file_picker.dart';
@@ -70,8 +69,6 @@ class LoreScaffoldWidget extends StatefulWidget {
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? _artifact;
   bool _artifactsCalculating = false;
-  List<Remark> _remarks = Remark.dummyData;
-  String _title = 'LORE';
 
   late final StreamSubscription<Uri> _appLinksSubscription;
   late final StreamSubscription<AuthState> _authStateSubscription;
@@ -136,11 +133,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       artifact = Artifact(path: value, md5sum: md5SumFor(value));
     }
     await LoreAPI.saveArtifact(artifact);
-    await LoreAPI.loadRemarks(md5sum: artifact.md5sum)
-        .then((values) => setState(() {
-              _artifact = artifact;
-              _remarks = values;
-            }));
+    await artifact.refreshRemarks().then((values) => setState(() {
+          _artifact = artifact;
+        }));
     onCalculating(false);
   }
 
@@ -172,23 +167,12 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
   @override
   Widget build(final BuildContext context) {
-    if (_artifact?.md5sum != null) {
-      LoreAPI.loadRemarks(md5sum: _artifact!.md5sum).then((value) {
-        setState(() {
-          _remarks = value;
-          _title =
-              (_artifact?.name) != null ? '${_artifact?.name} - LORE' : 'LORE';
-          widget.onTitleChange(_title);
-        });
-      });
-    }
-
     final scaffold = SafeArea(
         child: Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
         iconTheme: Theme.of(context).primaryIconTheme,
-        title: Text(_title,
+        title: Text("LORE",
             overflow: TextOverflow.fade,
             style: Theme.of(context).primaryTextTheme.displaySmall),
         actions: [
@@ -217,7 +201,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               artifact: _artifact, onOpenFileTap: onOpenFileTap),
           Expanded(
             child: RemarkListWidget(
-              remarks: _remarks,
+              remarks: _artifact?.remarks,
             ),
           ),
           (_artifact == null)
@@ -231,6 +215,8 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
                         remark: value,
                         md5sum: _artifact?.md5sum,
                         userId: LoreAPI.userId);
+                    await _artifact?.refreshRemarks();
+                    setState(() {});
                   },
                 ),
         ],

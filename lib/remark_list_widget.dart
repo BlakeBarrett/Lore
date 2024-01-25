@@ -4,10 +4,10 @@ import 'package:intl/intl.dart';
 
 @immutable
 class RemarkListWidget extends StatelessWidget {
-  RemarkListWidget({super.key, required List<Remark> remarks})
+  RemarkListWidget({super.key, required List<Remark>? remarks})
       : _remarks = remarks;
 
-  final List<Remark> _remarks;
+  final List<Remark>? _remarks;
   final ScrollController _scrollController = ScrollController(
     keepScrollOffset: true,
   );
@@ -32,6 +32,7 @@ class RemarkListWidget extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
+    if (_remarks == null) return const Spacer(flex: 1);
     WidgetsBinding.instance.addPostFrameCallback((_) => scrollToBottom());
     return ListView.builder(
       shrinkWrap: true,

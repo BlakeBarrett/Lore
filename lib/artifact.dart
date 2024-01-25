@@ -2,14 +2,25 @@ import 'dart:io';
 
 import 'package:Lore/lore_api.dart';
 import 'package:Lore/md5_utils.dart';
+import 'package:Lore/remark.dart';
 
 class Artifact {
   final String path;
   final String md5sum;
 
   final int? length;
+  File? get file => File(path);
+  List<Remark>? remarks;
 
-  const Artifact({required this.path, required this.md5sum, this.length});
+  String get name => (path.isNotEmpty)
+      ? path
+          .substring(path.lastIndexOf('/') + 1)
+          .substring(path.lastIndexOf('\\') + 1)
+      : '';
+
+  Artifact({required this.path, required this.md5sum, this.length}) {
+    refreshRemarks();
+  }
 
   factory Artifact.fromURI(final Uri uri) {
     final String value = uri.toString().endsWith('/')
@@ -34,16 +45,13 @@ class Artifact {
     return artifact;
   }
 
-  String get name => (path.isNotEmpty)
-      ? path
-          .substring(path.lastIndexOf('/') + 1)
-          .substring(path.lastIndexOf('\\') + 1)
-      : '';
+  Future<List<Remark>> refreshRemarks() async {
+    return await LoreAPI.loadRemarks(md5sum: md5sum)
+        .then((values) => remarks = values);
+  }
 
   @override
   String toString() {
     return '$md5sum $path';
   }
-
-  File? get file => File(path);
 }
