@@ -177,17 +177,23 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             overflow: TextOverflow.fade,
             style: Theme.of(context).primaryTextTheme.displaySmall),
         actions: [
-          IconButton(
-              onPressed: onOpenFileTap, icon: const Icon(Icons.folder_open)),
-          AnimSearchBar(
-            width: MediaQuery.of(context).size.width - 80,
-            color: Theme.of(context).bannerTheme.backgroundColor,
-            textController: _animatedSearchBarTextConroller,
-            boxShadow: false,
-            helpText: 'Search by MD5 or URL',
-            onSubmitted: onSearch,
-            onSuffixTap: () =>
-                setState(() => _animatedSearchBarTextConroller.clear()),
+          Tooltip(
+            message: 'Browse for file',
+            child: IconButton(
+                onPressed: onOpenFileTap, icon: const Icon(Icons.folder_open)),
+          ),
+          Tooltip(
+            message: 'Search by MD5 or URL',
+            child: AnimSearchBar(
+              width: MediaQuery.of(context).size.width - 80,
+              color: Theme.of(context).bannerTheme.backgroundColor,
+              textController: _animatedSearchBarTextConroller,
+              boxShadow: false,
+              helpText: 'Search by MD5 or URL',
+              onSubmitted: onSearch,
+              onSuffixTap: () =>
+                  setState(() => _animatedSearchBarTextConroller.clear()),
+            ),
           ),
         ],
       ),
