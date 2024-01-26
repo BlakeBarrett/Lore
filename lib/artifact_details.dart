@@ -58,8 +58,10 @@ class ArtifactDetailsWidget extends StatelessWidget {
                             ? Image(
                                 image: image.image,
                                 fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const SizedBox.shrink(),
+                                errorBuilder: (_, error, ___) {
+                                  debugPrint('Error: $error');
+                                  return const SizedBox.shrink();
+                                },
                               )
                             : const SizedBox.shrink(),
                       ],
