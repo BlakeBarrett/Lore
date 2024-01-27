@@ -40,7 +40,7 @@ class DrawerWidget extends StatelessWidget {
                             child: Tooltip(
                               message: 'Avarars by Gravatar',
                               child: Image.network(
-                                'http://www.gravatar.com/avatar/${md5SumFor(userEmail!)}?s=100',
+                                'https://www.gravatar.com/avatar/${md5SumFor(userEmail!)}?s=100',
                                 fit: BoxFit.cover,
                                 width: 100,
                                 height: 100,
