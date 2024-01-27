@@ -36,15 +36,18 @@ class _RemarkEntryWidgetState extends State<RemarkEntryWidget> {
   @override
   Widget build(final BuildContext context) {
     return Tooltip(
-        message: widget.enabled ? 'Add a remark...' : 'Login to add a remark.\r\nClick to login.',
+        message: widget.enabled
+            ? 'Add a remark...'
+            : 'Login to add a remark.\r\nClick to login.',
         child: GestureDetector(
             onTap: () {
               if (!widget.enabled) widget.onLogin?.call();
             },
             child: Container(
               padding: const EdgeInsets.all(16.0),
-              color: Colors.grey[200],
+              color: Theme.of(context).colorScheme.surface,
               child: TextField(
+                style: Theme.of(context).textTheme.bodyMedium,
                 controller: _controller,
                 enabled: widget.enabled,
                 textInputAction: TextInputAction.send,

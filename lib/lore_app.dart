@@ -189,7 +189,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               message: 'Search by MD5 or URL',
               child: AnimSearchBar(
                 width: MediaQuery.of(context).size.width - 100,
-                color: Theme.of(context).iconTheme.color,
+                color: Theme.of(context).colorScheme.background,
                 textFieldIconColor: Theme.of(context).primaryColor,
                 searchIconColor: Theme.of(context).primaryColor,
                 textController: _animatedSearchBarTextConroller,
