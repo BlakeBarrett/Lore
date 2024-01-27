@@ -75,11 +75,15 @@ class RemarkListWidget extends StatelessWidget {
               children: [Icon(Icons.comment)]),
           title: Text(remark.text),
           trailing: getContextMenu(remark),
-          subtitle: Tooltip(
-            message: getToolTipText(remark),
-            child: Text(
-              getFormattedDate(remark),
-              style: Theme.of(context).textTheme.labelSmall,
+          subtitle: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Tooltip(
+              message: getToolTipText(remark),
+              child: Text(
+                getFormattedDate(remark),
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
             ),
           ),
         );
