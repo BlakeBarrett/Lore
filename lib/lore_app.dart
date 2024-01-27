@@ -87,6 +87,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         supabaseInstance.auth.onAuthStateChange.listen((data) {
       // Handle user redirection after magic link login
       debugPrint('Supabase AuthStateChange: $data');
+
       setState(() => {});
     });
     super.initState();
@@ -182,17 +183,22 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             child: IconButton(
                 onPressed: onOpenFileTap, icon: const Icon(Icons.folder_open)),
           ),
-          Tooltip(
-            message: 'Search by MD5 or URL',
-            child: AnimSearchBar(
-              width: MediaQuery.of(context).size.width - 80,
-              color: Theme.of(context).bannerTheme.backgroundColor,
-              textController: _animatedSearchBarTextConroller,
-              boxShadow: false,
-              helpText: 'Search by MD5 or URL',
-              onSubmitted: onSearch,
-              onSuffixTap: () =>
-                  setState(() => _animatedSearchBarTextConroller.clear()),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Tooltip(
+              message: 'Search by MD5 or URL',
+              child: AnimSearchBar(
+                width: MediaQuery.of(context).size.width - 100,
+                color: Theme.of(context).iconTheme.color,
+                textFieldIconColor: Theme.of(context).primaryColor,
+                searchIconColor: Theme.of(context).primaryColor,
+                textController: _animatedSearchBarTextConroller,
+                boxShadow: false,
+                helpText: 'Search by MD5 or URL',
+                onSubmitted: onSearch,
+                onSuffixTap: () =>
+                    setState(() => _animatedSearchBarTextConroller.clear()),
+              ),
             ),
           ),
         ],
