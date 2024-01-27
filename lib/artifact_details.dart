@@ -1,5 +1,6 @@
 import 'package:Lore/artifact.dart';
 import 'package:file_icon/file_icon.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/services.dart';
@@ -25,7 +26,7 @@ class ArtifactDetailsWidget extends StatelessWidget {
     const Size size = Size(180, 180);
     Image? image;
 
-    if (artifact?.file != null) {
+    if (artifact?.file != null && !kIsWeb) {
       image = Image.file(
         artifact!.file!,
         fit: BoxFit.cover,
