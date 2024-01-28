@@ -4,13 +4,13 @@ import 'dart:io';
 import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
 import 'package:Lore/auth_widget.dart';
+import 'package:Lore/file_drop_handlers.dart';
 import 'package:Lore/lore_api.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark.dart';
 import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
 import 'package:Lore/drawer_widget.dart';
-import 'package:Lore/file_drop_handlers.dart';
 import 'package:Lore/main.dart';
 import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:app_links/app_links.dart';
@@ -69,6 +69,7 @@ class LoreScaffoldWidget extends StatefulWidget {
 
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? _artifact;
+  final List<String> _favorites = [];
   bool _artifactsCalculating = false;
 
   late final StreamSubscription<Uri> _appLinksSubscription;
@@ -89,12 +90,12 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       }
     });
     _authStateSubscription =
-        supabaseInstance.auth.onAuthStateChange.listen((data) {
+        supabaseInstance.auth.onAuthStateChange.listen((data) async {
       // Handle user redirection after magic link login
       debugPrint('Supabase AuthStateChange: $data');
-
       setState(() => {});
     });
+    loadFavorites();
     super.initState();
   }
 
@@ -160,6 +161,24 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     return await onArtifactSelected(first);
   }
 
+  Future<void> onFavoriteTap(final bool isFavorite) async {
+    if (_artifact == null || LoreAPI.userId == null) return;
+
+    if (_favorites.contains(_artifact?.md5sum)) {
+      await LoreAPI.removeFromFavorites(
+          artifact: _artifact!, userId: LoreAPI.userId);
+      setState(() {
+        _favorites.remove(_artifact?.md5sum);
+      });
+    } else {
+      await LoreAPI.addToFavorites(
+          artifact: _artifact!, userId: LoreAPI.userId);
+      setState(() {
+        _favorites.add(_artifact!.md5sum);
+      });
+    }
+  }
+
   Future<void> onDrop(final dynamic values) async {
     if (values.isNotEmpty) {
       return await onArtifactSelected(values.first);
@@ -169,6 +188,16 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Future<void> onCalculating(final bool artifactsCalculating) async {
     setState(() {
       _artifactsCalculating = artifactsCalculating;
+    });
+  }
+
+  Future<void> loadFavorites() async {
+    if (LoreAPI.userId == null) return;
+    final List<String> favorites =
+        await LoreAPI.loadFavorites(userId: LoreAPI.userId);
+    setState(() {
+      _favorites.clear();
+      _favorites.addAll(favorites);
     });
   }
 
@@ -216,7 +245,11 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               ? const LinearProgressIndicator()
               : const SizedBox.shrink(),
           ArtifactDetailsWidget(
-              artifact: _artifact, onOpenFileTap: onOpenFileTap),
+            artifact: _artifact,
+            isFavorite: _favorites.contains(_artifact?.md5sum),
+            onOpenFileTap: onOpenFileTap,
+            onFavoriteTap: onFavoriteTap,
+          ),
           Expanded(
             child: RemarkListWidget(
               remarks:
@@ -257,14 +290,12 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           }),
     ));
 
-    if (kIsDesktop) {
-      return DesktopFileDropHandler(
-          onCalculating: onCalculating, onDrop: onDrop, child: scaffold);
-    } else if (kIsWeb) {
-      return WebFileDropHandler(
-          onCalculating: onCalculating, onDrop: onDrop, child: scaffold);
-    } else {
-      return scaffold;
-    }
+    return (kIsDesktop)
+        ? DesktopFileDropHandler(
+            onCalculating: onCalculating, onDrop: onDrop, child: scaffold)
+        : (kIsWeb)
+            ? WebFileDropHandler(
+                onCalculating: onCalculating, onDrop: onDrop, child: scaffold)
+            : scaffold;
   }
 }

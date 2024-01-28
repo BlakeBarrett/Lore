@@ -9,8 +9,8 @@ class ArtifactDetailsWidget extends StatelessWidget {
   const ArtifactDetailsWidget(
       {super.key,
       this.artifact,
+      required this.isFavorite,
       required this.onOpenFileTap,
-      this.isFavorite = false,
       this.onFavoriteTap});
 
   final Function onOpenFileTap;
@@ -92,7 +92,6 @@ class ArtifactDetailsWidget extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
-                  mainAxisSize: MainAxisSize.max,
                   children: [
                     SelectableText(
                       md5sum,
@@ -101,29 +100,27 @@ class ArtifactDetailsWidget extends StatelessWidget {
                     const Spacer(flex: 2),
                     (artifact?.md5sum == null || artifact!.md5sum.isEmpty)
                         ? const SizedBox.shrink()
-                        : Tooltip(
-                            message: 'Copy to clipboard',
-                            child: IconButton(
+                        : Row(children: [
+                            IconButton(
                               color: Theme.of(context).primaryIconTheme.color,
                               icon: const Icon(Icons.copy),
+                              tooltip: 'Copy to clipboard',
                               onPressed: () {
                                 Clipboard.setData(ClipboardData(text: md5sum));
                               },
                             ),
-                          ),
-                    // add to Favorites
-                    // Tooltip(
-                    //     message: 'Add to favorites',
-                    //     child: IconButton(
-                    //       color: Theme.of(context).primaryIconTheme.color,
-                    //       icon: Icon((isFavorite)
-                    //       ? Icons.favorite
-                    //       : Icons.favorite_outline),
-                    //       onPressed: () {
-                    //         onFavoriteTap?.call(true);
-                    //       },
-                    //     ),
-                    // ),
+                            // add to Favorites
+                            IconButton(
+                              color: Theme.of(context).primaryIconTheme.color,
+                              icon: Icon((isFavorite == true)
+                                  ? Icons.favorite
+                                  : Icons.favorite_outline),
+                              tooltip: 'Add to favorites',
+                              onPressed: () {
+                                onFavoriteTap?.call(!isFavorite);
+                              },
+                            ),
+                          ]),
                   ],
                 ),
               ),

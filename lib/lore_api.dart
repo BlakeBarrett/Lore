@@ -67,4 +67,47 @@ abstract class LoreAPI {
       debugPrint('Error deleting remark: $error');
     });
   }
+
+  static Future<void> addToFavorites(
+      {required final Artifact? artifact,
+      required final String? userId}) async {
+    if (artifact == null || userId == null) return;
+    await supabaseInstance
+        .from('Favorites')
+        .insert({'user_id': userId, 'artifact_md5': artifact.md5sum})
+        .then((value) => debugPrint('Added to favorites: $value'))
+        .catchError((error) {
+          debugPrint('Error adding to favorites: $error');
+        });
+  }
+
+  static Future<void> removeFromFavorites(
+      {required final Artifact? artifact,
+      required final String? userId}) async {
+    if (artifact == null || userId == null) return;
+    await supabaseInstance
+        .from('Favorites')
+        .delete()
+        .eq('user_id', userId)
+        .eq('artifact_md5', artifact.md5sum)
+        .then((value) => debugPrint('Removed from favorites: $value'))
+        .catchError((error) {
+      debugPrint('Error removing from favorites: $error');
+    });
+  }
+
+  static Future<List<String>> loadFavorites(
+      {required final String? userId}) async {
+    if (userId == null) return [];
+    final List<String> favorites = [];
+    await supabaseInstance
+        .from('Favorites')
+        .select('artifact_md5')
+        .eq('user_id', userId)
+        .then((value) => value.map((item) {
+              favorites.add(item['artifact_md5'] as String);
+            }).toList());
+    return favorites;
+    // value.map((item) => Artifact.fromAPIResponse(item)).toList());
+  }
 }
