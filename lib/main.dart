@@ -21,7 +21,7 @@ void main(final List<String> args) async {
         Platform.isFuchsia ||
         Platform.isMacOS) {
       kIsDesktop = true;
-      window_size.DesktopWindow.setWindowSize(const Size(600, 1000));
+      window_size.DesktopWindow.setWindowSize(const Size(800, 1000));
     }
   } catch (e) {
     kIsDesktop = false;
