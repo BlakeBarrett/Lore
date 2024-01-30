@@ -96,18 +96,15 @@ abstract class LoreAPI {
     });
   }
 
-  static Future<List<String>> loadFavorites(
+  static Future<List<Artifact>> loadFavoritesArtifacts(
       {required final String? userId}) async {
     if (userId == null) return [];
-    final List<String> favorites = [];
-    await supabaseInstance
-        .from('Favorites')
-        .select('artifact_md5')
-        .eq('user_id', userId)
-        .then((value) => value.map((item) {
-              favorites.add(item['artifact_md5'] as String);
-            }).toList());
-    return favorites;
-    // value.map((item) => Artifact.fromAPIResponse(item)).toList());
+    final results = await supabaseInstance
+        .rpc('getfavoriteartifactsfor', params: {'userid': userId});
+    final List<Artifact> artifacts = [];
+    results.forEach((element) {
+      artifacts.add(Artifact.fromAPIResponse(element));
+    });
+    return artifacts;
   }
 }

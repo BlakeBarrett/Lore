@@ -4,14 +4,14 @@ import 'dart:io';
 import 'package:Lore/artifact.dart';
 import 'package:Lore/artifact_details.dart';
 import 'package:Lore/auth_widget.dart';
+import 'package:Lore/drawer_widget.dart';
 import 'package:Lore/file_drop_handlers.dart';
 import 'package:Lore/lore_api.dart';
+import 'package:Lore/main.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark.dart';
 import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
-import 'package:Lore/drawer_widget.dart';
-import 'package:Lore/main.dart';
 import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:app_links/app_links.dart';
 import 'package:file_picker/file_picker.dart';
@@ -69,7 +69,7 @@ class LoreScaffoldWidget extends StatefulWidget {
 
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? _artifact;
-  final List<String> _favorites = [];
+  final List<Artifact> _favorites = [];
   bool _artifactsCalculating = false;
 
   late final StreamSubscription<Uri> _appLinksSubscription;
@@ -164,17 +164,17 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Future<void> onFavoriteTap(final bool isFavorite) async {
     if (_artifact == null || LoreAPI.userId == null) return;
 
-    if (_favorites.contains(_artifact?.md5sum)) {
+    if (_favorites.contains(_artifact)) {
       await LoreAPI.removeFromFavorites(
           artifact: _artifact!, userId: LoreAPI.userId);
       setState(() {
-        _favorites.remove(_artifact?.md5sum);
+        _favorites.remove(_artifact);
       });
     } else {
       await LoreAPI.addToFavorites(
           artifact: _artifact!, userId: LoreAPI.userId);
       setState(() {
-        _favorites.add(_artifact!.md5sum);
+        _favorites.add(_artifact!);
       });
     }
   }
@@ -193,8 +193,8 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
   Future<void> loadFavorites() async {
     if (LoreAPI.userId == null) return;
-    final List<String> favorites =
-        await LoreAPI.loadFavorites(userId: LoreAPI.userId);
+    final List<Artifact> favorites =
+        await LoreAPI.loadFavoritesArtifacts(userId: LoreAPI.userId);
     setState(() {
       _favorites.clear();
       _favorites.addAll(favorites);
