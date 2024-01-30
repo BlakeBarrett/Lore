@@ -1,9 +1,10 @@
 import 'package:Lore/artifact.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:file_icon/file_icon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/services.dart';
+import 'package:like_button/like_button.dart';
 
 class ArtifactDetailsWidget extends StatelessWidget {
   const ArtifactDetailsWidget(
@@ -109,16 +110,42 @@ class ArtifactDetailsWidget extends StatelessWidget {
                                 Clipboard.setData(ClipboardData(text: md5sum));
                               },
                             ),
-                            // add to Favorites
-                            IconButton(
-                              color: Theme.of(context).primaryIconTheme.color,
-                              icon: Icon((isFavorite == true)
-                                  ? Icons.favorite
-                                  : Icons.favorite_outline),
-                              tooltip: 'Add to favorites',
-                              onPressed: () {
-                                onFavoriteTap?.call(!isFavorite);
-                              },
+                            Tooltip(
+                              message: 'Add to favorites',
+                              child: // add to Favorites
+                                  LikeButton(
+                                      circleColor: CircleColor(
+                                          start: Theme.of(context)
+                                              .iconTheme
+                                              .color!,
+                                          end: Theme.of(context)
+                                              .primaryIconTheme
+                                              .color!),
+                                      bubblesColor: BubblesColor(
+                                        dotPrimaryColor: Theme.of(context)
+                                            .primaryIconTheme
+                                            .color!,
+                                        dotSecondaryColor: Theme.of(context)
+                                            .primaryIconTheme
+                                            .color!,
+                                      ),
+                                      animationDuration:
+                                          const Duration(milliseconds: 666),
+                                      likeBuilder: (final bool isLiked) {
+                                        return Icon(
+                                          (isFavorite == true)
+                                              ? Icons.favorite
+                                              : Icons.favorite_outline,
+                                          color: Theme.of(context)
+                                              .primaryIconTheme
+                                              .color,
+                                        );
+                                      },
+                                      isLiked: isFavorite,
+                                      onTap: (final bool isLiked) {
+                                        onFavoriteTap?.call(isLiked);
+                                        return Future.value(!isLiked);
+                                      }),
                             ),
                           ]),
                   ],
