@@ -1,3 +1,4 @@
+import 'package:Lore/artifact.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -8,13 +9,31 @@ class DrawerWidget extends StatelessWidget {
       {super.key,
       this.userEmail = '',
       this.authenticated = true,
+      required this.favorites,
       required this.onLogout,
-      required this.onShowAuthWidget});
+      required this.onShowAuthWidget,
+      required this.onShowArtifact});
 
   final bool authenticated;
   final String? userEmail;
+  final List<Artifact> favorites;
   final Function() onLogout;
   final Function() onShowAuthWidget;
+  final Function(Artifact artifact) onShowArtifact;
+
+  List<Widget> getFavoriteWidgets(
+      final BuildContext context, final List<Artifact> favorites) {
+    final List<Widget> widgets = <Widget>[];
+    for (final Artifact artifact in favorites) {
+      widgets.add(ListTile(
+        leading: Icon(Icons.favorite, color: Theme.of(context).primaryColor),
+        title:
+            Text(artifact.name, style: Theme.of(context).textTheme.bodyLarge),
+        onTap: () => onShowArtifact(artifact),
+      ));
+    }
+    return widgets;
+  }
 
   @override
   Widget build(final BuildContext context) {
@@ -51,6 +70,10 @@ class DrawerWidget extends StatelessWidget {
                     Text(userEmail ?? '',
                         style: Theme.of(context).primaryTextTheme.titleSmall),
                   ])))),
+      ListView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: getFavoriteWidgets(context, favorites)),
       ListTile(
         enabled: authenticated,
         title: const Text("Logout"),

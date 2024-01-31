@@ -21,8 +21,10 @@ void main() {
           body: DrawerWidget(
             userEmail: testEmail,
             authenticated: true,
+            favorites: const [],
             onLogout: onLogout.call,
             onShowAuthWidget: MockFunction().call,
+            onShowArtifact: (_) => MockFunction().call,
           ),
         ),
       ));
@@ -49,8 +51,10 @@ void main() {
           body: DrawerWidget(
             userEmail: testEmail,
             authenticated: false, // User is not authenticated
+            favorites: const [],
             onShowAuthWidget: onShowAuthWidget.call, // Mocked function
             onLogout: MockFunction().call,
+            onShowArtifact: (_) => MockFunction().call,
           ),
         ),
       ));
@@ -73,8 +77,10 @@ void main() {
           body: DrawerWidget(
             userEmail: testEmail,
             authenticated: true, // User is authenticated
+            favorites: const [],
             onLogout: MockFunction().call,
             onShowAuthWidget: onShowAuthWidget.call, // Mocked function
+            onShowArtifact: (_) => MockFunction().call,
           ),
         ),
       ));

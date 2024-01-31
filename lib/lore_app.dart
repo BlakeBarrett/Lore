@@ -22,7 +22,6 @@ import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 
 // TODO: Replace "desktop_drop" and "flutter_dropzone" with https://pub.dev/packages/super_drag_and_drop
 // TODO: i18n for all the Strings
-// TODO: Add "Favorites" feature per user
 class LoreApp extends StatelessWidget {
   const LoreApp({super.key});
 
@@ -281,13 +280,19 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         ],
       ),
       drawer: DrawerWidget(
-          authenticated: LoreAPI.accessToken != null,
-          userEmail: LoreAPI.userEmail,
-          onLogout: () => supabaseInstance.auth.signOut(),
-          onShowAuthWidget: () {
-            Navigator.of(context).pop();
-            AuthWidget.showAuthWidget(context, supabaseInstance);
-          }),
+        authenticated: LoreAPI.accessToken != null,
+        userEmail: LoreAPI.userEmail,
+        favorites: _favorites,
+        onLogout: () => supabaseInstance.auth.signOut(),
+        onShowAuthWidget: () {
+          Navigator.of(context).pop();
+          AuthWidget.showAuthWidget(context, supabaseInstance);
+        },
+        onShowArtifact: (final Artifact artifact) async {
+          Navigator.of(context).pop();
+          await onArtifactSelected(artifact);
+        },
+      ),
     ));
 
     return (kIsDesktop)
