@@ -22,6 +22,8 @@ void main(final List<String> args) async {
         Platform.isMacOS) {
       kIsDesktop = true;
       window_size.DesktopWindow.setWindowSize(const Size(800, 1000));
+    } else {
+      kIsDesktop = false;
     }
   } catch (e) {
     kIsDesktop = false;

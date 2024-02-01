@@ -80,7 +80,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   @override
   void initState() {
     _appLinksSubscription = AppLinks().allUriLinkStream.listen((uri) {
-      // Do something (navigation, ...)
+      // TODO: Handle incoming app links
       debugPrint('app_links uri: $uri');
       final String value = ('${uri.path.replaceFirst('/', '')}?${uri.query}');
       debugPrint('app_links value: $value');
@@ -92,6 +92,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         supabaseInstance.auth.onAuthStateChange.listen((data) async {
       // Handle user redirection after magic link login
       debugPrint('Supabase AuthStateChange: $data');
+      await loadFavorites();
       setState(() => {});
     });
     loadFavorites();
