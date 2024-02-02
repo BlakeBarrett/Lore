@@ -54,4 +54,13 @@ class Artifact {
   String toString() {
     return '$md5sum $path';
   }
+
+  @override
+  bool operator ==(final Object other) {
+    return (other is Artifact) && (other.md5sum == md5sum);
+  }
+
+  @override
+  int get hashCode => int.parse(md5sum.substring(0, 32), radix: 32);
+  // c435ba89d2cf78db078e23a98bb5f4f6
 }
