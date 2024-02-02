@@ -246,7 +246,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               : const SizedBox.shrink(),
           ArtifactDetailsWidget(
             artifact: _artifact,
-            isFavorite: _favorites.contains(_artifact?.md5sum),
+            isFavorite: _artifact != null && _favorites.contains(_artifact!),
             onOpenFileTap: onOpenFileTap,
             onFavoriteTap: onFavoriteTap,
           ),
