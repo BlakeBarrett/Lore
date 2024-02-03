@@ -91,6 +91,7 @@ class ArtifactDetailsWidget extends StatelessWidget {
                     },
                     child: Container(
                         alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
                         constraints: BoxConstraints(
                           minHeight: size.height,
                         ),
