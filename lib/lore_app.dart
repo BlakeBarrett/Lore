@@ -242,7 +242,10 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         mainAxisSize: MainAxisSize.max,
         children: [
           (_artifactsCalculating)
-              ? const LinearProgressIndicator()
+              ? LinearProgressIndicator(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  backgroundColor: Theme.of(context).primaryColor,
+                )
               : const SizedBox.shrink(),
           ArtifactDetailsWidget(
             artifact: _artifact,

@@ -24,10 +24,10 @@ class ArtifactDetailsWidget extends StatelessWidget {
     final String name = artifact?.name ?? 'NAME';
     final String path = artifact?.path ?? 'PATH';
     final String md5sum = artifact?.md5sum ?? 'MD5';
-    const Size size = Size(180, 180);
+    const Size size = Size(120, 120);
     Image? image;
 
-    if (artifact?.file != null && !kIsWeb) {
+    if ((artifact?.file?.existsSync() == true) && !kIsWeb) {
       image = Image.file(
         artifact!.file!,
         fit: BoxFit.cover,
@@ -37,124 +37,150 @@ class ArtifactDetailsWidget extends StatelessWidget {
     }
 
     return Container(
-      color: Theme.of(context).primaryColor,
-      width: MediaQuery.of(context).size.width,
-      padding: const EdgeInsets.all(8.0),
-      alignment: Alignment.center,
-      child: Row(mainAxisSize: MainAxisSize.max, children: [
-        GestureDetector(
-            onTap: () {
-              onOpenFileTap();
-            },
-            child: Tooltip(
-                message: 'Browse for file',
-                child: SizedBox(
-                    width: size.width,
-                    height: size.height,
-                    child: Stack(
-                      alignment: const Alignment(0, 0),
-                      fit: StackFit.expand,
-                      children: [
-                        FileIcon(name, size: size.height),
-                        (image != null)
-                            ? Image(
-                                image: image.image,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, error, ___) {
-                                  debugPrint('Error: $error');
-                                  return const SizedBox.shrink();
-                                },
-                              )
-                            : const SizedBox.shrink(),
-                      ],
-                    )))),
-        Flexible(
-          flex: 2,
-          fit: FlexFit.tight,
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    name,
-                    style: Theme.of(context).primaryTextTheme.bodyMedium,
-                  )),
-              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: AutoSizeText(
-                    path,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).primaryTextTheme.bodyMedium,
-                  )),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    SelectableText(
-                      md5sum,
-                      style: Theme.of(context).primaryTextTheme.bodyMedium,
-                    ),
-                    const Spacer(flex: 2),
-                    (artifact?.md5sum == null || artifact!.md5sum.isEmpty)
-                        ? const SizedBox.shrink()
-                        : Row(children: [
-                            IconButton(
-                              color: Theme.of(context).primaryIconTheme.color,
-                              icon: const Icon(Icons.copy),
-                              tooltip: 'Copy to clipboard',
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: md5sum));
-                              },
-                            ),
-                            Tooltip(
-                              message: 'Add to favorites',
-                              child: // add to Favorites
-                                  LikeButton(
-                                      circleColor: CircleColor(
-                                          start: Theme.of(context)
-                                              .iconTheme
-                                              .color!,
-                                          end: Theme.of(context)
-                                              .primaryIconTheme
-                                              .color!),
-                                      bubblesColor: BubblesColor(
-                                        dotPrimaryColor: Theme.of(context)
-                                            .primaryIconTheme
-                                            .color!,
-                                        dotSecondaryColor: Theme.of(context)
-                                            .primaryIconTheme
-                                            .color!,
-                                      ),
-                                      animationDuration:
-                                          const Duration(milliseconds: 666),
-                                      likeBuilder: (final bool isLiked) {
-                                        return Icon(
-                                          (isFavorite == true)
-                                              ? Icons.favorite
-                                              : Icons.favorite_outline,
-                                          color: Theme.of(context)
-                                              .primaryIconTheme
-                                              .color,
-                                        );
-                                      },
-                                      isLiked: isFavorite,
-                                      onTap: (final bool isLiked) {
-                                        onFavoriteTap?.call(isLiked);
-                                        return Future.value(!isLiked);
-                                      }),
-                            ),
-                          ]),
-                  ],
-                ),
+        decoration: image != null
+            ? BoxDecoration(
+                image: DecorationImage(
+                    image: image.image, fit: BoxFit.cover, colorFilter: null),
+                borderRadius: BorderRadius.zero,
+              )
+            : BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius: BorderRadius.zero,
               ),
-            ],
-          ),
-        ),
-      ]),
-    );
+        child: Container(
+          decoration: image != null
+              ? BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Colors.transparent,
+                    ],
+                  ),
+                )
+              : null,
+          child: Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                    flex: 1,
+                    fit: FlexFit.loose,
+                    child: GestureDetector(
+                        onTap: () {
+                          onOpenFileTap();
+                        },
+                        child: Tooltip(
+                            message: 'Browse for file',
+                            child: AspectRatio(
+                                aspectRatio: 1.0,
+                                child: Stack(
+                                  alignment: const Alignment(0, 0),
+                                  fit: StackFit.expand,
+                                  children: [
+                                    FileIcon(name, size: size.height),
+                                  ],
+                                ))))),
+                Flexible(
+                    flex: 3,
+                    fit: FlexFit.loose,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.all(0),
+                            child: Text(
+                              name,
+                              style:
+                                  Theme.of(context).primaryTextTheme.bodyLarge,
+                            )),
+                        Padding(
+                            padding: const EdgeInsets.all(0),
+                            child: AutoSizeText(
+                              path,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  Theme.of(context).primaryTextTheme.bodySmall,
+                            )),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 0, 8.0, 0),
+                          child: Row(
+                            children: [
+                              SelectableText(
+                                md5sum,
+                                style: Theme.of(context)
+                                    .primaryTextTheme
+                                    .bodyMedium,
+                              ),
+                              const Spacer(flex: 2),
+                              (artifact?.md5sum == null ||
+                                      artifact!.md5sum.isEmpty)
+                                  ? const SizedBox.shrink()
+                                  : Row(children: [
+                                      IconButton(
+                                        color: Theme.of(context)
+                                            .primaryIconTheme
+                                            .color,
+                                        icon: const Icon(Icons.copy),
+                                        tooltip: 'Copy to clipboard',
+                                        onPressed: () {
+                                          Clipboard.setData(
+                                              ClipboardData(text: md5sum));
+                                        },
+                                      ),
+                                      Tooltip(
+                                        message: 'Add to favorites',
+                                        child: // add to Favorites
+                                            LikeButton(
+                                                circleColor: CircleColor(
+                                                    start: Theme.of(context)
+                                                        .iconTheme
+                                                        .color!,
+                                                    end: Theme.of(context)
+                                                        .primaryIconTheme
+                                                        .color!),
+                                                bubblesColor: BubblesColor(
+                                                  dotPrimaryColor:
+                                                      Theme.of(context)
+                                                          .primaryIconTheme
+                                                          .color!,
+                                                  dotSecondaryColor:
+                                                      Theme.of(context)
+                                                          .primaryIconTheme
+                                                          .color!,
+                                                ),
+                                                animationDuration:
+                                                    const Duration(
+                                                        milliseconds: 666),
+                                                likeBuilder:
+                                                    (final bool isLiked) {
+                                                  return Icon(
+                                                    (isLiked)
+                                                        ? Icons.favorite
+                                                        : Icons
+                                                            .favorite_outline,
+                                                    color: Theme.of(context)
+                                                        .primaryIconTheme
+                                                        .color,
+                                                  );
+                                                },
+                                                isLiked: isFavorite,
+                                                onTap: (final bool isLiked) {
+                                                  onFavoriteTap?.call(isLiked);
+                                                  return Future.value(!isLiked);
+                                                }),
+                                      ),
+                                    ]),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )),
+              ]),
+        ));
   }
 }
