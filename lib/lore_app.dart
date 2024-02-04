@@ -225,11 +225,13 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
                 width: MediaQuery.of(context).size.width - 100,
                 color: Theme.of(context).colorScheme.background,
                 textFieldIconColor: Theme.of(context).primaryColor,
+                textFieldColor: Theme.of(context).colorScheme.surface,
                 searchIconColor: Theme.of(context).primaryColor,
                 textController: _animatedSearchBarTextConroller,
                 boxShadow: false,
                 helpText: 'Search by MD5 or URL',
                 onSubmitted: onSearch,
+                style: Theme.of(context).textTheme.titleMedium,
                 onSuffixTap: () =>
                     setState(() => _animatedSearchBarTextConroller.clear()),
               ),

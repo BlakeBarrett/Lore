@@ -36,7 +36,7 @@ class RemarkListWidget extends StatelessWidget {
   String getFormattedDate(final Remark value) =>
       formatter.format(value.timestamp.toLocal()).toString();
   String getToolTipText(final Remark remark) =>
-      'TimeStamp: ${getFormattedDate(remark)}\nAuthor: ${remark.author}';
+      'Author: ${remark.author}\nTimeStamp: ${getFormattedDate(remark)}';
 
   PopupMenuButton? getContextMenu(final Remark remark) {
     if (remark.author == _currentUser) {
@@ -70,21 +70,30 @@ class RemarkListWidget extends StatelessWidget {
       itemBuilder: (final context, final index) {
         Remark remark = _remarks[index];
         return ListTile(
-          leading: const Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [Icon(Icons.comment)]),
           title: Text(remark.text),
           trailing: getContextMenu(remark),
           subtitle: FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Tooltip(
-              message: getToolTipText(remark),
-              child: Text(
-                getFormattedDate(remark),
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
-            ),
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2.0, right: 8.0),
+                    child: Tooltip(
+                      message: getToolTipText(remark),
+                      child: Icon(
+                        Icons.account_circle_sharp,
+                        size: 12,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    getFormattedDate(remark),
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ]),
           ),
         );
       },
