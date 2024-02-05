@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthWidget extends StatefulWidget {
   final Function(String email) onEmailSubmitted;

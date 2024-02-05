@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:Lore/lore_app.dart';
 import 'package:desktop_window/desktop_window.dart' as window_size;
 import 'package:flutter/material.dart';
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main(final List<String> args) async {
   debugPrint('main(args[]) = $args');

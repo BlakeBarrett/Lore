@@ -18,7 +18,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:regexpattern/regexpattern.dart';
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // TODO: i18n for all the Strings: https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization
 class LoreApp extends StatelessWidget {
@@ -203,8 +203,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
   @override
   Widget build(final BuildContext context) {
-    final scaffold = SafeArea(
-        child: Scaffold(
+    final scaffold = Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
         iconTheme: Theme.of(context).primaryIconTheme,
@@ -299,7 +298,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           await onArtifactSelected(artifact);
         },
       ),
-    ));
+    );
 
     return (kIsDesktop)
         ? DesktopFileDropHandler(

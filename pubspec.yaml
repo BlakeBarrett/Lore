@@ -41,7 +41,6 @@ dependencies:
   desktop_window: ^0.4.0
   crypto: ^3.0.3
   file_icon: ^1.0.0
-  supabase_auth_ui: ^0.4.0+1
   flutter_dotenv: ^5.1.0
   app_links: ^3.5.0
   url_launcher: ^6.2.3
@@ -53,6 +52,7 @@ dependencies:
   file_picker: ^6.1.1
   auto_size_text: ^3.0.0
   like_button: ^2.0.5
+  supabase_flutter: ^2.2.0
 
 dev_dependencies:
   flutter_test:
