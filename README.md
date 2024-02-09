@@ -1,4 +1,5 @@
 ![Lore-AppIcon.png](./web/icons/Icon-512.png)
+
 # Lore
 
 The shared, single source of truth for everything.
@@ -11,16 +12,18 @@ The shared, single source of truth for everything.
 - [Clone the Repository](#clone-the-repository)
 - [Install dependencies](#install-dependencies)
 - [Run the App](#run-the-app)
-- [Deploy the Web App to Firebase](#deploy-the-web-app-to-firebase).
+- [Deploy the Web App to Firebase](#deploy-the-web-app-to-firebase)
+- [Add localizations](#add-localizations)
 - [Contributing](#contributing)
 - [License](#license)
 
+## What is Lore?
 
- ## What is Lore?
  Lore is a repository of knowledge. It is a shared, single source of truth for anything based on the md5sum of the file.
- It is a place for people to leave comments or notes on any file. 
+ It is a place for people to leave comments or notes on any file.
 
 ## Where is the data stored?
+
 At present, the plan is to store the data in Supabase. In the future data could be hosted in a managed or on-prem db.
 
 ## Setup Flutter
@@ -39,6 +42,7 @@ git clone https://github.com/BlakeBarrett/Lore.git
 
 After cloning the repository you will need to install the dependencies used by Lore.
 To do so, run:
+
 ```bash
 flutter pub get
 ```
@@ -51,14 +55,26 @@ Navigate to the Lore project directory and run the app:
 cd Lore
 flutter run
 ```
+
 This command will build and run the app on your default device or emulator.
 
 ## Deploy the Web App to Firebase
+
 ```bash
 flutter build web --release --no-tree-shake-icons
 firebase deploy
 ```
+
 Firebase will deploy the web artifacts to: [https://lore-5b6b8.web.app/](https://lore-5b6b8.web.app/)
+
+## Add localizations
+
+To add a new localization, follow the instructions in the [flutter_localizations](https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization) package documentation.  
+Then generate the `AppLocalizations` file by executing the command below in the terminal:
+
+```bash
+flutter gen-l10n
+```
 
 ## Contributing
 

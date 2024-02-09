@@ -1,5 +1,6 @@
 import 'package:Lore/remark.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 @immutable
@@ -35,8 +36,6 @@ class RemarkListWidget extends StatelessWidget {
 
   String getFormattedDate(final Remark value) =>
       formatter.format(value.timestamp.toLocal()).toString();
-  String getToolTipText(final Remark remark) =>
-      'Author: ${remark.author}\nTimeStamp: ${getFormattedDate(remark)}';
 
   PopupMenuButton? getContextMenu(final Remark remark) {
     if (remark.author == _currentUser) {
@@ -48,9 +47,16 @@ class RemarkListWidget extends StatelessWidget {
         },
         itemBuilder: (context) {
           return [
-            const PopupMenuItem(
+            PopupMenuItem(
+              padding: EdgeInsets.zero,
               value: 'delete',
-              child: Text('Delete'),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Icon(Icons.delete, color: Theme.of(context).iconTheme.color),
+                  Text(AppLocalizations.of(context)!.delete),
+                ],
+              ),
             ),
           ];
         },
@@ -70,7 +76,7 @@ class RemarkListWidget extends StatelessWidget {
       itemBuilder: (final context, final index) {
         Remark remark = _remarks[index];
         return ListTile(
-          title: Text(remark.text),
+          title: SelectableText(remark.text),
           trailing: getContextMenu(remark),
           subtitle: FittedBox(
             fit: BoxFit.scaleDown,
@@ -81,7 +87,8 @@ class RemarkListWidget extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 2.0, right: 8.0),
                     child: Tooltip(
-                      message: getToolTipText(remark),
+                      message:
+                          '${AppLocalizations.of(context)!.author}: ${remark.author}',
                       child: Icon(
                         Icons.account_circle_sharp,
                         size: 12,

@@ -1,13 +1,34 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:Lore/drawer_widget.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:nock/nock.dart';
 
 class MockFunction extends Mock {
   void call();
 }
 
 void main() {
+  final Uint8List imageBytes =
+      File('assets/Lore_app_icon.png').readAsBytesSync();
+
+  setupAvatarMockRequest() => nock('https://www.gravatar.com')
+      .get('/avatar/55502f40dc8b7c769880b10874abc9d0?s=100')
+      .reply(200, imageBytes);
+
+  setUpAll(nock.init);
+
+  setUp(() {
+    nock.cleanAll();
+    setupAvatarMockRequest();
+  });
+
+  tearDown(nock.cleanAll);
+
   group('DrawerViewWidget', () {
     testWidgets(
         'DrawerViewWidget shows correct email and calls functions correctly',
@@ -17,6 +38,8 @@ void main() {
 
       // Build the DrawerViewWidget in a testable widget.
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: DrawerWidget(
             userEmail: testEmail,
@@ -47,6 +70,8 @@ void main() {
 
       // Build the DrawerViewWidget in a testable widget.
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: DrawerWidget(
             userEmail: testEmail,
@@ -73,6 +98,8 @@ void main() {
 
       // Build the DrawerViewWidget in a testable widget.
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: DrawerWidget(
             userEmail: testEmail,

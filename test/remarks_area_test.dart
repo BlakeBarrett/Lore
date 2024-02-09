@@ -4,7 +4,7 @@ import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
 import 'package:Lore/remark.dart';
 import 'package:mockito/mockito.dart';
-
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'drawer_widget_test.dart';
 
 void main() {
@@ -16,6 +16,8 @@ void main() {
       ];
 
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: RemarkListWidget(
             remarks: remarks,
@@ -38,6 +40,8 @@ void main() {
 
       // Build the CommentInputArea in a testable widget.
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: RemarkEntryWidget(
             onSubmitted: onSubmitted,
@@ -62,6 +66,8 @@ void main() {
 
       // Build the CommentInputArea in a testable widget.
       await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: RemarkEntryWidget(
             enabled: false, // CommentInputArea is disabled

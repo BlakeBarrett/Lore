@@ -1,8 +1,8 @@
 import 'package:Lore/artifact.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DrawerWidget extends StatelessWidget {
   const DrawerWidget(
@@ -35,6 +35,24 @@ class DrawerWidget extends StatelessWidget {
     return widgets;
   }
 
+  Widget getAvatarFor(final String? email, final BuildContext context) {
+    if (email == null || email.isEmpty) {
+      return Icon(Icons.account_circle,
+          size: 100, color: Theme.of(context).primaryIconTheme.color);
+    }
+    return ClipOval(
+      child: Tooltip(
+        message: 'Avarars by Gravatar',
+        child: Image.network(
+          'https://www.gravatar.com/avatar/${md5SumFor(email)}?s=100',
+          fit: BoxFit.cover,
+          width: 100,
+          height: 100,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(final BuildContext context) {
     return Drawer(
@@ -49,26 +67,13 @@ class DrawerWidget extends StatelessWidget {
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                    (userEmail == null || userEmail!.isEmpty)
-                        ? SvgPicture.asset(
-                            'assets/account-outline.svg',
-                            // ignore: deprecated_member_use
-                            color: Theme.of(context).primaryIconTheme.color,
-                          )
-                        : ClipOval(
-                            child: Tooltip(
-                              message: 'Avarars by Gravatar',
-                              child: Image.network(
-                                'https://www.gravatar.com/avatar/${md5SumFor(userEmail!)}?s=100',
-                                fit: BoxFit.cover,
-                                width: 100,
-                                height: 100,
-                              ),
-                            ),
-                          ),
+                    getAvatarFor(userEmail, context),
                     const SizedBox(height: 8),
-                    Text(userEmail ?? '',
-                        style: Theme.of(context).primaryTextTheme.titleSmall),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(userEmail ?? '',
+                          style: Theme.of(context).primaryTextTheme.titleSmall),
+                    )
                   ])))),
       ListView(
           shrinkWrap: true,
@@ -76,7 +81,7 @@ class DrawerWidget extends StatelessWidget {
           children: getFavoriteWidgets(context, favorites)),
       ListTile(
         enabled: authenticated,
-        title: const Text("Logout"),
+        title: Text(AppLocalizations.of(context)!.logout),
         onTap: () {
           Navigator.of(context).pop(context);
           onLogout();
