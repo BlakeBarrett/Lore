@@ -1,0 +1,32 @@
+{
+    "helloWorld": "Hello World!",
+    "@helloWorld": {
+        "description": "The conventional newborn programmer greeting"
+    },
+    "browseForFile": "Browse for file",
+    "@browseForFile": {
+        "description": "Button label for file browsing"
+    },
+    "searchByMd5OrURL": "Search by MD5 or URL",
+    "@searchByMd5OrURL": {
+        "description": "Button label for search widget"
+    },
+    "addToFavorites": "Add to favorites",
+    "@addToFavorites": {
+        "description": "Button label for adding to favorites"
+    },
+    "addRemark": "Add a remark",
+    "@addRemark": {
+        "description": "Hint text for adding a remark"
+    },
+    "delete": "Delete",
+    "@delete": {
+        "description": "Button label for deleting a remark"
+    },
+    "logout": "Logout",
+    "@logout": {
+        "description": "Button label for logging out"
+    },
+    "author": "Author",
+    "timeStamp": "Time Stamp"
+}

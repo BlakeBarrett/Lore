@@ -3,8 +3,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:file_icon/file_icon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:like_button/like_button.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ArtifactDetailsWidget extends StatelessWidget {
   const ArtifactDetailsWidget(
@@ -72,7 +72,8 @@ class ArtifactDetailsWidget extends StatelessWidget {
                           onOpenFileTap();
                         },
                         child: Tooltip(
-                            message: 'Browse for file',
+                            message:
+                                AppLocalizations.of(context)!.browseForFile,
                             child: Container(
                                 alignment: Alignment.center,
                                 constraints: BoxConstraints(
@@ -127,7 +128,8 @@ class ArtifactDetailsWidget extends StatelessWidget {
                                     ? const SizedBox.shrink()
                                     : Row(children: [
                                         Tooltip(
-                                          message: 'Add to favorites',
+                                          message: AppLocalizations.of(context)!
+                                              .addToFavorites,
                                           child: // add to Favorites
                                               LikeButton(
                                                   padding:

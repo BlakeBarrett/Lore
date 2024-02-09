@@ -17,10 +17,10 @@ import 'package:app_links/app_links.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:regexpattern/regexpattern.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// TODO: i18n for all the Strings: https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization
 class LoreApp extends StatelessWidget {
   const LoreApp({super.key});
 
@@ -34,13 +34,15 @@ class LoreApp extends StatelessWidget {
       primaryColor: Colors.deepOrange,
       primaryTextTheme: const TextTheme(
         bodyMedium: TextStyle(
-          color: Colors.white,
+          color: Colors.white70,
           fontSize: 18,
         ),
       ),
     );
 
     return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       title: title,
       theme: theme,
       darkTheme: ThemeData.dark().copyWith(
@@ -212,14 +214,14 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             style: Theme.of(context).primaryTextTheme.displaySmall),
         actions: [
           Tooltip(
-            message: 'Browse for file',
+            message: AppLocalizations.of(context)?.browseForFile,
             child: IconButton(
                 onPressed: onOpenFileTap, icon: const Icon(Icons.folder_open)),
           ),
           Padding(
             padding: const EdgeInsets.all(8),
             child: Tooltip(
-              message: 'Search by MD5 or URL',
+              message: AppLocalizations.of(context)?.searchByMd5OrURL,
               child: AnimSearchBar(
                 width: MediaQuery.of(context).size.width - 100,
                 color: Theme.of(context).colorScheme.background,
@@ -228,7 +230,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
                 searchIconColor: Theme.of(context).primaryColor,
                 textController: _animatedSearchBarTextConroller,
                 boxShadow: false,
-                helpText: 'Search by MD5 or URL',
+                helpText: AppLocalizations.of(context)?.searchByMd5OrURL ?? '',
                 onSubmitted: onSearch,
                 style: Theme.of(context).textTheme.titleMedium,
                 onSuffixTap: () =>
