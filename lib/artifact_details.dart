@@ -27,7 +27,7 @@ class ArtifactDetailsWidget extends StatelessWidget {
     const Size size = Size(100, 100);
     Image? image;
 
-    if ((artifact?.file?.existsSync() == true) && !kIsWeb) {
+    if (!kIsWeb && (artifact?.file?.existsSync() == true)) {
       image = Image.file(
         artifact!.file!,
         fit: BoxFit.cover,
