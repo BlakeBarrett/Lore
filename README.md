@@ -65,7 +65,8 @@ flutter build web --release --no-tree-shake-icons
 firebase deploy
 ```
 
-Firebase will deploy the web artifacts to: [https://lore-5b6b8.web.app/](https://lore-5b6b8.web.app/)
+#### Live Web app (nightly builds)
+Firebase will deploy the web artifacts to the following URL, also where the latest build can be evaluated: [https://lore-5b6b8.web.app/](https://lore-5b6b8.web.app/)
 
 ## Add localizations
 
@@ -83,3 +84,7 @@ Contributions are welcome! Please read the [Contribution Guidelines](CONTRIBUTIN
 ## License
 
 This project is licensed under the [BSD 3-Clause License](LICENSE).
+
+## Screen Shots
+<img width="2124" alt="Lore-web-desktop-app" src="https://github.com/BlakeBarrett/Lore/assets/578572/357cdfa2-380c-4933-8604-bdf0b4ebcbfa">
+
