@@ -56,63 +56,74 @@ class DrawerWidget extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     return Drawer(
-        child: ListView(padding: EdgeInsets.zero, shrinkWrap: true, children: [
-      DrawerHeader(
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
+      backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        shrinkWrap: false,
+        children: [
+          DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+              ),
+              child: InkWell(
+                  onTap: () => authenticated ? null : onShowAuthWidget(),
+                  child: Center(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                        getAvatarFor(userEmail, context),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(userEmail ?? '',
+                              style: Theme.of(context)
+                                  .primaryTextTheme
+                                  .titleSmall),
+                        )
+                      ])))),
+          ListView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: getFavoriteWidgets(context, favorites),
           ),
-          child: InkWell(
-              onTap: () => authenticated ? null : onShowAuthWidget(),
-              child: Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                    getAvatarFor(userEmail, context),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(userEmail ?? '',
-                          style: Theme.of(context).primaryTextTheme.titleSmall),
-                    )
-                  ])))),
-      ListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          children: getFavoriteWidgets(context, favorites)),
-      ListTile(
-        enabled: authenticated,
-        title: Text(AppLocalizations.of(context)!.logout),
-        onTap: () {
-          Navigator.of(context).pop(context);
-          onLogout();
-        },
-      ),
-      AboutListTile(
-        applicationName: 'Lore',
-        aboutBoxChildren: [
-          GestureDetector(
-            onTap: () async {
-              if (await canLaunchUrlString(
-                  'https://github.com/BlakeBarrett/Lore')) {
-                await launchUrlString('https://github.com/BlakeBarrett/Lore');
-              }
+          ListTile(
+            enabled: authenticated,
+            title: Text(AppLocalizations.of(context)!.logout),
+            onTap: () {
+              Navigator.of(context).pop(context);
+              onLogout();
             },
-            child: Image.asset('assets/Lore_app_icon.png',
-                width: 100, height: 100),
           ),
-          const Text('Lore Ⓒ 2024 Blake Barrett.'),
-          const Text('Lore is Open Source, available on GitHub.'),
-          GestureDetector(
-            onTap: () async {
-              if (await canLaunchUrlString(
-                  'https://github.com/BlakeBarrett/Lore')) {
-                await launchUrlString('https://github.com/BlakeBarrett/Lore');
-              }
-            },
-            child: const Text('https://github.com/BlakeBarrett/Lore'),
+          AboutListTile(
+            applicationName: 'Lore',
+            aboutBoxChildren: [
+              GestureDetector(
+                onTap: () async {
+                  if (await canLaunchUrlString(
+                      'https://github.com/BlakeBarrett/Lore')) {
+                    await launchUrlString(
+                        'https://github.com/BlakeBarrett/Lore');
+                  }
+                },
+                child: Image.asset('assets/Lore_app_icon.png',
+                    width: 100, height: 100),
+              ),
+              const Text('Lore Ⓒ 2024 Blake Barrett.'),
+              const Text('Lore is Open Source, available on GitHub.'),
+              GestureDetector(
+                onTap: () async {
+                  if (await canLaunchUrlString(
+                      'https://github.com/BlakeBarrett/Lore')) {
+                    await launchUrlString(
+                        'https://github.com/BlakeBarrett/Lore');
+                  }
+                },
+                child: const Text('https://github.com/BlakeBarrett/Lore'),
+              ),
+            ],
           ),
         ],
       ),
-    ]));
+    );
   }
 }
