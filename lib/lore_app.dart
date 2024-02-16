@@ -230,7 +230,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             isFavorite: _artifact != null && _favorites.contains(_artifact!),
           ),
           RemarkList(
-            remarks: _artifact?.remarks,
+            remarks: _artifact == null ? Remark.dummyData : _artifact?.remarks,
             userId: LoreAPI.userId,
             onDeleteRemark: (final Remark deleteMe) async {
               await LoreAPI.deleteRemark(remark: deleteMe).then((value) {
