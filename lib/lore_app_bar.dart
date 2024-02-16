@@ -34,12 +34,15 @@ class _LoreAppBarState extends State<LoreAppBar> {
       TextEditingController();
 
   Widget? getBackgroundImage(final BuildContext context) {
-    if (previewBackgroundImage is SizedBox) return null;
+    if (previewBackgroundImage is SizedBox || previewBackgroundImage == null) {
+      return null;
+    }
+
     return ClipRRect(
       child: Stack(
         children: [
           SizedBox.expand(
-            child: previewBackgroundImage!,
+            child: previewBackgroundImage,
           ),
           SizedBox.expand(
             child: Container(
@@ -72,7 +75,10 @@ class _LoreAppBarState extends State<LoreAppBar> {
     final String name = artifact?.name ?? '';
     final String md5sum = artifact?.md5sum ?? '';
     return FlexibleSpaceBar(
-      stretchModes: const [StretchMode.blurBackground, StretchMode.zoomBackground],
+      stretchModes: const [
+        StretchMode.blurBackground,
+        StretchMode.zoomBackground
+      ],
       collapseMode: CollapseMode.parallax,
       expandedTitleScale: 1.0,
       titlePadding: const EdgeInsets.all(8),
@@ -140,9 +146,11 @@ class _LoreAppBarState extends State<LoreAppBar> {
 
     final File? artifactFile = widget.artifact?.file;
     final bool isImage = artifactFile?.path.toLowerCase().isImage() ?? false;
-    final bool fileExists = artifactFile?.existsSync() == true;
 
-    if (!kIsWeb && isImage == true && fileExists) {
+    if (kIsWeb) {
+      maxSize = Size(fullWidth, minHeight);
+      previewBackgroundImage = null;
+    } else if (isImage && artifactFile?.existsSync() == true) {
       try {
         hasImagePreview = true;
         maxSize = Size(fullWidth, maxHeight);
@@ -167,6 +175,7 @@ class _LoreAppBarState extends State<LoreAppBar> {
     }
 
     return SliverAppBar(
+      foregroundColor: Theme.of(context).colorScheme.onPrimary,
       backgroundColor: Theme.of(context).primaryColor,
       iconTheme: Theme.of(context).primaryIconTheme,
       titleTextStyle: Theme.of(context).primaryTextTheme.titleLarge,
@@ -177,6 +186,7 @@ class _LoreAppBarState extends State<LoreAppBar> {
       expandedHeight: maxSize.height,
       collapsedHeight: minSize.height,
       clipBehavior: Clip.antiAlias,
+      systemOverlayStyle: Theme.of(context).appBarTheme.systemOverlayStyle,
       title: Text(
         'LORE',
         overflow: TextOverflow.fade,
