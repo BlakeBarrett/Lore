@@ -9,7 +9,7 @@ import 'package:like_button/like_button.dart';
 import 'package:regexpattern/regexpattern.dart';
 
 class LoreAppBar extends StatefulWidget {
-  LoreAppBar(
+  const LoreAppBar(
       {super.key,
       required this.artifact,
       required this.onOpenFileTap,
@@ -21,7 +21,7 @@ class LoreAppBar extends StatefulWidget {
   final Function() onOpenFileTap;
   final Function(String) onSearch;
   final Function() onFavoriteTap;
-  bool isFavorite = false;
+  final bool isFavorite;
 
   @override
   State<LoreAppBar> createState() => _LoreAppBarState();
@@ -72,7 +72,7 @@ class _LoreAppBarState extends State<LoreAppBar> {
     final String name = artifact?.name ?? '';
     final String md5sum = artifact?.md5sum ?? '';
     return FlexibleSpaceBar(
-      // stretchModes: const [StretchMode.blurBackground, StretchMode.zoomBackground],
+      stretchModes: const [StretchMode.blurBackground, StretchMode.zoomBackground],
       collapseMode: CollapseMode.parallax,
       expandedTitleScale: 1.0,
       titlePadding: const EdgeInsets.all(8),

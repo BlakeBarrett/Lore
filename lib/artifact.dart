@@ -18,9 +18,7 @@ class Artifact {
           .substring(path.lastIndexOf('\\') + 1)
       : '';
 
-  Artifact({required this.path, required this.md5sum, this.length}) {
-    refreshRemarks();
-  }
+  Artifact({required this.path, required this.md5sum, this.length}) {}
 
   factory Artifact.fromURI(final Uri uri) {
     final String value = uri.toString().endsWith('/')
@@ -62,5 +60,4 @@ class Artifact {
 
   @override
   int get hashCode => int.parse(md5sum.substring(0, 32), radix: 32);
-  // c435ba89d2cf78db078e23a98bb5f4f6
 }
