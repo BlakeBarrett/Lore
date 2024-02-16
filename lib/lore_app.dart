@@ -11,7 +11,7 @@ import 'package:Lore/main.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark.dart';
 import 'package:Lore/remark_entry_widget.dart';
-import 'package:Lore/remark_widget.dart';
+import 'package:Lore/remark_list_widget.dart';
 import 'package:app_links/app_links.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -229,29 +229,17 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             onFavoriteTap: onFavoriteTap,
             isFavorite: _artifact != null && _favorites.contains(_artifact!),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (final BuildContext context, final int index) {
-                if ((_artifact?.remarks == null) ||
-                    (index == (_artifact?.remarks?.length ?? 0))) {
-                  return const SizedBox(height: 80);
-                }
-                final Remark remark = _artifact!.remarks![index];
-                return RemarkWidget(
-                  remark: remark,
-                  currentUser: LoreAPI.userId ?? '',
-                  onDeleteRemark: (final Remark deleteMe) async {
-                    await LoreAPI.deleteRemark(remark: deleteMe).then((value) {
-                      setState(() {
-                        _artifact?.remarks?.remove(deleteMe);
-                      });
-                    });
-                  },
-                );
-              },
-              childCount: (_artifact?.remarks?.length ?? 0) + 1,
-            ),
-          )
+          RemarkList(
+            remarks: _artifact?.remarks,
+            userId: LoreAPI.userId,
+            onDeleteRemark: (final Remark deleteMe) async {
+              await LoreAPI.deleteRemark(remark: deleteMe).then((value) {
+                setState(() {
+                  _artifact?.remarks?.remove(deleteMe);
+                });
+              });
+            },
+          ),
         ],
       ),
       floatingActionButton: RemarkEntryWidget(

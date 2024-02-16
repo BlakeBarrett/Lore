@@ -18,7 +18,7 @@ class Artifact {
           .substring(path.lastIndexOf('\\') + 1)
       : '';
 
-  Artifact({required this.path, required this.md5sum, this.length}) {}
+  Artifact({required this.path, required this.md5sum, this.length});
 
   factory Artifact.fromURI(final Uri uri) {
     final String value = uri.toString().endsWith('/')
