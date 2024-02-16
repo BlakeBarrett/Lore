@@ -44,7 +44,7 @@ class _RemarkEntryWidgetState extends State<RemarkEntryWidget> {
               if (!widget.enabled) widget.onLogin?.call();
             },
             child: Container(
-              padding: const EdgeInsets.all(16.0),
+              margin: const EdgeInsets.all(16.0),
               color: Theme.of(context).colorScheme.surface,
               child: TextField(
                 style: Theme.of(context).textTheme.bodyMedium,

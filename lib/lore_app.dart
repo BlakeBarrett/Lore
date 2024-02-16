@@ -2,17 +2,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:Lore/artifact.dart';
-import 'package:Lore/artifact_details.dart';
 import 'package:Lore/auth_widget.dart';
 import 'package:Lore/drawer_widget.dart';
 import 'package:Lore/file_drop_handlers.dart';
 import 'package:Lore/lore_api.dart';
+import 'package:Lore/lore_app_bar.dart';
 import 'package:Lore/main.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark.dart';
 import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
-import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:app_links/app_links.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -71,13 +70,9 @@ class LoreScaffoldWidget extends StatefulWidget {
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? _artifact;
   final List<Artifact> _favorites = [];
-  bool _artifactsCalculating = false;
 
   late final StreamSubscription<Uri> _appLinksSubscription;
   late final StreamSubscription<AuthState> _authStateSubscription;
-
-  final TextEditingController _animatedSearchBarTextConroller =
-      TextEditingController();
 
   @override
   void initState() {
@@ -92,12 +87,19 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     });
     _authStateSubscription =
         supabaseInstance.auth.onAuthStateChange.listen((data) async {
-      // Handle user redirection after magic link login
-      debugPrint('Supabase AuthStateChange: $data');
-      await loadFavorites();
-      setState(() => {});
+      debugPrint('Supabase AuthChangeEvent: ${data.event}');
+      if (data.event == AuthChangeEvent.initialSession ||
+          data.event == AuthChangeEvent.signedIn) {
+        () async {
+          try {
+            await loadFavorites();
+          } catch (e) {
+            debugPrint('Error loading favorites: $e');
+          }
+          setState(() => {});
+        }();
+      }
     });
-    loadFavorites();
     super.initState();
   }
 
@@ -163,7 +165,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     return await onArtifactSelected(first);
   }
 
-  Future<void> onFavoriteTap(final bool isFavorite) async {
+  Future<void> onFavoriteTap() async {
     if (_artifact == null || LoreAPI.userId == null) return;
 
     if (_favorites.contains(_artifact)) {
@@ -188,9 +190,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   }
 
   Future<void> onCalculating(final bool artifactsCalculating) async {
-    setState(() {
-      _artifactsCalculating = artifactsCalculating;
-    });
+    setState(() {});
   }
 
   Future<void> loadFavorites() async {
@@ -206,86 +206,6 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   @override
   Widget build(final BuildContext context) {
     final scaffold = Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        iconTheme: Theme.of(context).primaryIconTheme,
-        title: Text("LORE",
-            overflow: TextOverflow.fade,
-            style: Theme.of(context).primaryTextTheme.displaySmall),
-        actions: [
-          Tooltip(
-            message: AppLocalizations.of(context)?.browseForFile,
-            child: IconButton(
-                onPressed: onOpenFileTap, icon: const Icon(Icons.folder_open)),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Tooltip(
-              message: AppLocalizations.of(context)?.searchByMd5OrURL,
-              child: AnimSearchBar(
-                width: MediaQuery.of(context).size.width - 100,
-                color: Theme.of(context).colorScheme.background,
-                textFieldIconColor: Theme.of(context).primaryColor,
-                textFieldColor: Theme.of(context).colorScheme.surface,
-                searchIconColor: Theme.of(context).primaryColor,
-                textController: _animatedSearchBarTextConroller,
-                boxShadow: false,
-                helpText: AppLocalizations.of(context)?.searchByMd5OrURL ?? '',
-                onSubmitted: onSearch,
-                style: Theme.of(context).textTheme.titleMedium,
-                onSuffixTap: () =>
-                    setState(() => _animatedSearchBarTextConroller.clear()),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Flex(
-        direction: Axis.vertical,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          (_artifactsCalculating)
-              ? LinearProgressIndicator(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  backgroundColor: Theme.of(context).primaryColor,
-                )
-              : const SizedBox.shrink(),
-          ArtifactDetailsWidget(
-            artifact: _artifact,
-            isFavorite: _artifact != null && _favorites.contains(_artifact!),
-            onOpenFileTap: onOpenFileTap,
-            onFavoriteTap: onFavoriteTap,
-          ),
-          Expanded(
-            child: RemarkListWidget(
-              remarks:
-                  (_artifact != null) ? _artifact?.remarks : Remark.dummyData,
-              currentUser: LoreAPI.userId,
-              onDeleteRemark: (final Remark deleteMe) async {
-                await LoreAPI.deleteRemark(remark: deleteMe).then((value) {
-                  _artifact?.remarks?.remove(deleteMe);
-                  setState(() {});
-                });
-              },
-            ),
-          ),
-          (_artifact == null)
-              ? const SizedBox.shrink()
-              : RemarkEntryWidget(
-                  enabled: LoreAPI.accessToken != null,
-                  onLogin: () =>
-                      AuthWidget.showAuthWidget(context, supabaseInstance),
-                  onSubmitted: (value) async {
-                    await LoreAPI.saveRemark(
-                        remark: value,
-                        md5sum: _artifact?.md5sum,
-                        userId: LoreAPI.userId);
-                    await _artifact?.refreshRemarks();
-                    setState(() {});
-                  },
-                ),
-        ],
-      ),
       drawer: DrawerWidget(
         authenticated: LoreAPI.accessToken != null,
         userEmail: LoreAPI.userEmail,
@@ -300,6 +220,39 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           await onArtifactSelected(artifact);
         },
       ),
+      body: CustomScrollView(
+        slivers: [
+          LoreAppBar(
+            artifact: _artifact,
+            onOpenFileTap: onOpenFileTap,
+            onSearch: onSearch,
+            onFavoriteTap: onFavoriteTap,
+            isFavorite: _artifact != null && _favorites.contains(_artifact!),
+          ),
+          RemarkList(
+            remarks: _artifact?.remarks,
+            userId: LoreAPI.userId,
+            onDeleteRemark: (final Remark deleteMe) async {
+              await LoreAPI.deleteRemark(remark: deleteMe).then((value) {
+                setState(() {
+                  _artifact?.remarks?.remove(deleteMe);
+                });
+              });
+            },
+          ),
+        ],
+      ),
+      floatingActionButton: RemarkEntryWidget(
+        enabled: LoreAPI.accessToken != null,
+        onLogin: () => AuthWidget.showAuthWidget(context, supabaseInstance),
+        onSubmitted: (final value) async {
+          await LoreAPI.saveRemark(
+              remark: value, md5sum: _artifact?.md5sum, userId: LoreAPI.userId);
+          await _artifact?.refreshRemarks();
+          setState(() {});
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
 
     return (kIsDesktop)
