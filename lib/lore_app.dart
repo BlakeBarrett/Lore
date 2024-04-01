@@ -76,15 +76,15 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
 
   @override
   void initState() {
-    _appLinksSubscription = AppLinks().allUriLinkStream.listen((uri) {
-      // TODO: Handle incoming app links
-      debugPrint('app_links uri: $uri');
-      final String value = ('${uri.path.replaceFirst('/', '')}?${uri.query}');
-      debugPrint('app_links value: $value');
-      if (value != '?') {
-        onArtifactSelected(value);
-      }
-    });
+    // _appLinksSubscription = AppLinks().allUriLinkStream.listen((uri) {
+    //   // TODO: Handle incoming app links
+    //   debugPrint('app_links uri: $uri');
+    //   final String value = ('${uri.path.replaceFirst('/', '')}?${uri.query}');
+    //   debugPrint('app_links value: $value');
+    //   if (value != '?') {
+    //     onArtifactSelected(value);
+    //   }
+    // });
     _authStateSubscription =
         supabaseInstance.auth.onAuthStateChange.listen((data) async {
       debugPrint('Supabase AuthChangeEvent: ${data.event}');
