@@ -12,7 +12,6 @@ import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark.dart';
 import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
-import 'package:app_links/app_links.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
