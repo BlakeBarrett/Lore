@@ -4,11 +4,16 @@ import 'package:Lore/lore_app.dart';
 import 'package:desktop_window/desktop_window.dart' as window_size;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main(final List<String> args) async {
   debugPrint('main(args[]) = $args');
-  WidgetsFlutterBinding.ensureInitialized();
+
+  // Preserve splash screen while Flutter is initializing
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
   await dotenv.load(fileName: 'supabase.env');
   await Supabase.initialize(
     url: dotenv.get('SUPABASE_URL'),

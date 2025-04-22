@@ -17,6 +17,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:regexpattern/regexpattern.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -38,6 +39,9 @@ class LoreApp extends StatelessWidget {
         ),
       ),
     );
+
+    // Remove the splash screen once the app is fully loaded
+    FlutterNativeSplash.remove();
 
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
