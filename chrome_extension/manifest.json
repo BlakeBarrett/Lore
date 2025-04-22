@@ -1,0 +1,47 @@
+{
+  "name": "Lore Extension",
+  "description": "Access Lore for the current URL and collaborate with others",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "icons/Icon-16.png",
+      "32": "icons/Icon-32.png",
+      "48": "icons/Icon-48.png",
+      "128": "icons/Icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/Icon-16.png",
+    "32": "icons/Icon-32.png",
+    "48": "icons/Icon-48.png",
+    "128": "icons/Icon-128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "identity"
+  ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "oauth2": {
+    "client_id": "${AUTH0_CLIENT_ID}",
+    "scopes": [
+      "openid",
+      "profile",
+      "email"
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["index.html", "flutter.js", "main.dart.js", "manifest.json", "assets/*", "fonts/*", "canvaskit/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
+}

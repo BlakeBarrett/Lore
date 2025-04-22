@@ -14,6 +14,7 @@ The shared, single source of truth for everything.
 - [Run the App](#run-the-app)
 - [Deploy the Web App to Firebase](#deploy-the-web-app-to-firebase)
 - [Add localizations](#add-localizations)
+- [Chrome Extension](#chrome-extension)
 - [Console Application](#console-application)
 - [Contributing](#contributing)
 - [License](#license)
@@ -77,6 +78,60 @@ Then generate the `AppLocalizations` file by executing the command below in the 
 ```bash
 flutter gen-l10n
 ```
+
+## Chrome Extension
+
+Lore includes a Chrome extension that allows you to access Lore comments for any webpage you visit.
+
+### Setting up Auth0 for the Chrome Extension
+
+1. Create an Auth0 account at [auth0.com](https://auth0.com/) if you don't have one already
+2. Create a new Application of type "Single Page Application"
+3. In the Application settings:
+   - Add your Chrome extension's redirect URI (you can get this by running `chrome.identity.getRedirectURL()` in your Chrome console)
+   - Under Allowed Callback URLs, add the redirect URI
+   - Under Allowed Web Origins, add `chrome-extension://<YOUR_EXTENSION_ID>`
+   - Under Allowed Origins (CORS), add `chrome-extension://<YOUR_EXTENSION_ID>`
+4. If using an Auth0 API:
+   - Create an API in Auth0 Dashboard with a suitable identifier
+   - Enable RBAC if needed
+
+### Building the Chrome Extension
+
+Navigate to the Lore project directory and build the Chrome extension:
+
+```bash
+# Make the build script executable
+chmod +x build_extension.sh
+
+# Build the Chrome extension with Auth0 credentials
+AUTH0_DOMAIN=your-tenant.auth0.com \
+AUTH0_CLIENT_ID=your-client-id \
+AUTH0_AUDIENCE=https://your-api-identifier/ \
+./build_extension.sh
+```
+
+This will create a Chrome extension package at `build/lore_extension.zip` and a directory of unpacked extension files at `build/chrome_extension`.
+
+### Installing the Chrome Extension in Chrome
+
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable "Developer mode" using the toggle in the top-right corner
+3. Click "Load unpacked" and select the `build/chrome_extension` directory
+
+### Using the Chrome Extension
+
+1. Click on the Lore extension icon in your browser toolbar
+2. The extension will show Lore comments for the current URL
+3. If not logged in, click the login icon and authenticate with your account
+4. View existing remarks or add your own remarks about the current webpage
+
+### Features
+
+- Automatic MD5 hashing of the current URL to create a unique artifact ID
+- Authentication with your Lore account
+- View all remarks associated with the current webpage
+- Add new remarks directly from your browser
 
 ## Console Application
 
