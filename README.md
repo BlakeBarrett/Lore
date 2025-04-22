@@ -14,6 +14,7 @@ The shared, single source of truth for everything.
 - [Run the App](#run-the-app)
 - [Deploy the Web App to Firebase](#deploy-the-web-app-to-firebase)
 - [Add localizations](#add-localizations)
+- [Console Application](#console-application)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -77,6 +78,52 @@ Then generate the `AppLocalizations` file by executing the command below in the 
 flutter gen-l10n
 ```
 
+## Console Application
+
+Lore includes a command-line interface that provides access to core functionality without requiring the graphical interface.
+
+### Building the Console App
+
+Navigate to the Lore project directory and build the console app:
+
+    # Build the console app using the Dart command
+    fvm flutter pub run tool/build_console.dart
+
+This will create an executable at `bin/lore` that you can run directly.
+
+### Installing the Console App System-wide
+
+Copy the executable to a directory in your PATH:
+
+    sudo cp bin/lore /usr/local/bin/
+
+### Using the Console App
+
+Here are some examples of how to use the console application:
+
+    # Show help information
+    lore help
+
+    # Get artifact by MD5 hash or text content
+    lore get d3486ae9136e7856bc42212385ea797e
+    lore get "Hello, world!"
+
+    # Log in with a JWT token
+    lore login <your-jwt-token>
+
+    # Add a remark to an artifact
+    lore add-remark d3486ae9136e7856bc42212385ea797e "This is an important artifact"
+
+    # List your favorite artifacts
+    lore list-favorites
+
+### Available Commands
+
+- `help` - Show help information
+- `get <md5|text>` - Get artifact by MD5 hash or text
+- `add-remark <md5> <text>` - Add a remark to an artifact
+- `login <jwt>` - Login with a JWT token
+- `list-favorites` - List your favorite artifacts
 ## Contributing
 
 Contributions are welcome! Please read the [Contribution Guidelines](CONTRIBUTING.md) before making a contribution.

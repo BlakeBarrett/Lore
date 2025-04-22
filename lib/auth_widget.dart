@@ -36,7 +36,7 @@ class AuthWidget extends StatefulWidget {
       pageBuilder: (final context, final animation, final secondaryAnimation) {
         String email = '';
         return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.background,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             appBar: AppBar(
               backgroundColor: Theme.of(context).primaryColor,
               iconTheme: Theme.of(context).primaryIconTheme,
@@ -69,7 +69,7 @@ class _AuthWidgetState extends State<AuthWidget> {
   @override
   Widget build(final BuildContext context) {
     return Material(
-      color: Theme.of(context).colorScheme.background,
+      color: Theme.of(context).colorScheme.surface,
       child: Container(
         padding: const EdgeInsets.all(20.0),
         child: Column(
