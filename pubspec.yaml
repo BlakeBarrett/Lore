@@ -67,7 +67,7 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   supabase: ^2.0.7
   msix: ^3.16.7
-  build_runner:
+  build_runner: ^2.4.6
   flutter_gen_runner:
 
 scripts:
