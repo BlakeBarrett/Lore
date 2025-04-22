@@ -5,6 +5,7 @@ import 'package:Lore/lore_console.dart';
 import 'package:desktop_window/desktop_window.dart' as window_size;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 late final bool kIsDesktop;
@@ -20,9 +21,12 @@ Future<void> initializeSupabase() async {
 
 void main(final List<String> args) async {
   debugPrint('main(args[]) = $args');
-  await initializeSupabase();  
-
-  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Preserve splash screen while Flutter is initializing
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  
+  await initializeSupabase();
   try {
     if (Platform.isWindows ||
         Platform.isLinux ||
