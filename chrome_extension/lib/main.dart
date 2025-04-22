@@ -1,29 +1,28 @@
 import 'package:Lore/artifact.dart';
-import 'package:Lore/auth_widget.dart';
 import 'package:Lore/lore_api.dart';
-import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark.dart';
 import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
-import 'package:chrome_extension/chrome_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:convert';
-import 'dart:js' as js;
-import 'dart:js_util' as js_util;
-import 'auth0_config.dart'; // Import Auth0 configuration
+
+import 'services/artifact_service.dart';
+import 'services/auth_manager.dart';
+import 'services/chrome_service.dart';
+import 'services/service_locator.dart';
 
 // Reference to the Supabase client instance
 late final SupabaseClient supabaseInstance;
-// Auth0 configuration is imported from auth0_config.dart
-final String redirectUri = chrome.identity.getRedirectURL();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Supabase
   await initializeSupabase();
+  
+  // Setup service locator for dependency injection
+  await setupServiceLocator();
   
   runApp(const LoreChromeExtension());
 }
@@ -51,12 +50,16 @@ class _LoreChromeExtensionState extends State<LoreChromeExtension> {
   bool _isLoading = true;
   bool _isAuthenticating = false;
   String? _authError;
-  String? _userEmail;
-  String? _userName;
+  
+  // Services
+  late final AuthManager _authManager;
+  late final ArtifactService _artifactService;
   
   @override
   void initState() {
     super.initState();
+    _authManager = serviceLocator<AuthManager>();
+    _artifactService = serviceLocator<ArtifactService>();
     _initializeExtension();
   }
   
@@ -68,38 +71,40 @@ class _LoreChromeExtensionState extends State<LoreChromeExtension> {
     
     try {
       // First try to authenticate automatically with Auth0
-      await _authenticateWithAuth0(false); // false means non-interactive initially
+      final authResult = await _authManager.authenticateSilently();
+      if (!authResult.success) {
+        setState(() {
+          _authError = 'Auto-sign in not available. Please sign in manually.';
+        });
+      }
     } catch (e) {
       debugPrint('Automatic authentication error: $e');
       setState(() {
         _authError = 'Auto-sign in not available. Please sign in manually.';
-        _isAuthenticating = false;
       });
     }
     
+    setState(() {
+      _isAuthenticating = false;
+    });
+    
     // Proceed with loading the current URL and artifacts
     try {
-      final tabs = await chrome.tabs.query({
-        'active': true,
-        'currentWindow': true,
-      });
+      final currentUrl = await serviceLocator<ChromeService>().getCurrentUrl();
       
-      if (tabs.isNotEmpty) {
-        final currentTab = tabs.first;
+      if (currentUrl != null) {
         setState(() {
-          _currentUrl = currentTab.url;
+          _currentUrl = currentUrl;
         });
         
         // Create the artifact from the URL
-        if (_currentUrl != null) {
-          final artifact = Artifact.fromURI(Uri.parse(_currentUrl!));
-          setState(() {
-            _currentArtifact = artifact;
-          });
-          
-          // Load remarks for this artifact
-          await _loadRemarks();
-        }
+        final artifact = _artifactService.createArtifactFromUrl(currentUrl);
+        setState(() {
+          _currentArtifact = artifact;
+        });
+        
+        // Load remarks for this artifact
+        await _loadRemarks();
       }
     } catch (e) {
       debugPrint('Error getting current tab: $e');
@@ -110,226 +115,11 @@ class _LoreChromeExtensionState extends State<LoreChromeExtension> {
     });
   }
   
-  Future<void> _authenticateWithAuth0(bool interactive) async {
-    setState(() {
-      _isAuthenticating = true;
-      _authError = null;
-    });
-    
-    try {
-      // Check if we have a cached token first
-      String? cachedToken = await _getCachedAuthToken();
-      
-      if (cachedToken != null) {
-        // Use cached token
-        await _handleAuth0Token(cachedToken);
-      } else if (interactive) {
-        // If no cached token and interactive mode is allowed, launch the auth flow
-        final String authUrl = 'https://$auth0Domain/authorize'
-          '?response_type=token'
-          '&client_id=$auth0ClientId'
-          '&redirect_uri=$redirectUri'
-          '&scope=openid%20profile%20email'
-          '&audience=$audience';
-          
-        final String? resultUrl = await _launchChromeAuth(authUrl);
-        
-        if (resultUrl != null) {
-          // Extract the access token from the redirect URL
-          final Uri uri = Uri.parse(resultUrl);
-          
-          // For token flow, token comes in the fragment, not query params
-          final String fragment = uri.fragment;
-          final Map<String, String> params = Uri.splitQueryString(fragment);
-          
-          final String? token = params['access_token'];
-          final String? error = params['error'];
-          
-          if (error != null) {
-            throw Exception('Auth0 error: $error');
-          }
-          
-          if (token != null) {
-            await _cacheAuthToken(token);
-            await _handleAuth0Token(token);
-          } else {
-            throw Exception('No access token returned from Auth0');
-          }
-        } else {
-          throw Exception('Authentication was canceled or failed');
-        }
-      } else {
-        // Non-interactive mode and no cached token
-        throw Exception('No cached credentials available');
-      }
-    } catch (e) {
-      debugPrint('Auth0 authentication error: $e');
-      setState(() {
-        _authError = 'Authentication failed: $e';
-        _isAuthenticating = false;
-      });
-      rethrow;
-    }
-    
-    setState(() {
-      _isAuthenticating = false;
-    });
-  }
-  
-  Future<String?> _launchChromeAuth(String authUrl) async {
-    try {
-      // Use Chrome's identity API to launch the OAuth flow
-      final dynamic result = await js_util.promiseToFuture<dynamic>(
-        js.context.callMethod('eval', [
-          '''
-          new Promise((resolve, reject) => {
-            chrome.identity.launchWebAuthFlow({
-              url: '$authUrl',
-              interactive: true
-            }, function(responseUrl) {
-              if (chrome.runtime.lastError) {
-                reject(chrome.runtime.lastError.message);
-              } else {
-                resolve(responseUrl);
-              }
-            });
-          })
-          '''
-        ])
-      );
-      
-      return result as String?;
-    } catch (e) {
-      debugPrint('Error launching auth flow: $e');
-      return null;
-    }
-  }
-  
-  Future<void> _handleAuth0Token(String token) async {
-    try {
-      // Fetch user info from Auth0
-      final userInfo = await _fetchUserInfoFromAuth0(token);
-      
-      if (userInfo != null && userInfo['email'] != null) {
-        setState(() {
-          _userEmail = userInfo['email'] as String;
-          _userName = userInfo['name'] as String? ?? _userEmail!.split('@').first;
-        });
-        
-        // Sign in to Supabase with the Auth0 token
-        final AuthResponse response = await supabaseInstance.auth.signInWithIdToken(
-          provider: Provider.auth0,
-          idToken: token,
-          accessToken: token,
-        );
-        
-        debugPrint('User authenticated: ${response.user?.email}');
-      } else {
-        throw Exception('Could not retrieve user information from Auth0');
-      }
-    } catch (e) {
-      debugPrint('Error handling Auth0 token: $e');
-      rethrow;
-    }
-  }
-  
-  Future<Map<String, dynamic>?> _fetchUserInfoFromAuth0(String token) async {
-    try {
-      final result = await js_util.promiseToFuture<dynamic>(
-        js.context.callMethod('eval', [
-          '''
-          new Promise((resolve, reject) => {
-            fetch('https://$auth0Domain/userinfo', {
-              headers: {
-                'Authorization': 'Bearer ' + '$token'
-              }
-            })
-            .then(response => {
-              if (!response.ok) {
-                throw new Error('Failed to fetch user info: ' + response.status);
-              }
-              return response.json();
-            })
-            .then(data => resolve(data))
-            .catch(error => reject(error));
-          })
-          '''
-        ])
-      );
-      
-      return result != null ? Map<String, dynamic>.from(result as Map) : null;
-    } catch (e) {
-      debugPrint('Error fetching Auth0 user info: $e');
-      return null;
-    }
-  }
-  
-  Future<String?> _getCachedAuthToken() async {
-    try {
-      final result = await js_util.promiseToFuture<dynamic>(
-        js.context.callMethod('eval', [
-          '''
-          new Promise((resolve) => {
-            chrome.storage.local.get(['auth0_access_token'], function(result) {
-              if (result && result.auth0_access_token) {
-                resolve(result.auth0_access_token);
-              } else {
-                resolve(null);
-              }
-            });
-          })
-          '''
-        ])
-      );
-      
-      return result as String?;
-    } catch (e) {
-      debugPrint('Error getting cached token: $e');
-      return null;
-    }
-  }
-  
-  Future<void> _cacheAuthToken(String token) async {
-    try {
-      await js_util.promiseToFuture<void>(
-        js.context.callMethod('eval', [
-          '''
-          new Promise((resolve) => {
-            chrome.storage.local.set({auth0_access_token: '$token'}, function() {
-              resolve();
-            });
-          })
-          '''
-        ])
-      );
-    } catch (e) {
-      debugPrint('Error caching token: $e');
-    }
-  }
-  
-  Future<void> _clearCachedAuthToken() async {
-    try {
-      await js_util.promiseToFuture<void>(
-        js.context.callMethod('eval', [
-          '''
-          new Promise((resolve) => {
-            chrome.storage.local.remove(['auth0_access_token'], function() {
-              resolve();
-            });
-          })
-          '''
-        ])
-      );
-    } catch (e) {
-      debugPrint('Error clearing cached token: $e');
-    }
-  }
-  
   Future<void> _loadRemarks() async {
     if (_currentArtifact == null) return;
     
     try {
-      final remarks = await LoreAPI.loadRemarks(md5sum: _currentArtifact!.md5sum);
+      final remarks = await _artifactService.loadRemarks(_currentArtifact!.md5sum);
       setState(() {
         _remarks = remarks;
       });
@@ -339,28 +129,37 @@ class _LoreChromeExtensionState extends State<LoreChromeExtension> {
   }
   
   void _showAuthPrompt() async {
+    setState(() {
+      _isAuthenticating = true;
+      _authError = null;
+    });
+    
     try {
-      await _authenticateWithAuth0(true); // true means interactive
-      await _loadRemarks(); // Refresh remarks after authentication
+      final authResult = await _authManager.authenticateInteractively();
+      
+      if (!authResult.success) {
+        setState(() {
+          _authError = authResult.error;
+        });
+      }
+      
+      // Refresh remarks after authentication
+      await _loadRemarks();
     } catch (e) {
       debugPrint('Interactive authentication error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Authentication failed: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      setState(() {
+        _authError = 'Authentication failed: $e';
+      });
     }
+    
+    setState(() {
+      _isAuthenticating = false;
+    });
   }
   
   Future<void> _logout() async {
     try {
-      await _clearCachedAuthToken();
-      await supabaseInstance.auth.signOut();
-      setState(() {
-        _userEmail = null;
-        _userName = null;
-      });
+      await _authManager.signOut();
       await _loadRemarks(); // Refresh remarks after logout
     } catch (e) {
       debugPrint('Error logging out: $e');
@@ -371,7 +170,7 @@ class _LoreChromeExtensionState extends State<LoreChromeExtension> {
     if (_currentArtifact == null) return;
     
     try {
-      await LoreAPI.saveRemark(
+      await _artifactService.saveRemark(
         remark: remark,
         md5sum: _currentArtifact!.md5sum,
         userId: LoreAPI.userId,
@@ -386,7 +185,7 @@ class _LoreChromeExtensionState extends State<LoreChromeExtension> {
   
   void _deleteRemark(Remark remark) async {
     try {
-      await LoreAPI.deleteRemark(remark: remark);
+      await _artifactService.deleteRemark(remark);
       await _loadRemarks();
     } catch (e) {
       debugPrint('Error deleting remark: $e');
@@ -418,7 +217,7 @@ class _LoreChromeExtensionState extends State<LoreChromeExtension> {
                   ),
                 ),
               )
-            else if (LoreAPI.userId != null)
+            else if (_authManager.isAuthenticated)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.person, color: Colors.white),
                 onSelected: (value) {
@@ -430,7 +229,7 @@ class _LoreChromeExtensionState extends State<LoreChromeExtension> {
                   PopupMenuItem<String>(
                     value: 'profile',
                     enabled: false,
-                    child: Text('Signed in as $_userEmail'),
+                    child: Text('Signed in as ${_authManager.currentUser?.email ?? "User"}'),
                   ),
                   const PopupMenuDivider(),
                   const PopupMenuItem<String>(
@@ -536,7 +335,7 @@ class _LoreChromeExtensionState extends State<LoreChromeExtension> {
         
         // Remark entry widget at bottom
         RemarkEntryWidget(
-          enabled: LoreAPI.userId != null,
+          enabled: _authManager.isAuthenticated,
           onSubmitted: _submitRemark,
           onLogin: _showAuthPrompt,
         ),

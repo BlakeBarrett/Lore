@@ -56,6 +56,8 @@ dependencies:
     sdk: flutter
   nock: ^1.2.3
   chrome_extension: ^0.4.0
+  get_it: ^7.6.7
+  http: ^1.2.1
 
 dev_dependencies:
   flutter_test:
