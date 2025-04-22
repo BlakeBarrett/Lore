@@ -51,6 +51,7 @@ dependencies:
   auto_size_text: ^3.0.0
   like_button: ^2.0.5
   supabase_flutter: ^2.2.0
+  flutter_native_splash: ^2.3.10
   flutter_localizations:
     sdk: flutter
   nock: ^1.2.3
@@ -70,6 +71,15 @@ dev_dependencies:
 
 dependency_overrides:
   intl: any
+
+# Flutter Native Splash Screen configuration
+flutter_native_splash:
+  color: "#FF9800"  # This will be overridden by theme.primaryColor at runtime
+  image: assets/Lore_app_icon.png
+  android: true
+  ios: true
+  web: false
+  fullscreen: false
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
