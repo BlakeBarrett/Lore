@@ -86,10 +86,7 @@ Lore includes a command-line interface that provides access to core functionalit
 
 Navigate to the Lore project directory and build the console app:
 
-    # Using the provided script
-    ./console_build.sh
-
-    # Or directly
+    # Build the console app using the Dart command
     fvm flutter pub run tool/build_console.dart
 
 This will create an executable at `bin/lore` that you can run directly.
