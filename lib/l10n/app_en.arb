@@ -5,11 +5,11 @@
     },
     "browseForFile": "Browse for file",
     "@browseForFile": {
-        "description": "Button label for file browsing"
+        "description": "Text for browse file button"
     },
     "searchByMd5OrURL": "Search by MD5 or URL",
     "@searchByMd5OrURL": {
-        "description": "Button label for search widget"
+        "description": "Hint text for search bar"
     },
     "addToFavorites": "Add to favorites",
     "@addToFavorites": {
@@ -21,12 +21,19 @@
     },
     "delete": "Delete",
     "@delete": {
-        "description": "Button label for deleting a remark"
+        "description": "Text for delete button"
     },
     "logout": "Logout",
     "@logout": {
-        "description": "Button label for logging out"
+        "description": "Text for logout button"
     },
     "author": "Author",
-    "timeStamp": "Time Stamp"
+    "@author": {
+        "description": "Label for author field"
+    },
+    "timeStamp": "Time Stamp",
+    "appTitle": "Lore",
+    "@appTitle": {
+        "description": "The application title"
+    }
 }
