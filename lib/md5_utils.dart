@@ -4,7 +4,7 @@ import 'dart:core';
 import 'package:crypto/crypto.dart';
 // ignore: implementation_imports
 import 'package:crypto/src/digest_sink.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 
 Future<String> calculateMD5(final Stream<List<int>> byteStream) async {
   try {
@@ -17,7 +17,7 @@ Future<String> calculateMD5(final Stream<List<int>> byteStream) async {
     input.close();
     return sink.value.toString();
   } catch (e) {
-    debugPrint('Error calculating MD5 checksum: $e');
+    print('Error calculating MD5 checksum: $e');
     return '';
   }
 }

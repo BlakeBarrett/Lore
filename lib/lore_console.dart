@@ -2,20 +2,30 @@ import 'dart:io';
 
 import 'package:Lore/artifact.dart';
 import 'package:Lore/lore_api.dart';
-import 'package:Lore/main.dart';
 import 'package:Lore/md5_utils.dart';
+import 'package:Lore/supabase_service.dart';
 import 'package:regexpattern/regexpattern.dart';
 
 class LoreConsole {
   final List<String> args;
 
-  LoreConsole(this.args) {
-    _handleArgs();
+  LoreConsole._(this.args);
+
+  static Future<LoreConsole> create(List<String> args) async {
+    final console = LoreConsole._(args);
+    await console._initialize();
+    return console;
   }
 
-  void _handleArgs() async {
+  Future<void> _initialize() async {
+    await SupabaseService.instance.initializeForConsole();
+    await _handleArgs();
+  }
+
+  Future<void> _handleArgs() async {
     if (args.isEmpty) {
       _printUsage();
+      await _cleanup();
       exit(0);
     }
 
@@ -25,11 +35,13 @@ class LoreConsole {
       switch (command) {
         case 'help':
           _printUsage();
+          await _cleanup();
           exit(0);
         case 'get':
           if (args.length < 2) {
             stdout.writeln('Error: Missing artifact identifier');
             _printCommandUsage('get');
+            await _cleanup();
             exit(1);
           }
           await _getArtifact(args[1]);
@@ -38,6 +50,7 @@ class LoreConsole {
           if (args.length < 3) {
             stdout.writeln('Error: Missing md5sum or remark text');
             _printCommandUsage('add-remark');
+            await _cleanup();
             exit(1);
           }
           await _addRemark(args[1], args.sublist(2).join(' '));
@@ -46,6 +59,7 @@ class LoreConsole {
           if (args.length < 2) {
             stdout.writeln('Error: Missing JWT token');
             _printCommandUsage('login');
+            await _cleanup();
             exit(1);
           }
           await _login(args[1]);
@@ -57,22 +71,40 @@ class LoreConsole {
           if (args.length < 2) {
             stdout.writeln('Error: Missing file path or md5 hash');
             stdout.writeln('Usage: lore <file> or lore -md5=<hash>');
+            await _cleanup();
             exit(1);
           }
           await _printRemarks(args[1]);
           break;
         default:
-          stdout.writeln('Unknown command: $command');
-          _printUsage();
-          exit(1);
+          // NEW REQUIREMENT: Default behavior for file paths
+          if (args.length == 1) {
+            // Treat the single argument as a file path and show remarks
+            await _printRemarks(args[0]);
+          } else {
+            stdout.writeln('Unknown command: $command');
+            _printUsage();
+            await _cleanup();
+            exit(1);
+          }
       }
     } catch (e) {
       stdout.writeln('Error executing command: $e');
+      await _cleanup();
       exit(1);
     }
 
     // Ensure the app exits after command completion
+    await _cleanup();
     exit(0);
+  }
+
+  Future<void> _cleanup() async {
+    try {
+      await SupabaseService.instance.dispose();
+    } catch (e) {
+      // Ignore cleanup errors
+    }
   }
 
   Future<void> _getArtifact(String identifier) async {
@@ -104,6 +136,7 @@ class LoreConsole {
   Future<void> _addRemark(String md5sum, String remarkText) async {
     if (LoreAPI.userId == null) {
       stdout.writeln('Error: You must be logged in to add remarks.');
+      await _cleanup();
       exit(1);
     }
 
@@ -115,6 +148,7 @@ class LoreConsole {
       stdout.writeln('Remark added successfully!');
     } catch (e) {
       stdout.writeln('Failed to add remark: $e');
+      await _cleanup();
       exit(1);
     }
   }
@@ -123,11 +157,13 @@ class LoreConsole {
     stdout.writeln('Attempting to log in with provided JWT...');
 
     try {
-      final response = await supabaseInstance.auth.recoverSession(jwt);
+      final response =
+          await SupabaseService.instance.client.auth.recoverSession(jwt);
       stdout.writeln('Login successful!');
       stdout.writeln('User: ${response.user?.email ?? "Unknown"}');
     } catch (e) {
       stdout.writeln('Login failed: $e');
+      await _cleanup();
       exit(1);
     }
   }
@@ -135,6 +171,7 @@ class LoreConsole {
   Future<void> _listFavorites() async {
     if (LoreAPI.userId == null) {
       stdout.writeln('Error: You must be logged in to list favorites.');
+      await _cleanup();
       exit(1);
     }
 
@@ -155,6 +192,7 @@ class LoreConsole {
       }
     } catch (e) {
       stdout.writeln('Failed to fetch favorites: $e');
+      await _cleanup();
       exit(1);
     }
   }
@@ -167,6 +205,7 @@ class LoreConsole {
       final file = File(identifier);
       if (!file.existsSync()) {
         stdout.writeln('File not found: $identifier');
+        await _cleanup();
         exit(1);
       }
       md5sum = await calculateMD5(file.openRead());
@@ -176,23 +215,32 @@ class LoreConsole {
       stdout.writeln('No remarks found for $identifier');
       return;
     }
-    stdout.writeln('Top ${remarks.length > 50 ? 50 : remarks.length} remarks for $identifier:');
+    stdout.writeln(
+        'Top ${remarks.length > 50 ? 50 : remarks.length} remarks for $identifier:');
     for (final remark in remarks.take(50)) {
-      stdout.writeln('- [${remark.timestamp}] ${remark.author}: ${remark.text}');
+      stdout
+          .writeln('- [${remark.timestamp}] ${remark.author}: ${remark.text}');
     }
   }
 
   void _printUsage() {
     stdout.writeln('Lore - The shared, single source of truth for everything.');
     stdout.writeln('\nUsage:');
-    stdout.writeln('  lore <command> [arguments]\n');
+    stdout.writeln('  lore <command> [arguments]');
+    stdout
+        .writeln('  lore <file_path>                Show remarks for a file\n');
     stdout.writeln('Available commands:');
     stdout.writeln('  help                   Show this help message');
     stdout.writeln('  get <md5|text>         Get artifact by MD5 hash or text');
     stdout.writeln('  add-remark <md5> <text>  Add a remark to an artifact');
     stdout.writeln('  login <jwt>            Login with a JWT token');
     stdout.writeln('  list-favorites         List your favorite artifacts');
-    stdout.writeln('  print-remarks <file|md5>  Print top remarks for a file or hash');
+    stdout.writeln(
+        '  print-remarks <file|md5>  Print top remarks for a file or hash');
+    stdout.writeln('\nExamples:');
+    stdout.writeln('  lore ./README.md       Show remarks for README.md');
+    stdout.writeln('  lore help              Show this help message');
+    stdout.writeln('  lore get abc123        Get artifact by MD5 hash');
   }
 
   void _printCommandUsage(String command) {

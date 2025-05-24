@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:Lore/lore_app.dart';
 import 'package:Lore/lore_console.dart';
+import 'package:Lore/supabase_service.dart';
 import 'package:desktop_window/desktop_window.dart' as window_size;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -17,15 +18,18 @@ Future<void> initializeSupabase() async {
     url: dotenv.get('SUPABASE_URL'),
     anonKey: dotenv.get('SUPABASE_ANON_KEY'),
   );
+
+  // Initialize our service with the Flutter Supabase client
+  SupabaseService.instance.initializeForFlutter(supabaseInstance);
 }
 
 void main(final List<String> args) async {
   debugPrint('main(args[]) = $args');
-  
+
   // Preserve splash screen while Flutter is initializing
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  
+
   await initializeSupabase();
   try {
     if (Platform.isWindows ||
@@ -45,6 +49,6 @@ void main(final List<String> args) async {
   if (args.isEmpty) {
     runApp(const LoreApp());
   } else {
-    LoreConsole(args);
+    await LoreConsole.create(args);
   }
 }
