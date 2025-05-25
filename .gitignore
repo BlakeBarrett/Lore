@@ -19,6 +19,7 @@
 .history
 .svn/
 *.env
+bin/lore
 
 # IntelliJ related
 *.iml

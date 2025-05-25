@@ -1,16 +1,21 @@
 import 'dart:io';
 
 import 'package:Lore/artifact.dart';
+import 'package:Lore/lore_backend.dart';
 import 'package:Lore/lore_api.dart';
-import 'package:Lore/main.dart';
-import 'package:Lore/md5_utils.dart';
+import 'package:Lore/md5_utils.dart'; // Assuming this is still needed for MD5 calculation
 import 'package:regexpattern/regexpattern.dart';
 
 class LoreConsole {
   final List<String> args;
+  late final LoreBackend _backend; // Use the backend interface
 
-  LoreConsole(this.args) {
-    _handleArgs();
+  LoreConsole._(this.args, this._backend);
+
+  static Future<LoreConsole> create(List<String> args, LoreBackend backend) async {
+    final console = LoreConsole._(args, backend);
+    // No need to call _initialize here as backend is already initialized and passed in
+    return console.._handleArgs();
   }
 
   void _handleArgs() async {
@@ -22,7 +27,6 @@ class LoreConsole {
     final String command = args[0].toLowerCase();
 
     try {
-      switch (command) {
         case 'help':
           _printUsage();
           exit(0);
@@ -66,6 +70,14 @@ class LoreConsole {
 
     // Ensure the app exits after command completion
     exit(0);
+  }
+
+  Future<void> _cleanup() async {
+    try {
+      await _backend.dispose();
+    } catch (e) {
+      // Ignore cleanup errors
+    }
   }
 
   Future<void> _getArtifact(String identifier) async {
@@ -116,9 +128,7 @@ class LoreConsole {
     stdout.writeln('Attempting to log in with provided JWT...');
 
     try {
-      final response = await supabaseInstance.auth.recoverSession(jwt);
-      stdout.writeln('Login successful!');
-      stdout.writeln('User: ${response.user?.email ?? "Unknown"}');
+      await _backend.login(jwt: jwt);
     } catch (e) {
       stdout.writeln('Login failed: $e');
       exit(1);
@@ -148,6 +158,111 @@ class LoreConsole {
       }
     } catch (e) {
       stdout.writeln('Failed to fetch favorites: $e');
+      await _cleanup();
+      exit(1);
+    }
+  }
+
+  Future<void> _printRemarks(String identifier) async {
+    String md5sum;
+    if (identifier.isMD5()) {
+      md5sum = identifier;
+    } else {
+      final file = File(identifier);
+      if (!file.existsSync()) {
+        stdout.writeln('File not found: $identifier');
+        await _cleanup();
+        exit(1);
+      }
+      md5sum = await calculateMD5(file.openRead());
+    }
+    final remarks = await LoreAPI.loadRemarks(md5sum: md5sum);
+    if (remarks.isEmpty) {
+      stdout.writeln('No remarks found for $identifier');
+      return;
+    }
+    stdout.writeln(
+        'Top ${remarks.length > 50 ? 50 : remarks.length} remarks for $identifier:');
+    for (final remark in remarks.take(50)) {
+      stdout
+          .writeln('- [${remark.timestamp}] ${remark.author}: ${remark.text}');
+    }
+  }
+
+  Future<void> _webLogin() async {
+    stdout.writeln('🌐 Opening web browser for authentication...');
+
+ try {
+      final authUrl = await _backend.getAuthUrl(provider: 'github');
+
+ } catch (e) {
+      stdout.writeln('❌ Failed to open browser: $e');
+      stdout.writeln(
+          '📋 Please manually open your browser and visit the authentication URL');
+      stdout.writeln('   Run: lore login --help for more information');
+    }
+  }
+
+  Future<void> _claimFile(String filePath) async {
+    if (LoreAPI.userId == null) {
+      stdout.writeln('Error: You must be logged in to claim files.');
+      stdout.writeln('Run: lore login');
+      await _cleanup();
+      exit(1);
+    }
+
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      stdout.writeln('Error: File not found: $filePath');
+      await _cleanup();
+      exit(1);
+    }
+
+    try {
+      // Get file stats for creation date
+      final stat = file.statSync();
+      final createdDate = stat
+          .modified; // Note: This is actually modified date, creation date is not always available
+
+      // Calculate MD5
+      final md5sum = await calculateMD5(file.openRead());
+      stdout.writeln('📁 File: $filePath');
+      stdout.writeln('🔍 MD5: $md5sum');
+
+      // Check if artifact already exists
+      final existingArtifact = await LoreAPI.loadArtifact(md5sum);
+      if (existingArtifact != null &&
+          existingArtifact.remarks != null &&
+          existingArtifact.remarks!.isNotEmpty) {
+        stdout.writeln(
+            '⚠️  File already has remarks. Cannot claim already documented files.');
+        stdout.writeln('📝 Existing remarks:');
+        for (final remark in existingArtifact.remarks!.take(3)) {
+          stdout.writeln('   - ${remark.text} (by: ${remark.author})');
+        }
+        return;
+      }
+
+      // Get current user info
+      final userName = await _backend.getUserId() ?? 'Unknown User';
+
+      // Create claim remark
+      final claimText =
+          'First seen by $userName. Created ${createdDate.toIso8601String().split('T')[0]}';
+
+      stdout.writeln('🏷️  Claiming file with remark: "$claimText"');
+
+      // Save the claim remark
+      await LoreAPI.saveRemark(
+        remark: claimText,
+        md5sum: md5sum,
+        userId: LoreAPI.userId!,
+      );
+
+      stdout.writeln('✅ File claimed successfully!');
+    } catch (e) {
+      stdout.writeln('❌ Failed to claim file: $e');
+      await _cleanup();
       exit(1);
     }
   }
