@@ -1,16 +1,22 @@
 import 'package:Lore/artifact.dart';
-import 'package:Lore/main.dart';
 import 'package:Lore/remark.dart';
-import 'package:flutter/foundation.dart';
+import 'package:Lore/supabase_service.dart';
+
+// Add a debug print function that works in both Flutter and console contexts
+void debugPrint(String message) {
+  print(message); // Simple print that works everywhere
+}
 
 abstract class LoreAPI {
   static String? get accessToken =>
-      supabaseInstance.auth.currentSession?.accessToken;
-  static String? get userId => supabaseInstance.auth.currentUser?.id;
-  static String? get userEmail => supabaseInstance.auth.currentUser?.email;
+      SupabaseService.instance.client.auth.currentSession?.accessToken;
+  static String? get userId =>
+      SupabaseService.instance.client.auth.currentUser?.id;
+  static String? get userEmail =>
+      SupabaseService.instance.client.auth.currentUser?.email;
 
   static Future<Artifact?> loadArtifact(final String md5sum) async {
-    return await supabaseInstance
+    return await SupabaseService.instance.client
         .from('Artifacts')
         .select()
         .eq('md5', md5sum)
@@ -19,7 +25,7 @@ abstract class LoreAPI {
   }
 
   static Future<void> saveArtifact(final Artifact artifact) async {
-    await supabaseInstance.from('Artifacts').upsert({
+    await SupabaseService.instance.client.from('Artifacts').upsert({
       'name': artifact.name,
       'md5': artifact.md5sum,
     }).catchError((error) {
@@ -29,7 +35,7 @@ abstract class LoreAPI {
 
   static Future<List<Remark>> loadRemarks(
       {required final String md5sum}) async {
-    return await supabaseInstance
+    return await SupabaseService.instance.client
         .from('Remarks')
         .select()
         .eq('artifact_md5', md5sum)
@@ -48,7 +54,7 @@ abstract class LoreAPI {
         'remark': remark,
         'user_id': userId,
       };
-      await supabaseInstance
+      await SupabaseService.instance.client
           .from('Remarks')
           .insert(payload)
           .catchError((error) {
@@ -59,7 +65,7 @@ abstract class LoreAPI {
 
   static Future<void> deleteRemark({required final Remark remark}) async {
     if (remark.id == null) return;
-    await supabaseInstance
+    await SupabaseService.instance.client
         .from('Remarks')
         .delete()
         .eq('id', remark.id?.toInt() ?? -1)
@@ -72,7 +78,7 @@ abstract class LoreAPI {
       {required final Artifact? artifact,
       required final String? userId}) async {
     if (artifact == null || userId == null) return;
-    await supabaseInstance
+    await SupabaseService.instance.client
         .from('Favorites')
         .insert({'user_id': userId, 'artifact_md5': artifact.md5sum})
         .then((value) => debugPrint('Added to favorites: $value'))
@@ -85,7 +91,7 @@ abstract class LoreAPI {
       {required final Artifact? artifact,
       required final String? userId}) async {
     if (artifact == null || userId == null) return;
-    await supabaseInstance
+    await SupabaseService.instance.client
         .from('Favorites')
         .delete()
         .eq('user_id', userId)
@@ -99,7 +105,7 @@ abstract class LoreAPI {
   static Future<List<Artifact>> loadFavoritesArtifacts(
       {required final String? userId}) async {
     if (userId == null) return [];
-    final results = await supabaseInstance
+    final results = await SupabaseService.instance.client
         .rpc('getfavoriteartifactsfor', params: {'userid': userId});
     final List<Artifact> artifacts = [];
     results.forEach((element) {

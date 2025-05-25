@@ -80,41 +80,104 @@ flutter gen-l10n
 
 ## Console Application
 
-Lore includes a command-line interface that provides access to core functionality without requiring the graphical interface.
+Lore includes a comprehensive command-line interface that provides access to core functionality without requiring the graphical interface.
 
-### Building the Console App
+### ✨ Features
+
+- **File Path Processing**: `lore ./README.md` - Show remarks for any file
+- **Web-based Authentication**: `lore login` - Opens browser for GitHub authentication  
+- **File Claiming**: `lore claim ./file` - Create "First seen by user" remarks
+- **Flutter Integration**: Console appears as a device target in `flutter devices`
+- **VS Code Integration**: Rich task menu and command palette support
+
+### 🛠️ Building the Console App
 
 Navigate to the Lore project directory and build the console app:
 
-    # Build the console app using the Dart command
-    fvm flutter pub run tool/build_console.dart
+```bash
+# Build the console app using the build tool
+dart tool/build_console.dart
+```
+
+Or use VS Code tasks: **Terminal > Run Task > Build Lore Console**
 
 This will create an executable at `bin/lore` that you can run directly.
 
-### Installing the Console App System-wide
+### 🚀 Installing the Console App System-wide
 
 Copy the executable to a directory in your PATH:
 
-    sudo cp bin/lore /usr/local/bin/
+```bash
+sudo cp bin/lore /usr/local/bin/
+```
 
-### Using the Console App
+### 📖 Using the Console App
 
 Here are some examples of how to use the console application:
 
-    # Show help information
-    lore help
+```bash
+# Show remarks for any file
+lore ./README.md
+lore ./src/main.dart
 
-    # Get artifact by MD5 hash or text content
-    lore get d3486ae9136e7856bc42212385ea797e
-    lore get "Hello, world!"
+# Show help information  
+lore help
 
-    # Log in with a JWT token
-    lore login <your-jwt-token>
+# Web-based authentication (opens browser)
+lore login
 
-    # Add a remark to an artifact
-    lore add-remark d3486ae9136e7856bc42212385ea797e "This is an important artifact"
+# Claim ownership of a file
+lore claim ./important-file.txt
 
-    # List your favorite artifacts
+# Get artifact by MD5 hash or text content
+lore get d3486ae9136e7856bc42212385ea797e
+lore get "Hello, world!"
+
+# Add a remark to an artifact (requires login)
+lore add-remark d3486ae9136e7856bc42212385ea797e "This is an important artifact"
+
+# List your favorite artifacts
+lore list-favorites
+```
+
+### 🔧 Backend Configuration
+
+**Note**: The current Supabase backend may be unavailable due to free tier limitations. To set up a new backend:
+
+1. **Run the configuration helper**:
+   ```bash
+   bash tool/setup_supabase.sh
+   ```
+
+2. **Or create a new backend**: See [Backend Migration Guide](BACKEND_MIGRATION_GUIDE.md) for implementing Firebase, local SQLite, or other backends.
+
+### 🎯 Flutter Device Integration
+
+The console app integrates seamlessly with Flutter development:
+
+```bash
+# Enable custom devices (one-time setup)
+flutter config --enable-custom-devices
+
+# See console in device list
+flutter devices
+# Output includes: Lore Console (mobile) • lore-console • custom
+
+# Run Flutter app targeting console
+flutter run -d lore-console
+```
+
+### Available Commands
+
+- `help` - Show help information
+- `<file_path>` - Show remarks for any file (e.g., `lore ./README.md`)
+- `get <md5|text>` - Get artifact by MD5 hash or text
+- `add-remark <md5> <text>` - Add a remark to an artifact
+- `login [jwt]` - Login via web browser or with JWT token
+- `claim <file>` - Claim a file as "First seen by user"
+- `list-favorites` - List your favorite artifacts
+
+For detailed console documentation, see: [Console README](CONSOLE_README.md)
     lore list-favorites
 
 ### Available Commands

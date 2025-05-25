@@ -1,0 +1,28 @@
+{
+  "custom-devices": [
+    {
+      "id": "lore-console",
+      "label": "Lore Console",
+      "sdkNameAndVersion": "Lore Console 1.0.0",
+      "platform": "custom-linux",
+      "uninstall": "tool/flutter_console.dart uninstall",
+      "runDebug": "tool/flutter_console.dart launch --debug",
+      "runRelease": "tool/flutter_console.dart launch --release",
+      "forwardPort": "",
+      "forwardPortSuccessRegex": "",
+      "screenshot": ""
+    },
+    {
+      "id": "lore-console-interactive", 
+      "label": "Lore Console (Interactive)",
+      "sdkNameAndVersion": "Lore Console 1.0.0",
+      "platform": "custom-linux",
+      "uninstall": "tool/flutter_console.dart uninstall",
+      "runDebug": "tool/flutter_console.dart run",
+      "runRelease": "tool/flutter_console.dart run",
+      "forwardPort": "",
+      "forwardPortSuccessRegex": "",
+      "screenshot": ""
+    }
+  ]
+}
