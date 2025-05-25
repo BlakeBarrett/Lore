@@ -7,7 +7,26 @@ A command-line interface for Lore - the shared, single source of truth for every
 ### Prerequisites
 
 - [Dart SDK](https://dart.dev/get-dart) (version 3.0 or higher)
+- [Flutter SDK](https://flutter.dev) (for integrated development)
 - Access to the Lore project files
+
+### Flutter Integration (New!)
+
+The console app now appears as a device target in Flutter:
+
+```bash
+# Enable Flutter custom devices (one-time setup)
+flutter config --enable-custom-devices
+
+# List all devices (including console)
+flutter devices
+# Output includes: Lore Console (mobile) • lore-console • linux-x64
+
+# VS Code Integration
+# - Open Command Palette (Ctrl+Shift+P)
+# - Run "Tasks: Run Task"
+# - Choose from console tasks like "Console: Help", "Console: Login", etc.
+```
 
 ### Build the Console App
 
@@ -34,11 +53,34 @@ A command-line interface for Lore - the shared, single source of truth for every
 
 # Get artifact information by MD5 hash
 ./bin/lore get abc123def456...
+
+# Or use Flutter integration tools
+dart tool/flutter_console.dart run help
 ```
+
+## 🛠️ Development Integration
+
+### VS Code Tasks
+Access these through Command Palette → "Tasks: Run Task":
+- **Build Lore Console**: Compile the executable
+- **Console: Help**: Show help message
+- **Console: Login**: Open web browser for authentication
+- **Console: Claim File**: Claim ownership of a file (with prompt)
+- **Console: Show File Remarks**: Show remarks for a file (with prompt)
+- **Flutter: List Devices**: Show all Flutter devices including console
+
+### Flutter Device Target
+The console now appears in `flutter devices` as "Lore Console (mobile)":
+```bash
+flutter devices
+# Shows: Lore Console (mobile) • lore-console • linux-x64 • Lore Console App 1.0.0
+```
+
+You can select it as a target in VS Code's device picker!
 
 ## 📋 Commands
 
-### File Path Mode (New Feature)
+### File Path Mode (Enhanced)
 ```bash
 # Display remarks for any file path
 ./bin/lore <file_path>
@@ -47,6 +89,17 @@ A command-line interface for Lore - the shared, single source of truth for every
 ./bin/lore ./README.md
 ./bin/lore src/main.dart
 ./bin/lore /absolute/path/to/file.txt
+```
+
+### File Claiming (New Feature)
+```bash
+# Claim ownership of a file with automatic "First seen by" remark
+lore claim <file_path>
+
+# This creates a remark like: "First seen by user@example.com. Created 2025-05-23"
+# Examples:
+lore claim ./README.md
+lore claim src/important_file.dart
 ```
 
 ### Artifact Management
@@ -73,13 +126,27 @@ lore print-remarks ./src/main.dart
 lore print-remarks abc123def456789
 ```
 
-### Authentication
+### Authentication (Enhanced)
 ```bash
-# Login with JWT token from Supabase
+# Login via web browser (new - recommended method)
+lore login
+
+# Login with JWT token from Supabase (existing method)
 lore login <jwt_token>
 
 # List your favorite artifacts (requires authentication)
 lore list-favorites
+```
+
+### File Claiming (New Feature)
+```bash
+# Claim a file as "First seen by user" with creation date
+lore claim <file_path>
+
+# Examples:
+lore claim ./README.md
+lore claim src/main.dart
+lore claim /absolute/path/to/file.txt
 ```
 
 ### Help
@@ -118,7 +185,42 @@ dart compile exe lib/console_main.dart -o bin/lore
 chmod +x bin/lore  # On Linux/macOS
 ```
 
-## 🔐 Authentication Details
+## 🏷️ File Claiming Feature
+
+The console app now supports "claiming" files - adding an initial remark that indicates who first documented the file and when it was created.
+
+### How It Works
+
+When you run `lore claim <file>`, the app will:
+
+1. **Check Authentication**: Ensure you're logged in
+2. **Verify File Exists**: Confirm the file path is valid
+3. **Calculate MD5**: Generate a hash of the file contents
+4. **Check Existing Remarks**: Prevent claiming already documented files
+5. **Create Claim Remark**: Add a remark like: `"First seen by user@example.com. Created 2025-05-23"`
+
+### Example Usage
+
+```bash
+# Claim a new file
+lore claim ./src/new_feature.dart
+# Output: ✅ File claimed successfully!
+
+# Try to claim an already documented file
+lore claim ./README.md
+# Output: ⚠️ File already has remarks. Cannot claim already documented files.
+```
+
+### Benefits
+
+- **Ownership Tracking**: Know who first documented each file
+- **Timeline**: See when files were first added to the knowledge base
+- **Prevents Duplicates**: Won't override existing documentation
+- **Historical Context**: Provides valuable project timeline information
+
+## 🌐 Web Authentication
+
+The new web-based authentication makes it easier to get started without manually extracting JWT tokens.
 
 The console app supports JWT-based authentication with Supabase:
 
@@ -128,6 +230,19 @@ The console app supports JWT-based authentication with Supabase:
 
 ### Getting a JWT Token
 
+#### Option 1: Web Browser Authentication (New - Recommended)
+```bash
+# Open web browser for authentication
+lore login
+
+# This will:
+# 1. Open your default browser to Supabase auth page
+# 2. Allow you to authenticate with GitHub
+# 3. Provide instructions to copy the JWT token
+# 4. Use: lore login <copied_jwt_token>
+```
+
+#### Option 2: Manual Token Extraction
 1. Use the Flutter app to authenticate
 2. Extract the JWT token from the session
 3. Use `lore login <jwt_token>` to authenticate the console app

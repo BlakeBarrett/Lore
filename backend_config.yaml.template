@@ -1,0 +1,54 @@
+# Lore Backend Configuration
+# This file defines which backend to use for data storage and authentication
+
+# Backend type: firebase, supabase, local, or mock
+backend:
+  type: supabase  # Change this to switch backends
+
+# Firebase configuration (when backend.type = firebase)
+firebase:
+  project_id: "your-firebase-project-id"
+  api_key: "your-firebase-api-key"
+  auth_domain: "your-project.firebaseapp.com"
+  database_url: "https://your-project-default-rtdb.firebaseio.com"
+  
+# Supabase configuration (when backend.type = supabase)  
+supabase:
+  url: "https://your-project-ref.supabase.co"
+  anon_key: "your-supabase-anon-key"
+  service_role_key: "your-service-role-key"  # Optional, for admin operations
+  
+# Local SQLite configuration (when backend.type = local)
+local:
+  database_path: "~/.lore/lore.db"
+  enable_encryption: false
+  backup_enabled: true
+  backup_interval_hours: 24
+  
+# Mock backend configuration (when backend.type = mock)
+mock:
+  simulate_latency_ms: 100
+  simulate_failures: false
+  failure_rate: 0.1  # 10% failure rate when enabled
+  
+# General settings
+app:
+  enable_analytics: true
+  offline_mode: false
+  cache_size_mb: 100
+  auto_sync_interval_minutes: 15
+  
+# Authentication settings
+auth:
+  providers:
+    - github
+    - google
+    - email
+  session_timeout_hours: 168  # 1 week
+  remember_me_default: true
+  
+# Console app specific settings
+console:
+  default_browser_timeout_seconds: 30
+  auth_callback_port: 8080
+  auth_callback_host: "localhost"

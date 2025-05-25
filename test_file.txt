@@ -1,0 +1,2 @@
+This is a test file for the Lore console application.
+It contains some sample content to demonstrate the file path functionality.

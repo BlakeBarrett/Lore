@@ -73,6 +73,9 @@ dev_dependencies:
 
 scripts:
   build_console: dart tool/build_console.dart
+  run_console: dart tool/build_console.dart && ./bin/lore
+  console_help: dart tool/build_console.dart && ./bin/lore help
+  console_login: dart tool/build_console.dart && ./bin/lore login
 
 # Add this section at the end of the file
 flutter_gen:
