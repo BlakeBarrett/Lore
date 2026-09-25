@@ -21,7 +21,7 @@ void main() {
               RemarkList(
                 remarks: const <Remark>[],
                 userId: 'user-id',
-                onDeleteRemark: (_) {},
+                onDeleteRemark: (final _) {},
               ),
             ],
           ),
@@ -36,7 +36,7 @@ void main() {
       testWidgets('CommentInputArea calls onSubmitted with correct value',
           (final WidgetTester tester) async {
         String testValue = '';
-        onSubmitted(final String value) => testValue = value;
+        String onSubmitted(final String value) => testValue = value;
 
         // Build the CommentInputArea in a testable widget.
         await tester.pumpWidget(MaterialApp(
@@ -72,7 +72,7 @@ void main() {
             body: RemarkEntryWidget(
               enabled: false, // CommentInputArea is disabled
               onLogin: onLogin.call,
-              onSubmitted: (_) => onSubmitted.call, // Mocked function
+              onSubmitted: (final _) => onSubmitted.call, // Mocked function
             ),
           ),
         ));

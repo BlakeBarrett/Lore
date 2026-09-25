@@ -4,15 +4,14 @@ import 'package:Lore/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 class RemarkWidget extends StatelessWidget {
-  final Remark remark;
-  final String currentUser;
-  final void Function(Remark remark)? onDeleteRemark;
-
   RemarkWidget(
       {super.key,
       required this.remark,
       required this.currentUser,
       this.onDeleteRemark});
+  final Remark remark;
+  final String currentUser;
+  final void Function(Remark remark)? onDeleteRemark;
 
   final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
 
@@ -20,9 +19,9 @@ class RemarkWidget extends StatelessWidget {
       ? ''
       : formatter.format(value.timestamp!.toLocal()).toString();
 
-  PopupMenuButton? getContextMenu(final Remark remark) {
+  PopupMenuButton<String>? getContextMenu(final Remark remark) {
     if (remark.author == currentUser) {
-      return PopupMenuButton(
+      return PopupMenuButton<String>(
         onSelected: (final value) {
           if (value == 'delete') {
             onDeleteRemark?.call(remark);

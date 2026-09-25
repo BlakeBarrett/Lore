@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthWidget extends StatefulWidget {
-  final void Function(String email) onEmailSubmitted;
-  final void Function(String otp) onOtpSubmitted;
-
   const AuthWidget({
     super.key,
     required this.onEmailSubmitted,
     required this.onOtpSubmitted,
   });
+  final void Function(String email) onEmailSubmitted;
+  final void Function(String otp) onOtpSubmitted;
 
   @override
   State<StatefulWidget> createState() => _AuthWidgetState();
@@ -113,7 +112,7 @@ class _AuthWidgetState extends State<AuthWidget> {
                   style: Theme.of(context).textTheme.labelLarge,
                   textInputAction: TextInputAction.send,
                   readOnly: _email != '',
-                  onSubmitted: (value) {
+                  onSubmitted: (final value) {
                     setState(() {
                       _email = value;
                     });

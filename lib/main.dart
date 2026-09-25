@@ -30,7 +30,7 @@ void main(final List<String> args) async {
   if (args.isEmpty) {
     if (isDesktop) {
       try {
-        window_size.DesktopWindow.setWindowSize(const Size(800, 1000));
+        await window_size.DesktopWindow.setWindowSize(const Size(800, 1000));
       } catch (e) {
         debugPrint('$e');
       }

@@ -77,8 +77,8 @@ Future<Artifact> artifactFromInput(
 class LoreController extends ChangeNotifier {
   LoreController({
     required this.repo,
-    Stream<AuthState>? authEvents,
-    Session? initialSession,
+    final Stream<AuthState>? authEvents,
+    final Session? initialSession,
   }) : session = initialSession {
     // The gotrue auth stream (a ReplaySubject) rethrows as an *unhandled
     // zone exception* — i.e. a crash — when a listener omits onError, which

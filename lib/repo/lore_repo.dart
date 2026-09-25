@@ -8,35 +8,36 @@ import 'package:Lore/remark.dart';
 /// implementation lives in [SupabaseLoreRepo] (`lib/repo/supabase_lore_repo.dart`);
 /// tests inject a generated mock instead.
 abstract class LoreRepo {
-  Future<Artifact?> loadArtifact(String md5sum);
+  Future<Artifact?> loadArtifact(final String md5sum);
 
-  Future<void> saveArtifact(Artifact artifact);
+  Future<void> saveArtifact(final Artifact artifact);
 
-  Future<List<Remark>> loadRemarks({required String md5sum});
+  Future<List<Remark>> loadRemarks({required final String md5sum});
 
   Future<void> saveRemark({
-    required String remark,
-    required String? md5sum,
-    required String? userId,
+    required final String remark,
+    required final String? md5sum,
+    required final String? userId,
   });
 
-  Future<void> deleteRemark({required Remark remark});
+  Future<void> deleteRemark({required final Remark remark});
 
   Future<void> addToFavorites({
-    required Artifact? artifact,
-    required String? userId,
+    required final Artifact? artifact,
+    required final String? userId,
   });
 
   Future<void> removeFromFavorites({
-    required Artifact? artifact,
-    required String? userId,
+    required final Artifact? artifact,
+    required final String? userId,
   });
 
-  Future<List<Artifact>> loadFavoritesArtifacts({required String? userId});
+  Future<List<Artifact>> loadFavoritesArtifacts(
+      {required final String? userId});
 
   /// Exchanges a JWT recovery token for a session; returns the signed-in
   /// user's e-mail address. Throws if the token is invalid.
-  Future<String?> loginWithJwt(String jwt);
+  Future<String?> loginWithJwt(final String jwt);
 
   String? get userId;
 

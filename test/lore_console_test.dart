@@ -26,7 +26,7 @@ void main() {
   test('prints usage when no arguments provided', () async {
     // Override exit function to avoid test termination
     final originalExit = LoreConsole.exit;
-    LoreConsole.exit = (int code) {};
+    LoreConsole.exit = (final int code) {};
 
     try {
       await LoreConsole([]).done;
@@ -43,17 +43,18 @@ void main() {
   test('get command with MD5 hash fetches artifact correctly', () async {
     // Override exit function
     final originalExit = LoreConsole.exit;
-    LoreConsole.exit = (int code) {};
+    LoreConsole.exit = (final int code) {};
 
     // A real 32-hex-char MD5 so the console treats it as a hash, not text.
     const testMd5 = '1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d';
     final testArtifact = Artifact(
       path: 'test/path.txt',
       md5sum: testMd5,
-      remarks: [Remark.simple(text: 'Test remark', author: 'user123')],
+      remarks: [const Remark.simple(text: 'Test remark', author: 'user123')],
     );
 
-    when(mockApi.loadArtifact(testMd5)).thenAnswer((_) async => testArtifact);
+    when(mockApi.loadArtifact(testMd5))
+        .thenAnswer((final _) async => testArtifact);
 
     try {
       await LoreConsole(['get', testMd5]).done;
@@ -71,7 +72,7 @@ void main() {
   test('add-remark command adds remark to artifact', () async {
     // Override exit function
     final originalExit = LoreConsole.exit;
-    LoreConsole.exit = (int code) {};
+    LoreConsole.exit = (final int code) {};
 
     const testMd5 = '1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d';
     const testRemark = 'This is a test remark';
@@ -83,7 +84,7 @@ void main() {
     // Mock saveRemark success
     when(mockApi.saveRemark(
             remark: testRemark, md5sum: testMd5, userId: testUserId))
-        .thenAnswer((_) async {});
+        .thenAnswer((final _) async {});
 
     try {
       await LoreConsole(['add-remark', testMd5, testRemark]).done;
@@ -101,7 +102,7 @@ void main() {
   test('list-favorites command shows user favorites', () async {
     // Override exit function
     final originalExit = LoreConsole.exit;
-    LoreConsole.exit = (int code) {};
+    LoreConsole.exit = (final int code) {};
 
     const testUserId = 'user123';
     final testArtifacts = [
@@ -114,7 +115,7 @@ void main() {
 
     // Mock loadFavoritesArtifacts
     when(mockApi.loadFavoritesArtifacts(userId: testUserId))
-        .thenAnswer((_) async => testArtifacts);
+        .thenAnswer((final _) async => testArtifacts);
 
     try {
       await LoreConsole(['list-favorites']).done;
@@ -131,7 +132,7 @@ void main() {
   test('unknown command shows usage', () async {
     // Override exit function
     final originalExit = LoreConsole.exit;
-    LoreConsole.exit = (int code) {};
+    LoreConsole.exit = (final int code) {};
 
     try {
       await LoreConsole(['unknown-command']).done;
