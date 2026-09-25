@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:Lore/app_config.dart';
 import 'package:Lore/artifact.dart';
+import 'package:Lore/hash_utils.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:Lore/repo/supabase_lore_repo.dart';
 import 'package:desktop_drop/desktop_drop.dart';
@@ -79,9 +80,11 @@ class WebFileDropHandler extends StatelessWidget {
                 controller.createFileUrl(value);
                 final path = await controller.getFilename(value);
                 final bytes = await controller.getFileData(value);
-                final byteStream = Stream.fromIterable([bytes]);
-                final md5sum = await calculateMD5(byteStream);
-                final artifact = Artifact(path: path, md5sum: md5sum);
+                final md5sum = await calculateMD5(Stream.fromIterable([bytes]));
+                final sha256sum =
+                    await sha256FromStream(Stream.fromIterable([bytes]));
+                final artifact =
+                    Artifact(path: path, md5sum: md5sum, sha256: sha256sum);
                 onDrop([artifact]);
                 controller.releaseFileUrl(value);
               } catch (e) {

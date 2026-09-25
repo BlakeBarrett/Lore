@@ -40,6 +40,10 @@ class SupabaseLoreRepo implements LoreRepo {
     await _client.from('Artifacts').upsert({
       'name': artifact.name,
       'md5': artifact.md5sum,
+      // Additive column prepared for the future MD5 -> SHA-256 migration;
+      // MD5 remains the join key everywhere. Omit when unknown so we never
+      // overwrite a stored hash with null on re-save.
+      if (artifact.sha256 != null) 'sha256': artifact.sha256,
     });
   }
 

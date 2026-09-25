@@ -11,10 +11,10 @@ String sha256SumFor(final String input) {
   return sha256.convert(content).toString();
 }
 
+/// Hashes [byteStream] incrementally: `crypto`'s `sha256` is a
+/// `StreamTransformer`, so chunks flow through the hasher one at a time and
+/// the whole stream is never buffered in memory.
 Future<String> sha256FromStream(final Stream<List<int>> byteStream) async {
-  final bytes = <int>[];
-  await for (final chunk in byteStream) {
-    bytes.addAll(chunk);
-  }
-  return sha256.convert(bytes).toString();
+  final digest = await byteStream.transform(sha256).first;
+  return digest.toString();
 }
