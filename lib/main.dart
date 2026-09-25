@@ -4,6 +4,7 @@ import 'package:Lore/app_config.dart';
 import 'package:Lore/lore_app.dart';
 import 'package:Lore/lore_console.dart';
 import 'package:desktop_window/desktop_window.dart' as window_size;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
@@ -13,10 +14,15 @@ const Size kDefaultWindowSize = Size(800, 1000);
 void main(final List<String> args) async {
   debugPrint('main(args[]) = $args');
 
-  // Preserve splash screen while Flutter is initializing
+  // Preserve splash screen while Flutter is initializing.
+  // Skipped on web: flutter_native_splash is configured `web: false` in
+  // pubspec.yaml, so removeSplashFromWeb() is not injected and the platform
+  // channel calls throw PlatformException in the browser.
   final WidgetsBinding widgetsBinding =
       WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  if (!kIsWeb) {
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  }
 
   bool isDesktop = false;
   try {
