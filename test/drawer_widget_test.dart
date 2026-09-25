@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:Lore/drawer_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:Lore/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:nock/nock.dart';

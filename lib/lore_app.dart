@@ -15,7 +15,7 @@ import 'package:Lore/remark_list_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'l10n/app_localizations.dart';
+import 'package:Lore/l10n/app_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:regexpattern/regexpattern.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

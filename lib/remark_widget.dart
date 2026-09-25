@@ -1,6 +1,6 @@
 import 'package:Lore/remark.dart';
 import 'package:flutter/material.dart';
-import 'l10n/app_localizations.dart';
+import 'package:Lore/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
 class RemarkWidget extends StatelessWidget {

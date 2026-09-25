@@ -3,7 +3,7 @@ import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:Lore/lore_app_bar.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:Lore/l10n/app_localizations.dart';
 import 'package:like_button/like_button.dart';
 
 void main() {
