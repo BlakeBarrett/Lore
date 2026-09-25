@@ -97,7 +97,7 @@ class _LoreAppBarState extends State<LoreAppBar> {
   /// so Enter/Space toggle exactly like a pointer tap.
   Widget _buildFavoriteToggle(final BuildContext context) {
     final AppLocalizations? l10n = AppLocalizations.of(context);
-    final String label = l10n?.favoriteLabel ?? 'Add to favorites';
+    final String label = l10n?.addToFavorites ?? 'Add to favorites';
     final Color? iconColor = Theme.of(context).primaryIconTheme.color;
 
     return SizedBox(
@@ -266,7 +266,7 @@ class _LoreAppBarState extends State<LoreAppBar> {
           child: Semantics(
             container: true,
             textField: true,
-            label: l10n?.searchLabel,
+            label: l10n?.searchByMd5OrURL,
             child: Tooltip(
               message: l10n?.searchByMd5OrURL,
               child: AnimSearchBar(

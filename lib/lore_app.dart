@@ -137,8 +137,11 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       case LoreErrorKind.delete:
         return l10n?.errorDeleting ?? 'Could not delete.';
       case LoreErrorKind.auth:
-      case LoreErrorKind.unknown:
         return l10n?.errorAuth ?? 'Authentication failed. Please try again.';
+      case LoreErrorKind.unknown:
+        // Unknown failures get the generic load message, not an auth
+        // mislabel (review follow-up: don't imply a login problem).
+        return l10n?.errorLoading ?? 'Could not load.';
     }
   }
 

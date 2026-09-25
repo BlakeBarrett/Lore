@@ -88,12 +88,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noFavoritesYet => 'No favorite artifacts yet.';
 
   @override
-  String get searchLabel => 'Search by MD5 or URL';
-
-  @override
-  String get favoriteLabel => 'Add to favorites';
-
-  @override
   String get deleteMenu => 'Delete remark';
 
   @override
