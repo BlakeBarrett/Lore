@@ -4,7 +4,7 @@ import 'package:Lore/artifact.dart';
 import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'l10n/app_localizations.dart';
 import 'package:like_button/like_button.dart';
 import 'package:regexpattern/regexpattern.dart';
 
