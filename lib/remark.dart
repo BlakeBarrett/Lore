@@ -52,15 +52,27 @@ class Remark {
         Remark('Cool! I\'ll see you in the comments.', 'You', DateTime.now()),
       ];
 
-  @override
-  bool operator ==(final Object other) {
-    if (identical(this, other)) return true;
-    return other is Remark &&
-        other.text == text &&
-        (other.id ?? -1) == (id ?? -1) &&
-        other.timestamp == timestamp;
+  /// Normalized identity for ==/hashCode: id absent (null or the positional
+  /// -1 sentinel) falls back to the timestamp, so a Remark built via the
+  /// positional ctor (id = -1) and one via fromMap (id = null) agree.
+  int get _identityHash {
+    final effectiveId = (id == null || id == -1) ? null : id;
+    return Object.hash(
+        effectiveId == null ? timestamp?.hashCode : effectiveId.hashCode, text);
   }
 
   @override
-  int get hashCode => Object.hash(id ?? timestamp, text);
+  bool operator ==(final Object other) {
+    if (identical(this, other)) return true;
+    if (other is! Remark) return false;
+    final mine = (id == null || id == -1) ? null : id;
+    final theirs = (other.id == null || other.id == -1) ? null : other.id;
+    if (mine != theirs) return false;
+    // Both ids absent: identity falls back to timestamp.
+    if (mine == null && other.timestamp != timestamp) return false;
+    return other.text == text;
+  }
+
+  @override
+  int get hashCode => _identityHash;
 }
