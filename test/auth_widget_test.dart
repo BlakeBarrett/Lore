@@ -4,7 +4,7 @@ import 'package:mockito/mockito.dart';
 import 'package:flutter/material.dart';
 
 abstract class StringFunction {
-  dynamic call(String value);
+  dynamic call(final String value);
 }
 
 class MockStringFunction extends Mock implements StringFunction {}
@@ -64,7 +64,7 @@ void main() {
 
       // Enter text into the OTP TextField.
       await tester.enterText(
-          find.byWidgetPredicate((widget) =>
+          find.byWidgetPredicate((final widget) =>
               widget is TextField &&
               widget.decoration?.hintText == 'One Time Password...'),
           '123456');

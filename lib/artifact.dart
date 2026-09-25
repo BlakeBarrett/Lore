@@ -5,25 +5,6 @@ import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark.dart';
 
 class Artifact {
-  final String path;
-  final String md5sum;
-
-  /// SHA-256 of the file contents, computed alongside [md5sum] in the
-  /// file-drop path. Nullable: rows saved before this column existed (and
-  /// string/URI artifacts) have no SHA-256. MD5 remains the join key; this is
-  /// the additive data that will let a future migration switch PKs.
-  final String? sha256;
-
-  final int? length;
-  File? get file => File(path);
-  List<Remark>? remarks;
-
-  String get name => (path.isNotEmpty)
-      ? path
-          .substring(path.lastIndexOf('/') + 1)
-          .substring(path.lastIndexOf('\\') + 1)
-      : '';
-
   Artifact({
     required this.path,
     required this.md5sum,
@@ -49,6 +30,24 @@ class Artifact {
 
   factory Artifact.fromAPIResponse(final dynamic value) =>
       Artifact.fromMap(Map<String, dynamic>.from(value as Map));
+  final String path;
+  final String md5sum;
+
+  /// SHA-256 of the file contents, computed alongside [md5sum] in the
+  /// file-drop path. Nullable: rows saved before this column existed (and
+  /// string/URI artifacts) have no SHA-256. MD5 remains the join key; this is
+  /// the additive data that will let a future migration switch PKs.
+  final String? sha256;
+
+  final int? length;
+  File? get file => File(path);
+  List<Remark>? remarks;
+
+  String get name => (path.isNotEmpty)
+      ? path
+          .substring(path.lastIndexOf('/') + 1)
+          .substring(path.lastIndexOf('\\') + 1)
+      : '';
 
   static Future<Artifact> fromFile(final File value) async {
     // One stream per hash: a file stream can only be consumed once.

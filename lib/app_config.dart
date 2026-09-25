@@ -7,19 +7,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// duplicated `initializeSupabase()` bootstrap in `main.dart` /
 /// `console_main.dart`.
 class AppConfig {
-  final SupabaseClient supabase;
-  final bool isDesktop;
-  final bool isWeb;
-
   AppConfig._({
     required this.supabase,
     required this.isDesktop,
     required this.isWeb,
   });
+  final SupabaseClient supabase;
+  final bool isDesktop;
+  final bool isWeb;
 
   static late final AppConfig instance;
 
-  static Future<void> init({bool desktop = false}) async {
+  static Future<void> init({final bool desktop = false}) async {
     await dotenv.load(fileName: 'supabase.env');
     await Supabase.initialize(
       url: dotenv.get('SUPABASE_URL'),

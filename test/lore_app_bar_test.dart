@@ -8,7 +8,7 @@ import 'package:like_button/like_button.dart';
 
 void main() {
   group('LoreAppBar', () {
-    testWidgets('renders correctly', (WidgetTester tester) async {
+    testWidgets('renders correctly', (final WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -19,7 +19,7 @@ void main() {
                 LoreAppBar(
                   artifact: Artifact(path: '', md5sum: ''),
                   onOpenFileTap: () {},
-                  onSearch: (String query) {},
+                  onSearch: (final String query) {},
                   onFavoriteTap: () {},
                   isFavorite: false,
                 ),
@@ -33,7 +33,7 @@ void main() {
     });
 
     testWidgets('calls onOpenFileTap when file icon is tapped',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       bool isOpenFileTapCalled = false;
 
       await tester.pumpWidget(
@@ -48,7 +48,7 @@ void main() {
                   onOpenFileTap: () {
                     isOpenFileTapCalled = true;
                   },
-                  onSearch: (String query) {},
+                  onSearch: (final String query) {},
                   onFavoriteTap: () {},
                   isFavorite: false,
                 ),
@@ -63,7 +63,7 @@ void main() {
     });
 
     testWidgets('calls onSearch when search icon is tapped',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       String searchQuery = '';
 
       await tester.pumpWidget(
@@ -101,7 +101,7 @@ void main() {
     });
 
     testWidgets('calls onFavoriteTap when favorite icon is tapped',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       bool isFavoriteTapCalled = false;
 
       await tester.pumpWidget(
@@ -114,7 +114,7 @@ void main() {
                 LoreAppBar(
                   artifact: Artifact(path: '', md5sum: ''),
                   onOpenFileTap: () {},
-                  onSearch: (String query) {},
+                  onSearch: (final String query) {},
                   onFavoriteTap: () {
                     isFavoriteTapCalled = true;
                   },

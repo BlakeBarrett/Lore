@@ -178,7 +178,7 @@ void main() {
     test('select happy path saves artifact, loads remarks, clears error',
         () async {
       final repo = FakeLoreRepo()
-        ..remarksToReturn = [Remark.simple(text: 'nice', id: 1)];
+        ..remarksToReturn = [const Remark.simple(text: 'nice', id: 1)];
       final controller = LoreController(repo: repo);
       addTearDown(controller.dispose);
 
@@ -267,16 +267,16 @@ void main() {
       expect(repo.savedRemarks, isEmpty);
 
       repo.throwOnSaveRemark = null;
-      repo.remarksToReturn = [Remark.simple(text: 'saved', id: 7)];
+      repo.remarksToReturn = [const Remark.simple(text: 'saved', id: 7)];
       await controller.addRemark('saved');
       expect(controller.lastError, isNull);
       expect(repo.savedRemarks, hasLength(1));
-      expect(
-          controller.artifact?.remarks, [Remark.simple(text: 'saved', id: 7)]);
+      expect(controller.artifact?.remarks,
+          [const Remark.simple(text: 'saved', id: 7)]);
     });
 
     test('deleteRemark removes locally only after the repo succeeds', () async {
-      final remark = Remark.simple(text: 'delete me', id: 3);
+      const remark = Remark.simple(text: 'delete me', id: 3);
       final repo = FakeLoreRepo()..remarksToReturn = [remark];
       final controller = LoreController(repo: repo);
       addTearDown(controller.dispose);

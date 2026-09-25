@@ -1,6 +1,10 @@
+// Build script: it runs in a terminal where stdout IS the UI, so print is
+// intentional here.
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 
-void main(List<String> args) async {
+void main(final List<String> args) async {
   print('🛠️  Building Lore Console App...');
 
   // Create a bin directory if it doesn't exist

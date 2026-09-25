@@ -16,7 +16,7 @@ void main() {
   final Uint8List imageBytes =
       File('assets/Lore_app_icon.png').readAsBytesSync();
 
-  setupAvatarMockRequest() => nock('https://www.gravatar.com')
+  void setupAvatarMockRequest() => nock('https://www.gravatar.com')
       .get('/avatar/55502f40dc8b7c769880b10874abc9d0?s=100')
       .reply(200, imageBytes);
 
@@ -32,7 +32,7 @@ void main() {
   group('DrawerViewWidget', () {
     testWidgets(
         'DrawerViewWidget shows correct email and calls functions correctly',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       final MockFunction onLogout = MockFunction();
       const String testEmail = 'test@example.com';
 
@@ -47,7 +47,7 @@ void main() {
             favorites: const [],
             onLogout: onLogout.call,
             onShowAuthWidget: MockFunction().call,
-            onShowArtifact: (_) => MockFunction().call,
+            onShowArtifact: (final _) => MockFunction().call,
           ),
         ),
       ));
@@ -64,7 +64,7 @@ void main() {
     });
     testWidgets(
         'DrawerViewWidget shows AuthWidget when header is tapped and user is not authenticated',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       final MockFunction onShowAuthWidget = MockFunction();
       const String testEmail = 'test@example.com';
 
@@ -79,7 +79,7 @@ void main() {
             favorites: const [],
             onShowAuthWidget: onShowAuthWidget.call, // Mocked function
             onLogout: MockFunction().call,
-            onShowArtifact: (_) => MockFunction().call,
+            onShowArtifact: (final _) => MockFunction().call,
           ),
         ),
       ));
@@ -92,7 +92,7 @@ void main() {
     });
     testWidgets(
         'DrawerViewWidget does not show AuthWidget when header is tapped and user is authenticated',
-        (WidgetTester tester) async {
+        (final WidgetTester tester) async {
       final MockFunction onShowAuthWidget = MockFunction();
       const String testEmail = 'test@example.com';
 
@@ -107,7 +107,7 @@ void main() {
             favorites: const [],
             onLogout: MockFunction().call,
             onShowAuthWidget: onShowAuthWidget.call, // Mocked function
-            onShowArtifact: (_) => MockFunction().call,
+            onShowArtifact: (final _) => MockFunction().call,
           ),
         ),
       ));

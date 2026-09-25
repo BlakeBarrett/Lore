@@ -87,20 +87,9 @@ class WebFileDropHandler extends StatelessWidget {
             cursor: CursorType.Default,
             operation: DragOperation.all,
             onCreated: (final ctrl) => controller = ctrl,
-            onDrop: (final value) async {
-              debugPrint('DropzoneView.onDrop: $value');
-              if (value is String) {
-                onDrop(value);
-              } else {
-                // JS File handle. The name+bytes future is awaited inside
-                // LoreController.select, so a read failure becomes a
-                // controller error (and resets isCalculating) instead of a
-                // swallowed debugPrint here. createFileUrl/releaseFileUrl
-                // bracket the read, as before.
-                controller.createFileUrl(value);
-                onDrop(_readDroppedFile(controller, value));
-              }
-            }),
+            onDropString: (final value) => onDrop(value),
+            onDropFile: (final value) =>
+                onDrop(_readDroppedFile(controller, value))),
         child,
       ]);
     }
@@ -109,12 +98,14 @@ class WebFileDropHandler extends StatelessWidget {
 }
 
 Future<({String name, Uint8List bytes})> _readDroppedFile(
-    final DropzoneViewController controller, final dynamic value) async {
+    final DropzoneViewController controller,
+    final DropzoneFileInterface value) async {
+  final fileUrl = await controller.createFileUrl(value);
   try {
     final name = await controller.getFilename(value);
     final bytes = await controller.getFileData(value);
     return (name: name, bytes: bytes);
   } finally {
-    controller.releaseFileUrl(value);
+    await controller.releaseFileUrl(fileUrl);
   }
 }

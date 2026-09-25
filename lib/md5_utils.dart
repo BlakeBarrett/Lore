@@ -2,24 +2,26 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:crypto/crypto.dart';
-// ignore: implementation_imports
-import 'package:crypto/src/digest_sink.dart';
 import 'package:flutter/foundation.dart';
 
 Future<String> calculateMD5(final Stream<List<int>> byteStream) async {
+  // Public-API replacement for crypto's private DigestSink: the callback
+  // fires synchronously when the chunked conversion is closed.
+  Digest? digest;
+  final sink = ChunkedConversionSink<Digest>.withCallback((final digests) {
+    digest = digests.single;
+  });
+  final input = md5.startChunkedConversion(sink);
   try {
-    final sink = DigestSink();
-    final input = md5.startChunkedConversion(sink);
-
     await for (var data in byteStream) {
       input.add(data);
     }
     input.close();
-    return sink.value.toString();
   } catch (e) {
     debugPrint('Error calculating MD5 checksum: $e');
     return '';
   }
+  return digest?.toString() ?? '';
 }
 
 Digest md5Convert(final List<int> data) {

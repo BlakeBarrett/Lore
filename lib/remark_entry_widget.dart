@@ -51,7 +51,7 @@ class _RemarkEntryWidgetState extends State<RemarkEntryWidget> {
                 controller: _controller,
                 enabled: widget.enabled,
                 textInputAction: TextInputAction.send,
-                onSubmitted: (value) async {
+                onSubmitted: (final value) async {
                   widget.onSubmitted(value);
                   _controller.clear();
                 },

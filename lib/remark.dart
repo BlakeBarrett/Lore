@@ -1,9 +1,4 @@
 class Remark {
-  final int? id;
-  final String text;
-  final String? author;
-  final DateTime? timestamp;
-
   const Remark(this.text, this.author, this.timestamp, [this.id = -1]);
 
   /// Named constructor for callers that don't carry a positional triple.
@@ -27,10 +22,14 @@ class Remark {
   }
 
   Remark.fromAPIResponse(final Map<String, dynamic> response)
-      : text = response['remark'],
-        author = response['user_id'],
-        timestamp = DateTime.parse(response['created_at']).toLocal(),
-        id = response['id'];
+      : text = response['remark'] as String,
+        author = response['user_id'] as String?,
+        timestamp = DateTime.parse(response['created_at'] as String).toLocal(),
+        id = response['id'] as int?;
+  final int? id;
+  final String text;
+  final String? author;
+  final DateTime? timestamp;
 
   static DateTime getTimeStamp(final String value) =>
       DateTime.parse(value).toLocal();

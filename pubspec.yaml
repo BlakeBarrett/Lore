@@ -30,31 +30,23 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
   flutter_dropzone: ^4.0.0
   desktop_drop: ^0.6.0
   desktop_window: ^0.4.0
   crypto: ^3.0.3
   flutter_dotenv: ^5.1.0
-  app_links: ^6.0.2
   url_launcher: ^6.2.3
-  mockito: ^5.4.4
-  intl: ^0.19.0
-  icons_launcher: ^3.0.1
+  # Kept in sync with the intl version pinned by flutter_localizations (0.20.x).
+  intl: ^0.20.3
   anim_search_bar: ^2.0.3
   regexpattern: ^2.6.0
   file_picker: ^10.1.2
-  auto_size_text: ^3.0.0
   like_button: ^2.0.5
   supabase_flutter: ^2.17.2
   flutter_native_splash: ^2.3.10
-  flutter_localizations:
-    sdk: flutter
-  nock: ^1.2.3
 
 dev_dependencies:
   flutter_test:
@@ -65,22 +57,16 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
-  supabase: ^2.0.7
+  flutter_lints: ^6.0.0
   msix: ^3.16.7
   build_runner: ^2.4.6
+  # Test-only / tooling dependencies (were mistakenly in `dependencies`).
+  mockito: ^5.4.4
+  nock: ^1.2.3
+  icons_launcher: ^3.0.1
 
 scripts:
   build_console: dart tool/build_console.dart
-
-# Add this section at the end of the file
-flutter_gen:
-  output: lib/gen/
-  line_length: 80
-  integrations:
-    flutter_svg: true
-dependency_overrides:
-  intl: any
 
 # Flutter Native Splash Screen configuration
 flutter_native_splash:
