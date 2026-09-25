@@ -2,6 +2,7 @@ import 'package:Lore/app_config.dart';
 import 'package:Lore/artifact.dart';
 import 'package:Lore/repo/lore_repo.dart';
 import 'package:Lore/remark.dart';
+import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// [LoreRepo] backed by Supabase. Owns all table names (`Artifacts`,
@@ -15,6 +16,14 @@ class SupabaseLoreRepo implements LoreRepo {
   final AppConfig config;
 
   SupabaseClient get _client => config.supabase;
+
+  /// Whether the live `Artifacts` schema has accepted the additive `sha256`
+  /// column. Starts optimistically true; set false on the first PGRST204
+  /// (unknown column) so we degrade to `{name, md5}` payloads instead of
+  /// failing every artifact save. Self-heals on app restart once the column
+  /// migration lands server-side.
+  @visibleForTesting
+  bool sha256ColumnSupported = true;
 
   @override
   String? get accessToken => _client.auth.currentSession?.accessToken;
@@ -37,14 +46,37 @@ class SupabaseLoreRepo implements LoreRepo {
 
   @override
   Future<void> saveArtifact(final Artifact artifact) async {
-    await _client.from('Artifacts').upsert({
+    final Map<String, dynamic> payload = {
       'name': artifact.name,
       'md5': artifact.md5sum,
       // Additive column prepared for the future MD5 -> SHA-256 migration;
       // MD5 remains the join key everywhere. Omit when unknown so we never
       // overwrite a stored hash with null on re-save.
-      if (artifact.sha256 != null) 'sha256': artifact.sha256,
-    });
+      if (artifact.sha256 != null && sha256ColumnSupported)
+        'sha256': artifact.sha256,
+    };
+    try {
+      await _client.from('Artifacts').upsert(payload);
+    } on PostgrestException catch (e) {
+      // PGRST204: the live schema cache does not have the column we tried to
+      // write. If (and only if) that column was our optional sha256, retry
+      // once without it and remember to stop sending it. All other failures
+      // still propagate — the no-swallow contract holds.
+      if (e.code == 'PGRST204' &&
+          sha256ColumnSupported &&
+          payload.containsKey('sha256')) {
+        sha256ColumnSupported = false;
+        debugPrint(
+          'Artifacts.sha256 column not in schema yet; '
+          'continuing with {name, md5} payloads. $e',
+        );
+        await _client
+            .from('Artifacts')
+            .upsert({'name': artifact.name, 'md5': artifact.md5sum});
+      } else {
+        rethrow;
+      }
+    }
   }
 
   @override

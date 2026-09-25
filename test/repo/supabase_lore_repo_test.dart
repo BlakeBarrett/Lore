@@ -112,6 +112,50 @@ void main() {
       expect(sent?.containsKey('sha256'), isFalse);
     });
 
+    test(
+        'PGRST204 (missing sha256 column) degrades to {name, md5} retry '
+        'instead of failing the artifact save (regression: drop -> '
+        '"Could not load.")', () async {
+      Map<String, dynamic>? retrySent;
+      // First upsert: live schema cache rejects the sha256 column.
+      final failing = nock(baseUrl).post(
+          '$rest/Artifacts', (final List<int> b, final ContentType c) => true);
+      failing.reply(400, <String, dynamic>{
+        'code': 'PGRST204',
+        'message':
+            "Could not find the 'sha256' column of 'Artifacts' in the schema cache",
+      });
+      // Retry payload must carry only {name, md5}.
+      final retry = nock(baseUrl).post('$rest/Artifacts',
+          (final List<int> body, final ContentType contentType) {
+        retrySent = jsonDecode(utf8.decode(body)) as Map<String, dynamic>;
+        return true;
+      })
+        ..reply(201, <String, dynamic>{});
+
+      await repo.saveArtifact(
+          Artifact(path: 'file.txt', md5sum: testMd5, sha256: 'sha-abc'));
+
+      expect(failing.isDone, isTrue);
+      expect(retry.isDone, isTrue);
+      expect(retrySent, {'name': 'file.txt', 'md5': testMd5});
+      // Remembered: subsequent saves never send sha256 again.
+      expect(repo.sha256ColumnSupported, isFalse);
+    });
+
+    test('non-PGRST204 upsert failures still propagate (no swallowing)',
+        () async {
+      nock(baseUrl)
+          .post('$rest/Artifacts',
+              (final List<int> b, final ContentType c) => true)
+          .reply(500, <String, dynamic>{'code': 'XX000', 'message': 'boom'});
+      await expectLater(
+        repo.saveArtifact(
+            Artifact(path: 'file.txt', md5sum: testMd5, sha256: 'sha-abc')),
+        throwsA(isA<PostgrestException>()),
+      );
+    });
+
     test('THROWS on a 403 RLS rejection', () async {
       nock(baseUrl)
           .post('$rest/Artifacts',
