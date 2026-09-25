@@ -28,10 +28,45 @@ void main() {
       expect(artifact.name, '');
     });
 
+    test('sha256 round-trips through fromMap', () {
+      final artifact = Artifact.fromMap({
+        'name': 'file.txt',
+        'md5': 'd41d8cd98f00b204e9800998ecf8427e',
+        'sha256':
+            'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      });
+      expect(artifact.sha256,
+          'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+    });
+
+    test('sha256 is null when the column is missing (pre-migration rows)', () {
+      final artifact = Artifact.fromMap({
+        'name': 'file.txt',
+        'md5': 'd41d8cd98f00b204e9800998ecf8427e',
+      });
+      expect(artifact.sha256, isNull);
+    });
+
     test('== is true for artifacts with the same md5sum', () {
       final a = Artifact(path: 'x/file.txt', md5sum: 'abc');
       final b = Artifact(path: 'y/file.txt', md5sum: 'abc');
       expect(a, equals(b));
+    });
+
+    test(
+        'hashCode agrees with == for equal artifacts with different paths '
+        '(contract regression: == compares md5sum only)', () {
+      final a = Artifact(path: 'x/file.txt', md5sum: 'abc');
+      final b = Artifact(path: 'y/file.txt', md5sum: 'abc');
+      // Regression: == said equal while hashCode mixed in path, breaking
+      // Set/Map lookups and List.contains semantics.
+      expect(a.hashCode, b.hashCode);
+      expect({a}.contains(b), isTrue);
+      // Favorites behavior depends on this: a favorite loaded from the
+      // server (name-only path) must match the locally dropped file.
+      final favorites = <Artifact>[Artifact(path: 'file.txt', md5sum: 'abc')];
+      expect(favorites.contains(Artifact(path: '/a/b/file.txt', md5sum: 'abc')),
+          isTrue);
     });
 
     test(
@@ -94,6 +129,35 @@ void main() {
       final b = Remark.simple(text: 'hi', timestamp: ts);
       expect(a, equals(b));
       expect(a.hashCode, b.hashCode);
+    });
+
+    test(
+        'id = null and id = -1 (positional default) are the same identity '
+        '(regression: == normalized -1 but hashCode did not)', () {
+      final ts = DateTime(2026, 1, 1);
+      final positional = Remark('hi', 'u', ts); // id defaults to -1
+      final nullable = Remark.simple(text: 'hi', author: 'u', timestamp: ts);
+      expect(positional.id, -1);
+      expect(nullable.id, isNull);
+      expect(positional, equals(nullable));
+      // Regression: hashCode hashed raw -1 vs raw null, so equal objects
+      // landed in different Set/Map buckets.
+      expect(positional.hashCode, nullable.hashCode);
+      expect({positional}.contains(nullable), isTrue);
+    });
+
+    test('a real id ignores the timestamp, a sentinel id does not', () {
+      final ts1 = DateTime(2026, 1, 1);
+      final ts2 = DateTime(2026, 2, 2);
+      // Same real id, different timestamps: equal (id wins).
+      final a = Remark('hi', 'u', ts1, 5);
+      final b = Remark('hi', 'other', ts2, 5);
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+      // No id: different timestamps must NOT be equal.
+      final c = Remark.simple(text: 'hi', timestamp: ts1);
+      final d = Remark.simple(text: 'hi', timestamp: ts2);
+      expect(c, isNot(equals(d)));
     });
   });
 }
