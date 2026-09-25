@@ -357,5 +357,81 @@ void main() {
       controller.setCalculating(false);
       expect(notifications, 2);
     });
+
+    test('auth stream error is captured, not rethrown as unhandled', () async {
+      // Regression: the gotrue auth stream (ReplaySubject) turns an
+      // onError-less listener failure into an unhandled zone exception —
+      // i.e. a crash on network errors during offline token refresh.
+      final repo = FakeLoreRepo();
+      final auth = StreamController<AuthState>();
+      final controller = LoreController(repo: repo, authEvents: auth.stream);
+      addTearDown(controller.dispose);
+
+      // A zone-aware unhandled error would fail the test zone here.
+      auth.addError(StateError('token refresh failed offline'));
+      await Future<void>.microtask(() {});
+      await Future<void>.microtask(() {});
+
+      expect(controller.lastError, contains('token refresh failed offline'));
+      expect(controller.errorSerial, 1);
+
+      // The subscription stays alive and the controller stays usable:
+      // further events and normal operations still work.
+      auth.add(const AuthState(AuthChangeEvent.signedIn, null));
+      await Future<void>.microtask(() {});
+      await Future<void>.microtask(() {});
+      expect(repo.loadFavoritesCalls, 1);
+
+      await controller.select('hello lore');
+      expect(controller.artifact?.path, 'hello lore');
+      expect(controller.lastError, isNull); // success clears it
+      expect(controller.isCalculating, isFalse);
+
+      await auth.close();
+    });
+
+    test('failed select resets isCalculating (drop of junk payload)', () async {
+      // Regression for the drop handlers' old bug: raw repo I/O outside
+      // select left isCalculating==true (stuck LinearProgressIndicator)
+      // whenever a drop failed. Junk now flows through select and fails
+      // cleanly.
+      final controller = LoreController(repo: FakeLoreRepo());
+      addTearDown(controller.dispose);
+
+      await controller.drop([42]); // not an Artifact/String/PlatformFile
+
+      expect(controller.isCalculating, isFalse);
+      expect(controller.lastError, contains('Cannot open dropped value'));
+      expect(controller.errorSerial, 1);
+    });
+
+    test('failed web file drop (rejected bytes future) resets isCalculating',
+        () async {
+      final controller = LoreController(repo: FakeLoreRepo());
+      addTearDown(controller.dispose);
+
+      final failed = Future<({String name, Uint8List bytes})>.error(
+          StateError('file gone'));
+      await controller.drop([failed]);
+
+      expect(controller.isCalculating, isFalse);
+      expect(controller.lastError, contains('file gone'));
+    });
+
+    test('web file drop future hashes name+bytes into an artifact', () async {
+      final controller = LoreController(repo: FakeLoreRepo());
+      addTearDown(controller.dispose);
+
+      final bytes = Uint8List.fromList([1, 2, 3]);
+      final dropped = Future<({String name, Uint8List bytes})>.value(
+          (name: 'dropped.png', bytes: bytes));
+      await controller.drop([dropped]);
+
+      expect(controller.artifact?.path, 'dropped.png');
+      expect(controller.artifact?.md5sum, isNotEmpty);
+      expect(controller.artifact?.sha256, isNotEmpty);
+      expect(controller.isCalculating, isFalse);
+      expect(controller.lastError, isNull);
+    });
   });
 }

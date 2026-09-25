@@ -43,8 +43,19 @@ Future<Artifact> artifactFromInput(
     }
   } else if (value is List) {
     return value.first as Artifact;
+  } else if (value is Future<({String name, Uint8List bytes})>) {
+    // Web dropzone JS `File` handle, already reshaped by the handler into a
+    // name+bytes future. Awaiting it *inside* select's try block means a
+    // failed file read (or a rejected future handed over by the widget)
+    // surfaces as a controller error and resets isCalculating.
+    final file = await value;
+    final md5sum = await calculateMD5(Stream.fromIterable([file.bytes]));
+    final sha256sum = await sha256FromStream(Stream.fromIterable([file.bytes]));
+    return Artifact(path: file.name, md5sum: md5sum, sha256: sha256sum);
   } else {
-    return Artifact(path: value, md5sum: md5SumFor(value));
+    // Unrecognisable drop payload: fail loudly instead of minting a
+    // meaningless hash artifact from `value.toString()`.
+    throw ArgumentError('Cannot open dropped value: $value');
   }
 }
 
@@ -69,7 +80,19 @@ class LoreController extends ChangeNotifier {
     Stream<AuthState>? authEvents,
     Session? initialSession,
   }) : session = initialSession {
-    _authSubscription = authEvents?.listen(_onAuthEvent);
+    // The gotrue auth stream (a ReplaySubject) rethrows as an *unhandled
+    // zone exception* — i.e. a crash — when a listener omits onError, which
+    // happens on network errors during offline token refresh. Swallow the
+    // error with the same semantics as every other failure path here
+    // ([lastError] + [errorSerial], no optimistic state touched); the
+    // subscription stays alive unless the source itself closes.
+    _authSubscription = authEvents?.listen(
+      _onAuthEvent,
+      onError: (final Object e, final StackTrace st) {
+        _fail('Auth event stream error.', e);
+      },
+      cancelOnError: false,
+    );
   }
 
   final LoreRepo repo;
@@ -211,9 +234,12 @@ class LoreController extends ChangeNotifier {
     _notify();
   }
 
-  /// Drop-target entry point. The handlers already collapse the drop to a
-  /// single [Artifact]; the first one wins, matching the old contract.
-  Future<void> drop(final List<Artifact> values) async {
+  /// Drop-target entry point. The handlers forward their raw dropped
+  /// objects (desktop `desktop_drop` items, web dropzone values, or plain
+  /// artifacts/strings); the first one wins and every shape is resolved by
+  /// [select], whose try/finally guarantees `isCalculating` resets even when
+  /// hashing, the repo, or the file itself blows up.
+  Future<void> drop(final List<dynamic> values) async {
     if (values.isNotEmpty) {
       await select(values.first);
     }
