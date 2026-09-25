@@ -1,38 +1,26 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:Lore/artifact.dart';
-import 'package:Lore/lore_api.dart';
 import 'package:Lore/lore_console.dart';
+import 'package:Lore/repo/lore_repo.dart';
+import 'package:Lore/remark.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:nock/nock.dart';
 
 import 'lore_console_test.mocks.dart';
 
-@GenerateMocks([LoreAPI, IOSink])
+@GenerateMocks([LoreRepo, IOSink])
 void main() {
-  late MockLoreAPI mockApi;
+  late MockLoreRepo mockApi;
   late MockIOSink mockStdout;
-  late StreamController<String> outputController;
 
   setUp(() {
-    mockApi = MockLoreAPI();
+    mockApi = MockLoreRepo();
     mockStdout = MockIOSink();
-    outputController = StreamController<String>();
 
-    LoreConsole.api = mockApi; // Replace with static api in LoreConsole
-    LoreConsole.stdout = mockStdout; // Replace stdout in LoreConsole
-
-    when(mockStdout.writeln(any)).thenAnswer((invocation) {
-      outputController.add(invocation.positionalArguments[0] as String);
-      return null;
-    });
-  });
-
-  tearDown(() {
-    outputController.close();
+    LoreConsole.api = mockApi; // Replace the repo seam with a mock
+    LoreConsole.stdout = mockStdout; // Replace stdout with a mock
   });
 
   test('prints usage when no arguments provided', () async {
@@ -41,7 +29,7 @@ void main() {
     LoreConsole.exit = (int code) {};
 
     try {
-      LoreConsole([]);
+      await LoreConsole([]).done;
 
       verify(mockStdout.writeln(
               'Lore - The shared, single source of truth for everything.'))
@@ -57,17 +45,18 @@ void main() {
     final originalExit = LoreConsole.exit;
     LoreConsole.exit = (int code) {};
 
-    const testMd5 = '1a2b3c4d5e6f7g8h9i0j';
+    // A real 32-hex-char MD5 so the console treats it as a hash, not text.
+    const testMd5 = '1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d';
     final testArtifact = Artifact(
       path: 'test/path.txt',
       md5sum: testMd5,
-      remarks: [Remark(text: 'Test remark', userId: 'user123')],
+      remarks: [Remark.simple(text: 'Test remark', author: 'user123')],
     );
 
     when(mockApi.loadArtifact(testMd5)).thenAnswer((_) async => testArtifact);
 
     try {
-      LoreConsole(['get', testMd5]);
+      await LoreConsole(['get', testMd5]).done;
 
       verify(mockApi.loadArtifact(testMd5)).called(1);
       verify(mockStdout.writeln(contains('Fetching artifact: $testMd5')))
@@ -84,7 +73,7 @@ void main() {
     final originalExit = LoreConsole.exit;
     LoreConsole.exit = (int code) {};
 
-    const testMd5 = '1a2b3c4d5e6f7g8h9i0j';
+    const testMd5 = '1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d';
     const testRemark = 'This is a test remark';
     const testUserId = 'user123';
 
@@ -94,10 +83,10 @@ void main() {
     // Mock saveRemark success
     when(mockApi.saveRemark(
             remark: testRemark, md5sum: testMd5, userId: testUserId))
-        .thenAnswer((_) async => true);
+        .thenAnswer((_) async {});
 
     try {
-      LoreConsole(['add-remark', testMd5, testRemark]);
+      await LoreConsole(['add-remark', testMd5, testRemark]).done;
 
       verify(mockApi.saveRemark(
               remark: testRemark, md5sum: testMd5, userId: testUserId))
@@ -128,7 +117,7 @@ void main() {
         .thenAnswer((_) async => testArtifacts);
 
     try {
-      LoreConsole(['list-favorites']);
+      await LoreConsole(['list-favorites']).done;
 
       verify(mockApi.loadFavoritesArtifacts(userId: testUserId)).called(1);
       verify(mockStdout.writeln(contains('Your favorites:'))).called(1);
@@ -145,7 +134,7 @@ void main() {
     LoreConsole.exit = (int code) {};
 
     try {
-      LoreConsole(['unknown-command']);
+      await LoreConsole(['unknown-command']).done;
 
       verify(mockStdout.writeln('Unknown command: unknown-command')).called(1);
       verify(mockStdout.writeln(contains('Available commands:'))).called(1);
