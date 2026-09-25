@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:Lore/app_config.dart';
 import 'package:Lore/artifact.dart';
 import 'package:Lore/md5_utils.dart';
+import 'package:Lore/repo/supabase_lore_repo.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
@@ -63,7 +65,9 @@ class WebFileDropHandler extends StatelessWidget {
             if (value is String) {
               final Artifact artifact;
               if (value.isMD5()) {
-                artifact = await Artifact.fromMd5(value);
+                final repo = SupabaseLoreRepo(AppConfig.instance);
+                artifact = await repo.loadArtifact(value) ??
+                    Artifact(path: '', md5sum: value);
               } else if (value.isUri()) {
                 artifact = Artifact.fromURI(Uri.parse(value));
               } else {

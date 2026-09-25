@@ -63,7 +63,11 @@ void main() {
       await tester.pump();
 
       // Enter text into the OTP TextField.
-      await tester.enterText(find.byWidgetPredicate((widget) => widget is TextField && widget.decoration?.hintText == 'One Time Password...'), '123456');
+      await tester.enterText(
+          find.byWidgetPredicate((widget) =>
+              widget is TextField &&
+              widget.decoration?.hintText == 'One Time Password...'),
+          '123456');
 
       // Submit the OTP.
       await tester.testTextInput.receiveAction(TextInputAction.send);

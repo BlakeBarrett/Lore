@@ -16,8 +16,9 @@ class RemarkWidget extends StatelessWidget {
 
   final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
 
-  String getFormattedDate(final Remark value) =>
-      formatter.format(value.timestamp.toLocal()).toString();
+  String getFormattedDate(final Remark value) => value.timestamp == null
+      ? ''
+      : formatter.format(value.timestamp!.toLocal()).toString();
 
   PopupMenuButton? getContextMenu(final Remark remark) {
     if (remark.author == currentUser) {

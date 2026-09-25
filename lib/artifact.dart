@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:Lore/lore_api.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark.dart';
 
@@ -18,7 +17,16 @@ class Artifact {
           .substring(path.lastIndexOf('\\') + 1)
       : '';
 
-  Artifact({required this.path, required this.md5sum, this.length});
+  Artifact({
+    required this.path,
+    required this.md5sum,
+    this.length,
+    this.remarks,
+  });
+
+  factory Artifact.fromMap(final Map<String, dynamic> map) {
+    return Artifact(path: map['name'] as String, md5sum: map['md5'] as String);
+  }
 
   factory Artifact.fromURI(final Uri uri) {
     final String value = uri.toString().endsWith('/')
@@ -27,25 +35,14 @@ class Artifact {
     return Artifact(path: value, md5sum: md5SumFor(value));
   }
 
-  static Future<Artifact> fromMd5(final String value) async {
-    return await LoreAPI.loadArtifact(value) ??
-        Artifact(path: '', md5sum: value);
-  }
-
-  factory Artifact.fromAPIResponse(final dynamic value) {
-    return Artifact(path: value['name'], md5sum: value['md5']);
-  }
+  factory Artifact.fromAPIResponse(final dynamic value) =>
+      Artifact.fromMap(Map<String, dynamic>.from(value as Map));
 
   static Future<Artifact> fromFile(final File value) async {
     final byteStream = value.openRead();
     final md5sum = await calculateMD5(byteStream);
     final Artifact artifact = Artifact(path: value.path, md5sum: md5sum);
     return artifact;
-  }
-
-  Future<List<Remark>> refreshRemarks() async {
-    return await LoreAPI.loadRemarks(md5sum: md5sum)
-        .then((values) => remarks = values);
   }
 
   @override
@@ -59,5 +56,5 @@ class Artifact {
   }
 
   @override
-  int get hashCode => int.parse(md5sum.substring(0, 32), radix: 32);
+  int get hashCode => Object.hash(md5sum, path);
 }

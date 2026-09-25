@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:Lore/app_config.dart';
 import 'package:Lore/artifact.dart';
 import 'package:Lore/auth_widget.dart';
 import 'package:Lore/drawer_widget.dart';
 import 'package:Lore/file_drop_handlers.dart';
-import 'package:Lore/lore_api.dart';
 import 'package:Lore/lore_app_bar.dart';
-import 'package:Lore/main.dart';
 import 'package:Lore/md5_utils.dart';
+import 'package:Lore/repo/lore_repo.dart';
+import 'package:Lore/repo/supabase_lore_repo.dart';
 import 'package:Lore/remark.dart';
 import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
@@ -74,6 +75,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Artifact? _artifact;
   final List<Artifact> _favorites = [];
 
+  AppConfig get _config => AppConfig.instance;
+  LoreRepo get _repo => SupabaseLoreRepo(_config);
+
   late final StreamSubscription<Uri> _appLinksSubscription;
   late final StreamSubscription<AuthState> _authStateSubscription;
 
@@ -89,7 +93,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     //   }
     // });
     _authStateSubscription =
-        supabaseInstance.auth.onAuthStateChange.listen((data) async {
+        _config.supabase.auth.onAuthStateChange.listen((data) async {
       debugPrint('Supabase AuthChangeEvent: ${data.event}');
       if (data.event == AuthChangeEvent.initialSession ||
           data.event == AuthChangeEvent.signedIn) {
@@ -136,7 +140,8 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       }
     } else if (value is String) {
       if (value.isMD5()) {
-        artifact = await Artifact.fromMd5(value);
+        artifact = await _repo.loadArtifact(value) ??
+            Artifact(path: '', md5sum: value);
       } else if (value.isUri()) {
         artifact = Artifact.fromURI(Uri.parse(value));
       } else {
@@ -147,10 +152,11 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     } else {
       artifact = Artifact(path: value, md5sum: md5SumFor(value));
     }
-    await LoreAPI.saveArtifact(artifact);
-    await artifact.refreshRemarks().then((values) => setState(() {
-          _artifact = artifact;
-        }));
+    await _repo.saveArtifact(artifact);
+    artifact.remarks = await _repo.loadRemarks(md5sum: artifact.md5sum);
+    setState(() {
+      _artifact = artifact;
+    });
     onCalculating(false);
   }
 
@@ -169,17 +175,16 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   }
 
   Future<void> onFavoriteTap() async {
-    if (_artifact == null || LoreAPI.userId == null) return;
+    if (_artifact == null || _repo.userId == null) return;
 
     if (_favorites.contains(_artifact)) {
-      await LoreAPI.removeFromFavorites(
-          artifact: _artifact!, userId: LoreAPI.userId);
+      await _repo.removeFromFavorites(
+          artifact: _artifact!, userId: _repo.userId);
       setState(() {
         _favorites.remove(_artifact);
       });
     } else {
-      await LoreAPI.addToFavorites(
-          artifact: _artifact!, userId: LoreAPI.userId);
+      await _repo.addToFavorites(artifact: _artifact!, userId: _repo.userId);
       setState(() {
         _favorites.add(_artifact!);
       });
@@ -197,9 +202,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   }
 
   Future<void> loadFavorites() async {
-    if (LoreAPI.userId == null) return;
+    if (_repo.userId == null) return;
     final List<Artifact> favorites =
-        await LoreAPI.loadFavoritesArtifacts(userId: LoreAPI.userId);
+        await _repo.loadFavoritesArtifacts(userId: _repo.userId);
     setState(() {
       _favorites.clear();
       _favorites.addAll(favorites);
@@ -210,13 +215,13 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   Widget build(final BuildContext context) {
     final scaffold = Scaffold(
       drawer: DrawerWidget(
-        authenticated: LoreAPI.accessToken != null,
-        userEmail: LoreAPI.userEmail,
+        authenticated: _repo.accessToken != null,
+        userEmail: _repo.userEmail,
         favorites: _favorites,
-        onLogout: () => supabaseInstance.auth.signOut(),
+        onLogout: () => _config.supabase.auth.signOut(),
         onShowAuthWidget: () {
           Navigator.of(context).pop();
-          AuthWidget.showAuthWidget(context, supabaseInstance);
+          AuthWidget.showAuthWidget(context, _config.supabase);
         },
         onShowArtifact: (final Artifact artifact) async {
           Navigator.of(context).pop();
@@ -234,9 +239,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
           ),
           RemarkList(
             remarks: _artifact == null ? Remark.dummyData : _artifact?.remarks,
-            userId: LoreAPI.userId,
+            userId: _repo.userId,
             onDeleteRemark: (final Remark deleteMe) async {
-              await LoreAPI.deleteRemark(remark: deleteMe).then((value) {
+              await _repo.deleteRemark(remark: deleteMe).then((value) {
                 setState(() {
                   _artifact?.remarks?.remove(deleteMe);
                 });
@@ -246,19 +251,20 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         ],
       ),
       floatingActionButton: RemarkEntryWidget(
-        enabled: LoreAPI.accessToken != null,
-        onLogin: () => AuthWidget.showAuthWidget(context, supabaseInstance),
+        enabled: _repo.accessToken != null,
+        onLogin: () => AuthWidget.showAuthWidget(context, _config.supabase),
         onSubmitted: (final value) async {
-          await LoreAPI.saveRemark(
-              remark: value, md5sum: _artifact?.md5sum, userId: LoreAPI.userId);
-          await _artifact?.refreshRemarks();
+          await _repo.saveRemark(
+              remark: value, md5sum: _artifact?.md5sum, userId: _repo.userId);
+          _artifact?.remarks =
+              await _repo.loadRemarks(md5sum: _artifact!.md5sum);
           setState(() {});
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
 
-    return (kIsDesktop)
+    return (_config.isDesktop)
         ? DesktopFileDropHandler(
             onCalculating: onCalculating, onDrop: onDrop, child: scaffold)
         : (kIsWeb)
