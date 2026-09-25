@@ -1,6 +1,7 @@
 import 'package:Lore/artifact.dart';
 import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:Lore/lore_app_bar.dart';
 import 'package:Lore/l10n/app_localizations.dart';
@@ -130,6 +131,77 @@ void main() {
           find.byType(LikeButton, skipOffstage: false).last;
       await tester.tap(favoriteIcon);
 
+      await tester.pumpAndSettle();
+
+      expect(isFavoriteTapCalled, true);
+    });
+
+    testWidgets('favorite toggle exposes an accessible label (WCAG 4.1.2)',
+        (final WidgetTester tester) async {
+      final SemanticsHandle semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                LoreAppBar(
+                  artifact: Artifact(path: '', md5sum: ''),
+                  onOpenFileTap: () {},
+                  onSearch: (final String query) {},
+                  onFavoriteTap: () {},
+                  isFavorite: false,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // The Semantics wrapper and the heart icon's semanticLabel merge into
+      // one node ("Add to favorites\nAdd to favorites"), so match loosely.
+      expect(
+          find.bySemanticsLabel(RegExp('Add to favorites'),
+              skipOffstage: false),
+          findsWidgets);
+      semantics.dispose();
+    });
+
+    testWidgets('favorite toggle is keyboard-activatable (WCAG 2.1.1)',
+        (final WidgetTester tester) async {
+      bool isFavoriteTapCalled = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                LoreAppBar(
+                  artifact: Artifact(path: '', md5sum: ''),
+                  onOpenFileTap: () {},
+                  onSearch: (final String query) {},
+                  onFavoriteTap: () {
+                    isFavoriteTapCalled = true;
+                  },
+                  isFavorite: false,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // The LikeButton itself is not focusable; its Focus wrapper (nearest
+      // Focus ancestor) is what the keyboard handler lives on.
+      final Element buttonElement =
+          find.byType(LikeButton, skipOffstage: false).last.evaluate().single;
+      Focus.of(buttonElement).requestFocus();
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();
 
       expect(isFavoriteTapCalled, true);

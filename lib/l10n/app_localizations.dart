@@ -279,6 +279,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Working...'**
   String get loadingArtifact;
+
+  /// Error message shown when sign-in or the auth stream fails
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication failed. Please try again.'**
+  String get errorAuth;
+
+  /// Accessibility label for the artifact image preview
+  ///
+  /// In en, this message translates to:
+  /// **'{name} preview'**
+  String imagePreviewLabel(String name);
+
+  /// No description provided for @onboardingFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'First!'**
+  String get onboardingFirst;
+
+  /// No description provided for @onboardingHowDidIGetHere.
+  ///
+  /// In en, this message translates to:
+  /// **'How did I get here?'**
+  String get onboardingHowDidIGetHere;
+
+  /// No description provided for @onboardingHowDoesItWork.
+  ///
+  /// In en, this message translates to:
+  /// **'This is cool, how does it work?'**
+  String get onboardingHowDoesItWork;
+
+  /// Onboarding remark explaining drag-and-drop
+  ///
+  /// In en, this message translates to:
+  /// **'Drop a file from anywhere on your computer into this window to start the conversation around it.'**
+  String get onboardingDropHint;
+
+  /// No description provided for @onboardingWhatHappensToFile.
+  ///
+  /// In en, this message translates to:
+  /// **'What happens to my file?'**
+  String get onboardingWhatHappensToFile;
+
+  /// No description provided for @onboardingFileStaysLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Your file stays on your computer.'**
+  String get onboardingFileStaysLocal;
+
+  /// No description provided for @onboardingHashExplainer.
+  ///
+  /// In en, this message translates to:
+  /// **'A hash is generated and used as a stand in for the file. That\'s what the \"md5\" field is.'**
+  String get onboardingHashExplainer;
+
+  /// No description provided for @onboardingSeeYouInTheComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Cool! I\'ll see you in the comments.'**
+  String get onboardingSeeYouInTheComments;
 }
 
 class _AppLocalizationsDelegate

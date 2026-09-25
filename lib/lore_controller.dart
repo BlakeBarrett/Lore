@@ -59,6 +59,13 @@ Future<Artifact> artifactFromInput(
   }
 }
 
+/// What the user should be told, classically, when a controller operation
+/// fails. The view maps these to ARB keys (errorLoading / errorSaving /
+/// errorDeleting / errorAuth); [LoreController.lastError] stays a
+/// context+detail English string so unit tests and debug logs keep the
+/// actionable specifics without needing a BuildContext.
+enum LoreErrorKind { load, save, delete, auth, unknown }
+
 /// View-model for the whole Lore scaffold: owns the selected [artifact],
 /// the [favorites] list, the [isCalculating] flag, and the latest repo
 /// failure ([lastError]) — state the god-widget used to own.
@@ -89,7 +96,7 @@ class LoreController extends ChangeNotifier {
     _authSubscription = authEvents?.listen(
       _onAuthEvent,
       onError: (final Object e, final StackTrace st) {
-        _fail('Auth event stream error.', e);
+        _fail('Auth event stream error.', LoreErrorKind.auth, e);
       },
       cancelOnError: false,
     );
@@ -113,6 +120,9 @@ class LoreController extends ChangeNotifier {
 
   String? _lastError;
   String? get lastError => _lastError;
+
+  LoreErrorKind _lastErrorKind = LoreErrorKind.unknown;
+  LoreErrorKind get lastErrorKind => _lastErrorKind;
 
   /// Monotonically increasing counter, bumped on every failure even when the
   /// message repeats, so the view can show one SnackBar per error.
@@ -147,7 +157,7 @@ class LoreController extends ChangeNotifier {
       _artifact = artifact;
       _lastError = null;
     } catch (e) {
-      _fail('Could not open that artifact.', e);
+      _fail('Could not open that artifact.', LoreErrorKind.load, e);
     } finally {
       setCalculating(false);
     }
@@ -163,7 +173,7 @@ class LoreController extends ChangeNotifier {
       if (result == null) return;
       await select(result.files.first);
     } catch (e) {
-      _fail('Could not open the file picker.', e);
+      _fail('Could not open the file picker.', LoreErrorKind.load, e);
     }
   }
 
@@ -184,7 +194,7 @@ class LoreController extends ChangeNotifier {
       }
       _lastError = null;
     } catch (e) {
-      _fail('Could not update favorites.', e);
+      _fail('Could not update favorites.', LoreErrorKind.save, e);
     }
     _notify();
   }
@@ -204,7 +214,7 @@ class LoreController extends ChangeNotifier {
       artifact.remarks = await repo.loadRemarks(md5sum: artifact.md5sum);
       _lastError = null;
     } catch (e) {
-      _fail('Could not save your remark.', e);
+      _fail('Could not save your remark.', LoreErrorKind.save, e);
     }
     _notify();
   }
@@ -215,7 +225,7 @@ class LoreController extends ChangeNotifier {
       _artifact?.remarks?.remove(remark);
       _lastError = null;
     } catch (e) {
-      _fail('Could not delete the remark.', e);
+      _fail('Could not delete the remark.', LoreErrorKind.delete, e);
     }
     _notify();
   }
@@ -229,7 +239,7 @@ class LoreController extends ChangeNotifier {
         ..addAll(favorites);
       _lastError = null;
     } catch (e) {
-      _fail('Could not load favorites.', e);
+      _fail('Could not load favorites.', LoreErrorKind.load, e);
     }
     _notify();
   }
@@ -254,7 +264,9 @@ class LoreController extends ChangeNotifier {
     }
   }
 
-  void _fail(final String context, final Object error) {
+  void _fail(
+      final String context, final LoreErrorKind kind, final Object error) {
+    _lastErrorKind = kind;
     _lastError = '$context $error';
     _errorSerial++;
     debugPrint(_lastError);

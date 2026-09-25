@@ -119,5 +119,29 @@
     "loadingArtifact": "Working...",
     "@loadingArtifact": {
         "description": "Loading indicator text while an artifact is being processed"
+    },
+    "errorAuth": "Authentication failed. Please try again.",
+    "@errorAuth": {
+        "description": "Error message shown when sign-in or the auth stream fails"
+    },
+    "imagePreviewLabel": "{name} preview",
+    "@imagePreviewLabel": {
+        "description": "Accessibility label for the artifact image preview",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "onboardingFirst": "First!",
+    "onboardingHowDidIGetHere": "How did I get here?",
+    "onboardingHowDoesItWork": "This is cool, how does it work?",
+    "onboardingDropHint": "Drop a file from anywhere on your computer into this window to start the conversation around it.",
+    "onboardingWhatHappensToFile": "What happens to my file?",
+    "onboardingFileStaysLocal": "Your file stays on your computer.",
+    "onboardingHashExplainer": "A hash is generated and used as a stand in for the file. That's what the \"md5\" field is.",
+    "onboardingSeeYouInTheComments": "Cool! I'll see you in the comments.",
+    "@onboardingDropHint": {
+        "description": "Onboarding remark explaining drag-and-drop"
     }
 }

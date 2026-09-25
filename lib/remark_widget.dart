@@ -3,25 +3,52 @@ import 'package:flutter/material.dart';
 import 'package:Lore/l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 
+/// Machine-readable timestamp format. Used verbatim in tests; the UI uses
+/// the locale-aware [DateFormat.yMd] + [DateFormat.Hms] pair instead.
+const String kMachineTimestampFormat = 'yyyy-MM-dd HH:mm:ss';
+
 class RemarkWidget extends StatelessWidget {
-  RemarkWidget(
-      {super.key,
-      required this.remark,
-      required this.currentUser,
-      this.onDeleteRemark});
+  const RemarkWidget({
+    super.key,
+    required this.remark,
+    required this.currentUser,
+    this.onDeleteRemark,
+  });
   final Remark remark;
   final String currentUser;
   final void Function(Remark remark)? onDeleteRemark;
 
-  final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+  static final DateFormat _defaultFormatter =
+      DateFormat(kMachineTimestampFormat);
 
-  String getFormattedDate(final Remark value) => value.timestamp == null
-      ? ''
-      : formatter.format(value.timestamp!.toLocal()).toString();
+  /// Locale-aware display format (e.g. `9/25/2026 3:04:05 PM` for en-US,
+  /// `25.09.2026 15:04:05` for de). Built per locale and cached so the
+  /// regex/pattern work happens once per locale, not once per row.
+  static final Map<String, DateFormat> _localeFormatters =
+      <String, DateFormat>{};
 
-  PopupMenuButton<String>? getContextMenu(final Remark remark) {
+  static DateFormat _formatterFor(final BuildContext context) {
+    final String localeName = Localizations.localeOf(context).toString();
+    return _localeFormatters.putIfAbsent(
+        localeName, () => DateFormat.yMd(localeName).add_Hms());
+  }
+
+  String getFormattedDate(final Remark value, final BuildContext context) =>
+      value.timestamp == null
+          ? ''
+          : _formatterFor(context).format(value.timestamp!.toLocal());
+
+  /// Test-visible escape hatch for asserting exact machine timestamps.
+  @visibleForTesting
+  static String formatMachine(final DateTime timestamp) =>
+      _defaultFormatter.format(timestamp.toLocal());
+
+  PopupMenuButton<String>? getContextMenu(
+      final BuildContext context, final Remark remark) {
     if (remark.author == currentUser) {
       return PopupMenuButton<String>(
+        // WCAG 4.1.2: the icon-only menu button needs an accessible name.
+        tooltip: AppLocalizations.of(context)?.deleteMenu,
         onSelected: (final value) {
           if (value == 'delete') {
             onDeleteRemark?.call(remark);
@@ -49,31 +76,40 @@ class RemarkWidget extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
+    final AppLocalizations? l10n = AppLocalizations.of(context);
+    final String authorLabel =
+        '${l10n?.authorLabel ?? 'Author'}: ${remark.author ?? ''}';
     return ListTile(
       title: SelectableText(remark.text),
-      trailing: getContextMenu(remark),
-      subtitle: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child:
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 2.0, right: 8.0),
-            child: Tooltip(
-              message:
-                  '${AppLocalizations.of(context)!.author}: ${remark.author}',
-              child: Icon(
-                Icons.account_circle_sharp,
-                size: 12,
-                color: Theme.of(context).primaryColor,
+      trailing: getContextMenu(context, remark),
+      // WCAG 1.3.1/4.1.2: the 12px author icon + timestamp read as one
+      // subtitled unit; the icon alone would be unnamed.
+      subtitle: Semantics(
+        label: authorLabel,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2.0, right: 8.0),
+                child: Tooltip(
+                  message: authorLabel,
+                  child: Icon(
+                    Icons.account_circle_sharp,
+                    size: 12,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
               ),
-            ),
+              Text(
+                getFormattedDate(remark, context),
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ],
           ),
-          Text(
-            getFormattedDate(remark),
-            style: Theme.of(context).textTheme.labelSmall,
-          ),
-        ]),
+        ),
       ),
     );
   }

@@ -6,30 +6,52 @@ import 'package:Lore/lore_app_bar.dart';
 import 'package:Lore/lore_controller.dart';
 import 'package:Lore/repo/lore_repo.dart';
 import 'package:Lore/repo/supabase_lore_repo.dart';
-import 'package:Lore/remark.dart';
 import 'package:Lore/remark_entry_widget.dart';
 import 'package:Lore/remark_list_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:Lore/l10n/app_localizations.dart';
+import 'package:Lore/l10n/app_localizations_en.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 class LoreApp extends StatelessWidget {
   const LoreApp({super.key});
 
+  /// App-bar / header surface. WCAG 2.1 AA (1.4.3) needs >= 4.5:1 for the
+  /// small text rendered on it (md5 subtitle at titleSmall, 12–14px).
+  /// White on plain deepOrange (Colors.deepOrange, #FF5722) is only ~2.2:1
+  /// and even opaque white on deepOrange.shade700 (#E64A19) is ~3.9:1 —
+  /// both fail AA for normal text. deepOrange.shade900 (#BF360C) with
+  /// opaque white measures (1.0+.05)/(0.1414+.05) ≈ 5.6:1: AA for normal
+  /// text and AAA for large text. (Contrast math: relative luminance per
+  /// WCAG, L = 0.2126R'+0.7152G'+0.0722B' with sRGB linearization.)
+  static const Color primarySurface = Color(0xFFBF360C); // deepOrange.shade900
+
+  /// Text drawn on [primarySurface]. Previously Colors.white70, whose 70%
+  /// alpha blended into the orange drops the effective contrast to ~2.2:1.
+  /// Opaque white keeps every on-primary style at the 5.6:1 measured above.
+  static const TextTheme onPrimaryTextTheme =
+      TextTheme(bodyMedium: TextStyle(color: Colors.white, fontSize: 18));
+
   @override
   Widget build(final BuildContext context) {
-    const String title = 'LORE';
-
     final theme = ThemeData(
       useMaterial3: true,
       primarySwatch: Colors.blueGrey,
-      primaryColor: Colors.deepOrange,
-      primaryTextTheme: const TextTheme(
-        bodyMedium: TextStyle(
-          color: Colors.white70,
-          fontSize: 18,
-        ),
+      primaryColor: primarySurface,
+      // onPrimary drives AppBar foreground/icons so its text and the md5
+      // subtitle inherit the AA-passing opaque-white scheme.
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primarySurface,
+        primary: primarySurface,
+        onPrimary: Colors.white,
+      ),
+      primaryTextTheme: onPrimaryTextTheme.copyWith(
+        titleSmall: const TextStyle(color: Colors.white),
+        titleMedium: const TextStyle(color: Colors.white),
+        titleLarge: const TextStyle(color: Colors.white),
+        displayLarge: const TextStyle(color: Colors.white),
+        displaySmall: const TextStyle(color: Colors.white),
       ),
     );
 
@@ -39,7 +61,9 @@ class LoreApp extends StatelessWidget {
     return MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      title: title,
+      // The delegate is not in scope above MaterialApp; the OS window title
+      // uses the template (English) value from the generated class.
+      title: AppLocalizationsEn().appTitle,
       theme: theme,
       darkTheme: ThemeData.dark().copyWith(
         primaryColor: theme.primaryColor,
@@ -99,8 +123,26 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     super.dispose();
   }
 
+  /// Maps a controller failure kind to its localized message.
+  /// [LoreController.lastError] carries the developer-facing detail (kept
+  /// for debugPrint); the SnackBar shows the ARB string for the failure
+  /// class, per U6: the view owns localization, the controller stays
+  /// BuildContext-free.
+  String _localizedError(final AppLocalizations? l10n) {
+    switch (_controller.lastErrorKind) {
+      case LoreErrorKind.load:
+        return l10n?.errorLoading ?? 'Could not load.';
+      case LoreErrorKind.save:
+        return l10n?.errorSaving ?? 'Could not save. Please try again.';
+      case LoreErrorKind.delete:
+        return l10n?.errorDeleting ?? 'Could not delete.';
+      case LoreErrorKind.auth:
+      case LoreErrorKind.unknown:
+        return l10n?.errorAuth ?? 'Authentication failed. Please try again.';
+    }
+  }
+
   /// Surfaces each controller failure exactly once via a SnackBar.
-  /// (Hardcoded English for now; U6 wires the ARB keys.)
   void _showErrorIfNeeded() {
     final error = _controller.lastError;
     if (error == null || _controller.errorSerial == _lastShownErrorSerial) {
@@ -110,7 +152,7 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(error),
+        content: Text(_localizedError(AppLocalizations.of(context))),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -149,13 +191,25 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
                     _controller.favorites.contains(artifact),
               ),
               if (_controller.isCalculating)
-                const SliverToBoxAdapter(
-                  child: LinearProgressIndicator(),
+                // Announce the busy state (WCAG 4.1.3 status messages);
+                // the indicator itself is announced live so screen readers
+                // pick it up without stealing focus.
+                SliverToBoxAdapter(
+                  child: Semantics(
+                    liveRegion: true,
+                    label: AppLocalizations.of(context)?.loadingArtifact,
+                    child: const LinearProgressIndicator(),
+                  ),
                 ),
               RemarkList(
-                remarks: artifact == null ? Remark.dummyData : artifact.remarks,
+                remarks: artifact == null
+                    ? localizedOnboardingRemarks(AppLocalizations.of(context)!)
+                    : artifact.remarks,
                 userId: repo.userId,
                 onDeleteRemark: _controller.deleteRemark,
+                emptyMessage: artifact == null
+                    ? null
+                    : AppLocalizations.of(context)!.noRemarksYet,
               ),
             ],
           ),

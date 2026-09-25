@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:Lore/l10n/app_localizations.dart';
 
 class RemarkEntryWidget extends StatefulWidget {
   const RemarkEntryWidget(
@@ -35,10 +36,9 @@ class _RemarkEntryWidgetState extends State<RemarkEntryWidget> {
 
   @override
   Widget build(final BuildContext context) {
+    final AppLocalizations? l10n = AppLocalizations.of(context);
     return Tooltip(
-        message: widget.enabled
-            ? 'Add a remark...'
-            : 'Login to add a remark.\r\nClick to login.',
+        message: widget.enabled ? l10n?.addRemarkTooltip : l10n?.loginPrompt,
         child: GestureDetector(
             onTap: () {
               if (!widget.enabled) widget.onLogin?.call();
@@ -56,9 +56,11 @@ class _RemarkEntryWidgetState extends State<RemarkEntryWidget> {
                   _controller.clear();
                 },
                 onTap: widget.onTap,
-                decoration: const InputDecoration(
-                  hintText: 'Add a remark...',
-                  border: OutlineInputBorder(),
+                // WCAG 3.3.2: a persistent label, independent of the hint.
+                decoration: InputDecoration(
+                  labelText: l10n?.addRemark,
+                  hintText: l10n?.addRemarkTooltip,
+                  border: const OutlineInputBorder(),
                 ),
               ),
             )));
