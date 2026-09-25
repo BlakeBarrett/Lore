@@ -17,8 +17,8 @@ class DesktopFileDropHandler extends StatelessWidget {
       required this.onCalculating,
       required this.child});
 
-  final Function(List<Artifact> values) onDrop;
-  final Function(bool artifactsCalculating) onCalculating;
+  final void Function(List<Artifact> values) onDrop;
+  final void Function(bool artifactsCalculating) onCalculating;
   final Widget child;
 
   @override
@@ -48,8 +48,8 @@ class WebFileDropHandler extends StatelessWidget {
       required this.onCalculating,
       required this.child});
 
-  final Function(List<Artifact> values) onDrop;
-  final Function(bool artifactsCalculating) onCalculating;
+  final void Function(List<Artifact> values) onDrop;
+  final void Function(bool artifactsCalculating) onCalculating;
   final Widget child;
 
   @override

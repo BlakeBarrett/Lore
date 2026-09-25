@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 class RemarkWidget extends StatelessWidget {
   final Remark remark;
   final String currentUser;
-  final Function(Remark remark)? onDeleteRemark;
+  final void Function(Remark remark)? onDeleteRemark;
 
   RemarkWidget(
       {super.key,

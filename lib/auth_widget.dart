@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthWidget extends StatefulWidget {
-  final Function(String email) onEmailSubmitted;
-  final Function(String otp) onOtpSubmitted;
+  final void Function(String email) onEmailSubmitted;
+  final void Function(String otp) onOtpSubmitted;
 
   const AuthWidget({
     super.key,
@@ -35,6 +35,16 @@ class AuthWidget extends StatefulWidget {
       },
       pageBuilder: (final context, final animation, final secondaryAnimation) {
         String email = '';
+        void showError(final Object error) {
+          // Hardcoded English for now; U6 wires the ARB keys.
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Sign-in failed. Please try again. $error'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+
         return Scaffold(
             backgroundColor: Theme.of(context).colorScheme.surface,
             appBar: AppBar(
@@ -46,17 +56,29 @@ class AuthWidget extends StatefulWidget {
             ),
             body: AuthWidget(onEmailSubmitted: (final String value) async {
               email = value;
-              await supabaseInstance.auth.signInWithOtp(
-                  email: value, emailRedirectTo: 'lore://auth/callback');
+              try {
+                await supabaseInstance.auth.signInWithOtp(
+                    email: value, emailRedirectTo: 'lore://auth/callback');
+              } catch (e) {
+                debugPrint('signInWithOtp failed: $e');
+                showError(e);
+              }
             }, onOtpSubmitted: (final String otp) async {
-              final AuthResponse res = await supabaseInstance.auth.verifyOTP(
-                type: OtpType.magiclink,
-                token: otp,
-                email: email,
-              );
-              debugPrint('Signed in with OTP: $res');
-              // ignore: use_build_context_synchronously
-              Navigator.of(context).pop();
+              try {
+                final AuthResponse res = await supabaseInstance.auth.verifyOTP(
+                  type: OtpType.magiclink,
+                  token: otp,
+                  email: email,
+                );
+                debugPrint('Signed in with OTP: $res');
+              } catch (e) {
+                debugPrint('verifyOTP failed: $e');
+                showError(e);
+                return;
+              }
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
             }));
       },
     ));
@@ -87,11 +109,11 @@ class _AuthWidgetState extends State<AuthWidget> {
                   style: Theme.of(context).textTheme.labelLarge,
                   textInputAction: TextInputAction.send,
                   readOnly: _email != '',
-                  onSubmitted: (value) async {
+                  onSubmitted: (value) {
                     setState(() {
                       _email = value;
                     });
-                    await widget.onEmailSubmitted(value);
+                    widget.onEmailSubmitted(value);
                   },
                   decoration: const InputDecoration(
                     hintText: 'e-mail address',
