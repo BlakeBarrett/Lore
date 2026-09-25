@@ -55,7 +55,13 @@ class LoreApp extends StatelessWidget {
 /// [LoreController]; this widget owns one controller instance (created in
 /// `initState`, disposed in `dispose`) and rebuilds via [ListenableBuilder].
 class LoreScaffoldWidget extends StatefulWidget {
-  const LoreScaffoldWidget({super.key});
+  /// When [controller] is provided the widget uses it as-is and does NOT
+  /// dispose it — ownership (and disposal) stays with the injector. This is
+  /// the seam for widget tests (U7). With no controller injected, the
+  /// State creates and owns a live one exactly as before.
+  const LoreScaffoldWidget({super.key, this.controller});
+
+  final LoreController? controller;
 
   @override
   State<StatefulWidget> createState() => _LoreScaffoldWidgetState();
@@ -63,24 +69,33 @@ class LoreScaffoldWidget extends StatefulWidget {
 
 class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
   late final LoreController _controller;
+  bool _ownsController = true;
   int _lastShownErrorSerial = 0;
 
   @override
   void initState() {
     super.initState();
-    final LoreRepo repo = SupabaseLoreRepo(AppConfig.instance);
-    _controller = LoreController(
-      repo: repo,
-      initialSession: AppConfig.instance.supabase.auth.currentSession,
-      authEvents: AppConfig.instance.supabase.auth.onAuthStateChange,
-    );
+    final injected = widget.controller;
+    if (injected != null) {
+      _controller = injected;
+      _ownsController = false;
+    } else {
+      final LoreRepo repo = SupabaseLoreRepo(AppConfig.instance);
+      _controller = LoreController(
+        repo: repo,
+        initialSession: AppConfig.instance.supabase.auth.currentSession,
+        authEvents: AppConfig.instance.supabase.auth.onAuthStateChange,
+      );
+    }
     _controller.addListener(_showErrorIfNeeded);
   }
 
   @override
   void dispose() {
     _controller.removeListener(_showErrorIfNeeded);
-    _controller.dispose();
+    if (_ownsController) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 
@@ -157,12 +172,12 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         return (AppConfig.instance.isDesktop)
             ? DesktopFileDropHandler(
                 onCalculating: _controller.setCalculating,
-                onDrop: _controller.drop,
+                onDrop: (final values) => _controller.drop(values),
                 child: scaffold)
             : (kIsWeb)
                 ? WebFileDropHandler(
                     onCalculating: _controller.setCalculating,
-                    onDrop: _controller.drop,
+                    onDrop: (final value) => _controller.drop([value]),
                     child: scaffold)
                 : scaffold;
       },

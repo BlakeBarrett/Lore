@@ -36,6 +36,10 @@ class AuthWidget extends StatefulWidget {
       pageBuilder: (final context, final animation, final secondaryAnimation) {
         String email = '';
         void showError(final Object error) {
+          // showError runs after an async gap (signInWithOtp/verifyOTP):
+          // the page may already have been popped, and its captured
+          // pageBuilder context may be defunct by then.
+          if (!context.mounted) return;
           // Hardcoded English for now; U6 wires the ARB keys.
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
