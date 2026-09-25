@@ -17,9 +17,9 @@ class DrawerWidget extends StatelessWidget {
   final bool authenticated;
   final String? userEmail;
   final List<Artifact> favorites;
-  final Function() onLogout;
-  final Function() onShowAuthWidget;
-  final Function(Artifact artifact) onShowArtifact;
+  final void Function() onLogout;
+  final void Function() onShowAuthWidget;
+  final void Function(Artifact artifact) onShowArtifact;
 
   List<Widget> getFavoriteWidgets(
       final BuildContext context, final List<Artifact> favorites) {

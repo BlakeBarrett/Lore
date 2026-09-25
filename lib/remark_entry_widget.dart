@@ -9,9 +9,9 @@ class RemarkEntryWidget extends StatefulWidget {
       this.onLogin});
 
   final bool enabled;
-  final Function(String value) onSubmitted;
-  final Function()? onTap;
-  final Function()? onLogin;
+  final void Function(String value) onSubmitted;
+  final void Function()? onTap;
+  final void Function()? onLogin;
 
   @override
   State<RemarkEntryWidget> createState() => _RemarkEntryWidgetState();

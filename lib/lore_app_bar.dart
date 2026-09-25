@@ -18,9 +18,9 @@ class LoreAppBar extends StatefulWidget {
       required this.isFavorite});
 
   final Artifact? artifact;
-  final Function() onOpenFileTap;
-  final Function(String) onSearch;
-  final Function() onFavoriteTap;
+  final void Function() onOpenFileTap;
+  final void Function(String query) onSearch;
+  final void Function() onFavoriteTap;
   final bool isFavorite;
 
   @override
@@ -71,7 +71,7 @@ class _LoreAppBarState extends State<LoreAppBar> {
       final Artifact? artifact,
       final bool hasImagePreview,
       final bool isFavorite,
-      final Function? onFavoriteTap) {
+      final void Function()? onFavoriteTap) {
     final String name = artifact?.name ?? '';
     final String md5sum = artifact?.md5sum ?? '';
     return FlexibleSpaceBar(
