@@ -35,7 +35,12 @@ jobs:
         run: flutter analyze --no-fatal-infos --fatal-warnings
 
       - name: Test
-        run: flutter test
+        # --coverage writes coverage/lcov.info, consumed by the gate below.
+        run: flutter test --coverage
+
+      - name: Coverage gate (>=80% line coverage of lib/, excl. generated l10n)
+        # ubuntu-latest ships python3; stdlib-only script.
+        run: python3 tool/coverage_gate.py
 
   build-linux:
     runs-on: ubuntu-latest
