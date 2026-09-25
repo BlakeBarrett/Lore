@@ -8,9 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:nock/nock.dart';
 
-class MockFunction extends Mock {
-  void call();
-}
+import 'test_utils.dart';
 
 void main() {
   final Uint8List imageBytes =

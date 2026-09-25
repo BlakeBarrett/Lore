@@ -159,12 +159,12 @@ void main() {
         ),
       );
 
-      // The Semantics wrapper and the heart icon's semanticLabel merge into
-      // one node ("Add to favorites\nAdd to favorites"), so match loosely.
-      expect(
-          find.bySemanticsLabel(RegExp('Add to favorites'),
-              skipOffstage: false),
-          findsWidgets);
+      // Exactly one node must carry the accessible name: the Semantics
+      // wrapper names the merged node and the heart Icon deliberately has
+      // no semanticLabel (a second label would merge into
+      // "Add to favorites\nAdd to favorites" and double-read).
+      expect(find.bySemanticsLabel('Add to favorites', skipOffstage: false),
+          findsOneWidget);
       semantics.dispose();
     });
 

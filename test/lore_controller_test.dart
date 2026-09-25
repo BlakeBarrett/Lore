@@ -33,6 +33,10 @@ class FakeLoreRepo implements LoreRepo {
   List<Remark> remarksToReturn = [];
   List<Artifact> favoritesToReturn = [];
 
+  /// When set, [loadRemarks] awaits this future before returning — lets a
+  /// test hold the load open across a concurrent select (stale-write race).
+  Future<void>? loadRemarksGate;
+
   final List<String> loadedMd5s = [];
   final List<Artifact> savedArtifacts = [];
   final List<Remark> savedRemarks = [];
@@ -63,6 +67,7 @@ class FakeLoreRepo implements LoreRepo {
   @override
   Future<List<Remark>> loadRemarks({required final String md5sum}) async {
     if (throwOnLoadRemarks != null) throw throwOnLoadRemarks!;
+    if (loadRemarksGate != null) await loadRemarksGate;
     return remarksToReturn;
   }
 
@@ -292,6 +297,42 @@ void main() {
       repo.throwOnDeleteRemark = null;
       await controller.deleteRemark(remark);
       expect(controller.artifact?.remarks, isEmpty);
+    });
+
+    test(
+        'addRemark publishes remarks only while the artifact is still '
+        'selected (stale-write guard)', () async {
+      final repo = FakeLoreRepo()..remarksToReturn = [];
+      final controller = LoreController(repo: repo);
+      addTearDown(controller.dispose);
+
+      await controller.select(knownArtifact);
+      final first = controller.artifact!;
+
+      // Park the next loadRemarks on a gate, then kick off addRemark.
+      final completer = Completer<void>();
+      repo.loadRemarksGate = completer.future;
+      final pendingAdd = controller.addRemark('racing remark');
+      await Future<void>.microtask(() {});
+      // Let addRemark pass into its gated loadRemarks, then free any
+      // LATER loads (the new selection's own load must not park).
+      repo.loadRemarksGate = null;
+      repo.remarksToReturn = [const Remark.simple(text: 'stale', id: 9)];
+
+      // The user selects a different artifact while the add is in flight.
+      final second = Artifact(path: 'second.txt', md5sum: 'second');
+      await controller.select(second);
+
+      completer.complete();
+      await pendingAdd;
+
+      // The write itself targeted the original artifact's md5 — correct.
+      expect(repo.savedRemarks, hasLength(1));
+      // Stale-write guard: the late-arriving remark list must NOT be
+      // published onto the first artifact after the selection moved on.
+      expect(first.remarks, isEmpty);
+      expect(controller.artifact, same(second));
+      expect(controller.lastError, isNull);
     });
 
     test('loadFavorites populates list; anonymous is a no-op', () async {
