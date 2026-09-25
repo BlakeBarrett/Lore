@@ -6,6 +6,7 @@ import 'package:Lore/artifact.dart';
 import 'package:Lore/auth_widget.dart';
 import 'package:Lore/drawer_widget.dart';
 import 'package:Lore/file_drop_handlers.dart';
+import 'package:Lore/hash_utils.dart';
 import 'package:Lore/lore_app_bar.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:Lore/repo/lore_repo.dart';
@@ -126,9 +127,11 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       try {
         if (value.bytes != null) {
           final bytes = value.bytes!;
-          final byteStream = Stream.fromIterable([bytes]);
-          final md5sum = await calculateMD5(byteStream);
-          artifact = Artifact(path: value.name, md5sum: md5sum);
+          final md5sum = await calculateMD5(Stream.fromIterable([bytes]));
+          final sha256sum =
+              await sha256FromStream(Stream.fromIterable([bytes]));
+          artifact =
+              Artifact(path: value.name, md5sum: md5sum, sha256: sha256sum);
         } else {
           final File file = File(value.path!);
           artifact = await Artifact.fromFile(file);

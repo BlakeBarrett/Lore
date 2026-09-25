@@ -1,11 +1,18 @@
 import 'dart:io';
 
+import 'package:Lore/hash_utils.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:Lore/remark.dart';
 
 class Artifact {
   final String path;
   final String md5sum;
+
+  /// SHA-256 of the file contents, computed alongside [md5sum] in the
+  /// file-drop path. Nullable: rows saved before this column existed (and
+  /// string/URI artifacts) have no SHA-256. MD5 remains the join key; this is
+  /// the additive data that will let a future migration switch PKs.
+  final String? sha256;
 
   final int? length;
   File? get file => File(path);
@@ -20,12 +27,17 @@ class Artifact {
   Artifact({
     required this.path,
     required this.md5sum,
+    this.sha256,
     this.length,
     this.remarks,
   });
 
   factory Artifact.fromMap(final Map<String, dynamic> map) {
-    return Artifact(path: map['name'] as String, md5sum: map['md5'] as String);
+    return Artifact(
+      path: map['name'] as String,
+      md5sum: map['md5'] as String,
+      sha256: map['sha256'] as String?,
+    );
   }
 
   factory Artifact.fromURI(final Uri uri) {
@@ -39,9 +51,11 @@ class Artifact {
       Artifact.fromMap(Map<String, dynamic>.from(value as Map));
 
   static Future<Artifact> fromFile(final File value) async {
-    final byteStream = value.openRead();
-    final md5sum = await calculateMD5(byteStream);
-    final Artifact artifact = Artifact(path: value.path, md5sum: md5sum);
+    // One stream per hash: a file stream can only be consumed once.
+    final md5sum = await calculateMD5(value.openRead());
+    final sha256sum = await sha256FromStream(value.openRead());
+    final Artifact artifact =
+        Artifact(path: value.path, md5sum: md5sum, sha256: sha256sum);
     return artifact;
   }
 
@@ -56,5 +70,5 @@ class Artifact {
   }
 
   @override
-  int get hashCode => Object.hash(md5sum, path);
+  int get hashCode => md5sum.hashCode;
 }
