@@ -35,5 +35,89 @@
     "appTitle": "Lore",
     "@appTitle": {
         "description": "The application title"
+    },
+    "authenticate": "Authenticate",
+    "@authenticate": {
+        "description": "Button label for the authenticate button"
+    },
+    "emailPrompt": "To which e-mail address should we send a one time password?",
+    "@emailPrompt": {
+        "description": "Prompt asking for the e-mail address to send the one time password"
+    },
+    "emailAddress": "e-mail address",
+    "@emailAddress": {
+        "description": "Label for the e-mail address field"
+    },
+    "otpPrompt": "Now enter the one-time-password we sent.",
+    "@otpPrompt": {
+        "description": "Prompt asking for the one time password that was sent"
+    },
+    "oneTimePassword": "One Time Password...",
+    "@oneTimePassword": {
+        "description": "Label for the one time password field"
+    },
+    "avatarsByGravatar": "Avatars by Gravatar",
+    "@avatarsByGravatar": {
+        "description": "Attribution label for avatars provided by Gravatar"
+    },
+    "openSourceNote": "Lore is Open Source, available on GitHub.",
+    "@openSourceNote": {
+        "description": "Note indicating Lore is open source on GitHub"
+    },
+    "copyright": "Lore (c) 2024 Blake Barrett.",
+    "@copyright": {
+        "description": "Copyright notice shown in the drawer footer"
+    },
+    "addRemarkTooltip": "Add a remark...",
+    "@addRemarkTooltip": {
+        "description": "Tooltip text for the add remark control"
+    },
+    "loginPrompt": "Login to add a remark.\nClick to login.",
+    "@loginPrompt": {
+        "description": "Prompt shown when the user must login before adding a remark"
+    },
+    "signIn": "Sign in",
+    "@signIn": {
+        "description": "Label for the sign in control"
+    },
+    "errorLoading": "Could not load.",
+    "@errorLoading": {
+        "description": "Error message shown when loading fails"
+    },
+    "errorSaving": "Could not save. Please try again.",
+    "@errorSaving": {
+        "description": "Error message shown when saving fails"
+    },
+    "errorDeleting": "Could not delete.",
+    "@errorDeleting": {
+        "description": "Error message shown when deleting fails"
+    },
+    "noRemarksYet": "No remarks yet.",
+    "@noRemarksYet": {
+        "description": "Message shown when an artifact has no remarks"
+    },
+    "noFavoritesYet": "No favorite artifacts yet.",
+    "@noFavoritesYet": {
+        "description": "Message shown when the favorites list is empty"
+    },
+    "searchLabel": "Search by MD5 or URL",
+    "@searchLabel": {
+        "description": "Accessibility label for the search bar"
+    },
+    "favoriteLabel": "Add to favorites",
+    "@favoriteLabel": {
+        "description": "Accessibility label for the favorite toggle"
+    },
+    "deleteMenu": "Delete remark",
+    "@deleteMenu": {
+        "description": "Tooltip for the delete menu button"
+    },
+    "authorLabel": "Author",
+    "@authorLabel": {
+        "description": "Accessibility label prefix for the remark author"
+    },
+    "loadingArtifact": "Working...",
+    "@loadingArtifact": {
+        "description": "Loading indicator text while an artifact is being processed"
     }
 }

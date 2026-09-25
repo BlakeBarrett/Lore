@@ -153,6 +153,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lore'**
   String get appTitle;
+
+  /// Button label for the authenticate button
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate'**
+  String get authenticate;
+
+  /// Prompt asking for the e-mail address to send the one time password
+  ///
+  /// In en, this message translates to:
+  /// **'To which e-mail address should we send a one time password?'**
+  String get emailPrompt;
+
+  /// Label for the e-mail address field
+  ///
+  /// In en, this message translates to:
+  /// **'e-mail address'**
+  String get emailAddress;
+
+  /// Prompt asking for the one time password that was sent
+  ///
+  /// In en, this message translates to:
+  /// **'Now enter the one-time-password we sent.'**
+  String get otpPrompt;
+
+  /// Label for the one time password field
+  ///
+  /// In en, this message translates to:
+  /// **'One Time Password...'**
+  String get oneTimePassword;
+
+  /// Attribution label for avatars provided by Gravatar
+  ///
+  /// In en, this message translates to:
+  /// **'Avatars by Gravatar'**
+  String get avatarsByGravatar;
+
+  /// Note indicating Lore is open source on GitHub
+  ///
+  /// In en, this message translates to:
+  /// **'Lore is Open Source, available on GitHub.'**
+  String get openSourceNote;
+
+  /// Copyright notice shown in the drawer footer
+  ///
+  /// In en, this message translates to:
+  /// **'Lore (c) 2024 Blake Barrett.'**
+  String get copyright;
+
+  /// Tooltip text for the add remark control
+  ///
+  /// In en, this message translates to:
+  /// **'Add a remark...'**
+  String get addRemarkTooltip;
+
+  /// Prompt shown when the user must login before adding a remark
+  ///
+  /// In en, this message translates to:
+  /// **'Login to add a remark.\nClick to login.'**
+  String get loginPrompt;
+
+  /// Label for the sign in control
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signIn;
+
+  /// Error message shown when loading fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load.'**
+  String get errorLoading;
+
+  /// Error message shown when saving fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save. Please try again.'**
+  String get errorSaving;
+
+  /// Error message shown when deleting fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete.'**
+  String get errorDeleting;
+
+  /// Message shown when an artifact has no remarks
+  ///
+  /// In en, this message translates to:
+  /// **'No remarks yet.'**
+  String get noRemarksYet;
+
+  /// Message shown when the favorites list is empty
+  ///
+  /// In en, this message translates to:
+  /// **'No favorite artifacts yet.'**
+  String get noFavoritesYet;
+
+  /// Accessibility label for the search bar
+  ///
+  /// In en, this message translates to:
+  /// **'Search by MD5 or URL'**
+  String get searchLabel;
+
+  /// Accessibility label for the favorite toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get favoriteLabel;
+
+  /// Tooltip for the delete menu button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete remark'**
+  String get deleteMenu;
+
+  /// Accessibility label prefix for the remark author
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get authorLabel;
+
+  /// Loading indicator text while an artifact is being processed
+  ///
+  /// In en, this message translates to:
+  /// **'Working...'**
+  String get loadingArtifact;
 }
 
 class _AppLocalizationsDelegate

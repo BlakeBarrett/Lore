@@ -2,7 +2,7 @@ import 'package:Lore/artifact.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'l10n/app_localizations.dart';
+import 'package:Lore/l10n/app_localizations.dart';
 
 class DrawerWidget extends StatelessWidget {
   const DrawerWidget(

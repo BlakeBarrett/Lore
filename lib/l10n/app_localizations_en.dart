@@ -37,4 +37,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appTitle => 'Lore';
+
+  @override
+  String get authenticate => 'Authenticate';
+
+  @override
+  String get emailPrompt =>
+      'To which e-mail address should we send a one time password?';
+
+  @override
+  String get emailAddress => 'e-mail address';
+
+  @override
+  String get otpPrompt => 'Now enter the one-time-password we sent.';
+
+  @override
+  String get oneTimePassword => 'One Time Password...';
+
+  @override
+  String get avatarsByGravatar => 'Avatars by Gravatar';
+
+  @override
+  String get openSourceNote => 'Lore is Open Source, available on GitHub.';
+
+  @override
+  String get copyright => 'Lore (c) 2024 Blake Barrett.';
+
+  @override
+  String get addRemarkTooltip => 'Add a remark...';
+
+  @override
+  String get loginPrompt => 'Login to add a remark.\nClick to login.';
+
+  @override
+  String get signIn => 'Sign in';
+
+  @override
+  String get errorLoading => 'Could not load.';
+
+  @override
+  String get errorSaving => 'Could not save. Please try again.';
+
+  @override
+  String get errorDeleting => 'Could not delete.';
+
+  @override
+  String get noRemarksYet => 'No remarks yet.';
+
+  @override
+  String get noFavoritesYet => 'No favorite artifacts yet.';
+
+  @override
+  String get searchLabel => 'Search by MD5 or URL';
+
+  @override
+  String get favoriteLabel => 'Add to favorites';
+
+  @override
+  String get deleteMenu => 'Delete remark';
+
+  @override
+  String get authorLabel => 'Author';
+
+  @override
+  String get loadingArtifact => 'Working...';
 }
