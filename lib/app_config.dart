@@ -12,6 +12,11 @@ class AppConfig {
     required this.isDesktop,
     required this.isWeb,
   });
+
+  /// Test seam: wrap a pre-constructed [SupabaseClient] (e.g. one pointed at
+  /// a nock-mocked fake URL) without running the dotenv/Supabase bootstrap.
+  AppConfig.forTesting(this.supabase,
+      {this.isDesktop = false, this.isWeb = false});
   final SupabaseClient supabase;
   final bool isDesktop;
   final bool isWeb;

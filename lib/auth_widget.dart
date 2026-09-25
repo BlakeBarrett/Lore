@@ -35,16 +35,19 @@ class AuthWidget extends StatefulWidget {
       },
       pageBuilder: (final context, final animation, final secondaryAnimation) {
         String email = '';
-        void showError(final Object error) {
+        void showError() {
           // showError runs after an async gap (signInWithOtp/verifyOTP):
           // the page may already have been popped, and its captured
-          // pageBuilder context may be defunct by then.
+          // pageBuilder context may be defunct by then. Callers debugPrint
+          // the raw error before calling this.
           if (!context.mounted) return;
           final String message = AppLocalizations.of(context)?.errorAuth ??
               'Authentication failed. Please try again.';
+          // Localized message to the user; the raw error goes to debugPrint
+          // (done by each caller before invoking showError).
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('$message $error'),
+              content: Text(message),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -67,7 +70,7 @@ class AuthWidget extends StatefulWidget {
                     email: value, emailRedirectTo: 'lore://auth/callback');
               } catch (e) {
                 debugPrint('signInWithOtp failed: $e');
-                showError(e);
+                showError();
               }
             }, onOtpSubmitted: (final String otp) async {
               try {
@@ -79,7 +82,7 @@ class AuthWidget extends StatefulWidget {
                 debugPrint('Signed in with OTP: $res');
               } catch (e) {
                 debugPrint('verifyOTP failed: $e');
-                showError(e);
+                showError();
                 return;
               }
               if (context.mounted) {

@@ -48,60 +48,61 @@ class LoreConsole {
 
     final String command = args[0].toLowerCase();
 
+    // Single exit point: command handlers RETURN their exit code instead of
+    // calling exit() themselves. (An inner exit() followed by a fall-through
+    // to a trailing exit(0) used to mask failures whenever exit was stubbed
+    // out — real io.exit never returns, so behavior there is unchanged.)
+    int exitCode;
     try {
       switch (command) {
         case 'help':
           _printUsage();
-          exit(0);
-          return;
+          exitCode = 0;
 
         case 'get':
           if (args.length < 2) {
             stdout.writeln('Error: Missing artifact identifier');
             _printCommandUsage('get');
-            exit(1);
-            return;
+            exitCode = 1;
+          } else {
+            exitCode = await _getArtifact(args[1]);
           }
-          await _getArtifact(args[1]);
 
         case 'add-remark':
           if (args.length < 3) {
             stdout.writeln('Error: Missing md5sum or remark text');
             _printCommandUsage('add-remark');
-            exit(1);
-            return;
+            exitCode = 1;
+          } else {
+            exitCode = await _addRemark(args[1], args.sublist(2).join(' '));
           }
-          await _addRemark(args[1], args.sublist(2).join(' '));
 
         case 'login':
           if (args.length < 2) {
             stdout.writeln('Error: Missing JWT token');
             _printCommandUsage('login');
-            exit(1);
-            return;
+            exitCode = 1;
+          } else {
+            exitCode = await _login(args[1]);
           }
-          await _login(args[1]);
 
         case 'list-favorites':
-          await _listFavorites();
+          exitCode = await _listFavorites();
 
         default:
           stdout.writeln('Unknown command: $command');
           _printUsage();
-          exit(1);
-          return;
+          exitCode = 1;
       }
     } catch (e) {
       stdout.writeln('Error executing command: $e');
-      exit(1);
-      return;
+      exitCode = 1;
     }
 
-    // Ensure the app exits after command completion
-    exit(0);
+    exit(exitCode);
   }
 
-  Future<void> _getArtifact(final String identifier) async {
+  Future<int> _getArtifact(final String identifier) async {
     stdout.writeln('Fetching artifact: $identifier');
 
     Artifact artifact;
@@ -126,13 +127,13 @@ class LoreConsole {
     } else {
       stdout.writeln('\nNo remarks found.');
     }
+    return 0;
   }
 
-  Future<void> _addRemark(final String md5sum, final String remarkText) async {
+  Future<int> _addRemark(final String md5sum, final String remarkText) async {
     if (api.userId == null) {
       stdout.writeln('Error: You must be logged in to add remarks.');
-      exit(1);
-      return;
+      return 1;
     }
 
     stdout.writeln('Adding remark to artifact $md5sum: "$remarkText"');
@@ -141,30 +142,31 @@ class LoreConsole {
       await api.saveRemark(
           remark: remarkText, md5sum: md5sum, userId: api.userId);
       stdout.writeln('Remark added successfully!');
+      return 0;
     } catch (e) {
       stdout.writeln('Failed to add remark: $e');
-      exit(1);
+      return 1;
     }
   }
 
-  Future<void> _login(final String jwt) async {
+  Future<int> _login(final String jwt) async {
     stdout.writeln('Attempting to log in with provided JWT...');
 
     try {
       final String? email = await api.loginWithJwt(jwt);
       stdout.writeln('Login successful!');
       stdout.writeln('User: ${email ?? "Unknown"}');
+      return 0;
     } catch (e) {
       stdout.writeln('Login failed: $e');
-      exit(1);
+      return 1;
     }
   }
 
-  Future<void> _listFavorites() async {
+  Future<int> _listFavorites() async {
     if (api.userId == null) {
       stdout.writeln('Error: You must be logged in to list favorites.');
-      exit(1);
-      return;
+      return 1;
     }
 
     stdout.writeln('Fetching your favorite artifacts...');
@@ -174,16 +176,17 @@ class LoreConsole {
 
       if (favorites.isEmpty) {
         stdout.writeln('You have no favorite artifacts.');
-        return;
+        return 0;
       }
 
       stdout.writeln('\nYour favorites:');
       for (final artifact in favorites) {
         stdout.writeln('- ${artifact.path} (${artifact.md5sum})');
       }
+      return 0;
     } catch (e) {
       stdout.writeln('Failed to fetch favorites: $e');
-      exit(1);
+      return 1;
     }
   }
 

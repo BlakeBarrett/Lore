@@ -28,8 +28,6 @@ class Artifact {
     return Artifact(path: value, md5sum: md5SumFor(value));
   }
 
-  factory Artifact.fromAPIResponse(final dynamic value) =>
-      Artifact.fromMap(Map<String, dynamic>.from(value as Map));
   final String path;
   final String md5sum;
 

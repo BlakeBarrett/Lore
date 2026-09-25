@@ -250,18 +250,6 @@ abstract class AppLocalizations {
   /// **'No favorite artifacts yet.'**
   String get noFavoritesYet;
 
-  /// Accessibility label for the search bar
-  ///
-  /// In en, this message translates to:
-  /// **'Search by MD5 or URL'**
-  String get searchLabel;
-
-  /// Accessibility label for the favorite toggle
-  ///
-  /// In en, this message translates to:
-  /// **'Add to favorites'**
-  String get favoriteLabel;
-
   /// Tooltip for the delete menu button
   ///
   /// In en, this message translates to:

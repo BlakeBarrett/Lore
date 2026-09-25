@@ -14,6 +14,10 @@ const String _kGitHubUrl = 'https://github.com/BlakeBarrett/Lore';
 Future<void> _launchGitHub() async {
   if (await canLaunchUrlString(_kGitHubUrl)) {
     await launchUrlString(_kGitHubUrl);
+  } else {
+    // Surface the failure (review follow-up): a silent no-op made broken
+    // link handlers undiagnosable. No user-facing dialog at this size.
+    debugPrint('Could not launch $_kGitHubUrl');
   }
 }
 

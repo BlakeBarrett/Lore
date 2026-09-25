@@ -100,14 +100,6 @@
     "@noFavoritesYet": {
         "description": "Message shown when the favorites list is empty"
     },
-    "searchLabel": "Search by MD5 or URL",
-    "@searchLabel": {
-        "description": "Accessibility label for the search bar"
-    },
-    "favoriteLabel": "Add to favorites",
-    "@favoriteLabel": {
-        "description": "Accessibility label for the favorite toggle"
-    },
     "deleteMenu": "Delete remark",
     "@deleteMenu": {
         "description": "Tooltip for the delete menu button"

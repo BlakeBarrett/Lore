@@ -204,14 +204,23 @@ class LoreController extends ChangeNotifier {
   Future<void> addRemark(final String text) async {
     final artifact = _artifact;
     if (artifact == null) return;
+    // Capture the join key up front: every call below targets THIS artifact,
+    // even if the selection changes mid-flight.
+    final md5sum = artifact.md5sum;
 
     try {
       await repo.saveRemark(
         remark: text,
-        md5sum: artifact.md5sum,
+        md5sum: md5sum,
         userId: repo.userId,
       );
-      artifact.remarks = await repo.loadRemarks(md5sum: artifact.md5sum);
+      final remarks = await repo.loadRemarks(md5sum: md5sum);
+      // Stale-write guard: if the user selected a different artifact while
+      // the awaits ran, don't publish remarks onto a selection that already
+      // moved on (the server-side write against [md5sum] is still correct).
+      if (identical(_artifact, artifact)) {
+        artifact.remarks = remarks;
+      }
       _lastError = null;
     } catch (e) {
       _fail('Could not save your remark.', LoreErrorKind.save, e);

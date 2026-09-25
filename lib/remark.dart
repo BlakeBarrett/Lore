@@ -21,19 +21,16 @@ class Remark {
     );
   }
 
-  Remark.fromAPIResponse(final Map<String, dynamic> response)
-      : text = response['remark'] as String,
-        author = response['user_id'] as String?,
-        timestamp = DateTime.parse(response['created_at'] as String).toLocal(),
-        id = response['id'] as int?;
   final int? id;
   final String text;
   final String? author;
   final DateTime? timestamp;
 
-  static DateTime getTimeStamp(final String value) =>
-      DateTime.parse(value).toLocal();
-
+  /// Onboarding conversation shown before any artifact is selected. The
+  /// entries here are pure data (author labels + timestamps): the displayed
+  /// text comes from the ARB onboarding keys, zipped positionally with this
+  /// list in `remark_list_widget.localizedOnboardingRemarks` — keep the two
+  /// lists in sync when adding, removing, or reordering entries.
   static List<Remark> get dummyData => [
         Remark('First!', '', DateTime.now()),
         Remark('How did I get here?', 'You', DateTime.now()),
