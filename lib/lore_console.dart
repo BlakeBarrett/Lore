@@ -1,22 +1,49 @@
-import 'dart:io';
+import 'dart:io' as io show IOSink, exit, stdout;
 
+import 'package:Lore/app_config.dart';
 import 'package:Lore/artifact.dart';
-import 'package:Lore/lore_api.dart';
-import 'package:Lore/main.dart';
 import 'package:Lore/md5_utils.dart';
+import 'package:Lore/repo/lore_repo.dart';
+import 'package:Lore/repo/supabase_lore_repo.dart';
+import 'package:Lore/remark.dart';
 import 'package:regexpattern/regexpattern.dart';
 
-class LoreConsole {
-  final List<String> args;
+typedef LoreExit = void Function(int code);
 
-  LoreConsole(this.args) {
-    _handleArgs();
+/// Command-line front-end for Lore.
+///
+/// All side effects go through injectable seams so the console is testable:
+/// * [LoreConsole.api] — the [LoreRepo] data seam (bound to
+///   [SupabaseLoreRepo] via [LoreConsole.bindDefaults] in real entry points),
+/// * [LoreConsole.stdout] — the output sink (defaults to real stdout),
+/// * [LoreConsole.exit] — the process-exit callback (defaults to `exit`).
+class LoreConsole {
+  LoreConsole([this.args = const []]) {
+    done = _handleArgs();
   }
 
-  void _handleArgs() async {
+  final List<String> args;
+
+  /// Completes once the command has been handled (useful in tests, since the
+  /// constructor cannot be awaited).
+  late final Future<void> done;
+
+  /// Injectable seams; set these before constructing [LoreConsole] in tests.
+  static late LoreRepo api;
+  static io.IOSink stdout = io.stdout;
+  static LoreExit exit = (final int code) => io.exit(code);
+
+  /// Wires the default [api] seam from a booted [AppConfig]. Call once after
+  /// `AppConfig.init()` in a real entry point.
+  static void bindDefaults(final AppConfig config) {
+    api = SupabaseLoreRepo(config);
+  }
+
+  Future<void> _handleArgs() async {
     if (args.isEmpty) {
       _printUsage();
       exit(0);
+      return;
     }
 
     final String command = args[0].toLowerCase();
@@ -26,12 +53,14 @@ class LoreConsole {
         case 'help':
           _printUsage();
           exit(0);
+          return;
 
         case 'get':
           if (args.length < 2) {
             stdout.writeln('Error: Missing artifact identifier');
             _printCommandUsage('get');
             exit(1);
+            return;
           }
           await _getArtifact(args[1]);
 
@@ -40,6 +69,7 @@ class LoreConsole {
             stdout.writeln('Error: Missing md5sum or remark text');
             _printCommandUsage('add-remark');
             exit(1);
+            return;
           }
           await _addRemark(args[1], args.sublist(2).join(' '));
 
@@ -48,6 +78,7 @@ class LoreConsole {
             stdout.writeln('Error: Missing JWT token');
             _printCommandUsage('login');
             exit(1);
+            return;
           }
           await _login(args[1]);
 
@@ -58,35 +89,38 @@ class LoreConsole {
           stdout.writeln('Unknown command: $command');
           _printUsage();
           exit(1);
+          return;
       }
     } catch (e) {
       stdout.writeln('Error executing command: $e');
       exit(1);
+      return;
     }
 
     // Ensure the app exits after command completion
     exit(0);
   }
 
-  Future<void> _getArtifact(String identifier) async {
+  Future<void> _getArtifact(final String identifier) async {
     stdout.writeln('Fetching artifact: $identifier');
 
     Artifact artifact;
     if (identifier.isMD5()) {
-      artifact = await LoreAPI.loadArtifact(identifier) ??
+      artifact = await api.loadArtifact(identifier) ??
           Artifact(path: '', md5sum: identifier);
     } else {
       final md5sum = md5SumFor(identifier);
       stdout.writeln('Calculated MD5: $md5sum');
-      artifact = await LoreAPI.loadArtifact(md5sum) ??
-          Artifact(path: '', md5sum: md5sum);
+      artifact =
+          await api.loadArtifact(md5sum) ?? Artifact(path: '', md5sum: md5sum);
     }
 
     stdout.writeln('Artifact: ${artifact.path} (${artifact.md5sum})');
 
-    if (artifact.remarks != null && artifact.remarks!.isNotEmpty) {
+    final List<Remark>? remarks = artifact.remarks;
+    if (remarks != null && remarks.isNotEmpty) {
       stdout.writeln('\nRemarks:');
-      for (final remark in artifact.remarks!) {
+      for (final remark in remarks) {
         stdout.writeln('- ${remark.text} (by: ${remark.author})');
       }
     } else {
@@ -94,17 +128,18 @@ class LoreConsole {
     }
   }
 
-  Future<void> _addRemark(String md5sum, String remarkText) async {
-    if (LoreAPI.userId == null) {
+  Future<void> _addRemark(final String md5sum, final String remarkText) async {
+    if (api.userId == null) {
       stdout.writeln('Error: You must be logged in to add remarks.');
       exit(1);
+      return;
     }
 
     stdout.writeln('Adding remark to artifact $md5sum: "$remarkText"');
 
     try {
-      await LoreAPI.saveRemark(
-          remark: remarkText, md5sum: md5sum, userId: LoreAPI.userId);
+      await api.saveRemark(
+          remark: remarkText, md5sum: md5sum, userId: api.userId);
       stdout.writeln('Remark added successfully!');
     } catch (e) {
       stdout.writeln('Failed to add remark: $e');
@@ -112,13 +147,13 @@ class LoreConsole {
     }
   }
 
-  Future<void> _login(String jwt) async {
+  Future<void> _login(final String jwt) async {
     stdout.writeln('Attempting to log in with provided JWT...');
 
     try {
-      final response = await supabaseInstance.auth.recoverSession(jwt);
+      final String? email = await api.loginWithJwt(jwt);
       stdout.writeln('Login successful!');
-      stdout.writeln('User: ${response.user?.email ?? "Unknown"}');
+      stdout.writeln('User: ${email ?? "Unknown"}');
     } catch (e) {
       stdout.writeln('Login failed: $e');
       exit(1);
@@ -126,16 +161,16 @@ class LoreConsole {
   }
 
   Future<void> _listFavorites() async {
-    if (LoreAPI.userId == null) {
+    if (api.userId == null) {
       stdout.writeln('Error: You must be logged in to list favorites.');
       exit(1);
+      return;
     }
 
     stdout.writeln('Fetching your favorite artifacts...');
 
     try {
-      final favorites =
-          await LoreAPI.loadFavoritesArtifacts(userId: LoreAPI.userId);
+      final favorites = await api.loadFavoritesArtifacts(userId: api.userId);
 
       if (favorites.isEmpty) {
         stdout.writeln('You have no favorite artifacts.');
@@ -164,7 +199,7 @@ class LoreConsole {
     stdout.writeln('  list-favorites         List your favorite artifacts');
   }
 
-  void _printCommandUsage(String command) {
+  void _printCommandUsage(final String command) {
     switch (command) {
       case 'get':
         stdout.writeln('Usage: lore get <md5|text>');
