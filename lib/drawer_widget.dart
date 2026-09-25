@@ -1,8 +1,21 @@
 import 'package:Lore/artifact.dart';
 import 'package:Lore/md5_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show KeyDownEvent, LogicalKeyboardKey;
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:Lore/l10n/app_localizations.dart';
+
+/// Avatar diameter in the drawer header (also the Gravatar request size).
+const double _kAvatarSize = 100.0;
+
+/// Lore source/release page, linked from the drawer footer.
+const String _kGitHubUrl = 'https://github.com/BlakeBarrett/Lore';
+
+Future<void> _launchGitHub() async {
+  if (await canLaunchUrlString(_kGitHubUrl)) {
+    await launchUrlString(_kGitHubUrl);
+  }
+}
 
 class DrawerWidget extends StatelessWidget {
   const DrawerWidget(
@@ -38,16 +51,19 @@ class DrawerWidget extends StatelessWidget {
   Widget getAvatarFor(final String? email, final BuildContext context) {
     if (email == null || email.isEmpty) {
       return Icon(Icons.account_circle,
-          size: 100, color: Theme.of(context).primaryIconTheme.color);
+          size: _kAvatarSize, color: Theme.of(context).primaryIconTheme.color);
     }
     return ClipOval(
       child: Tooltip(
-        message: 'Avarars by Gravatar',
+        message: AppLocalizations.of(context)?.avatarsByGravatar,
         child: Image.network(
-          'https://www.gravatar.com/avatar/${md5SumFor(email)}?s=100',
+          'https://www.gravatar.com/avatar/'
+          '${md5SumFor(email)}?s=${_kAvatarSize.toInt()}',
           fit: BoxFit.cover,
-          width: 100,
-          height: 100,
+          width: _kAvatarSize,
+          height: _kAvatarSize,
+          // WCAG 1.1.1: the avatar stands in for the account identity.
+          semanticLabel: AppLocalizations.of(context)?.avatarsByGravatar,
         ),
       ),
     );
@@ -55,37 +71,67 @@ class DrawerWidget extends StatelessWidget {
 
   @override
   Widget build(final BuildContext context) {
+    final AppLocalizations? l10n = AppLocalizations.of(context);
     return Drawer(
       backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
       child: ListView(
         padding: EdgeInsets.zero,
         shrinkWrap: false,
         children: [
-          DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-              ),
-              child: InkWell(
-                  onTap: () => authenticated ? null : onShowAuthWidget(),
-                  child: Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                        getAvatarFor(userEmail, context),
-                        const SizedBox(height: 8),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(userEmail ?? '',
-                              style: Theme.of(context)
-                                  .primaryTextTheme
-                                  .titleSmall),
-                        )
-                      ])))),
-          ListView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            children: getFavoriteWidgets(context, favorites),
+          // WCAG 2.1.1/4.1.2: when unauthenticated the header is the sign-in
+          // control — make it focusable (focus node + keyboard activation)
+          // and announce it as a labelled button.
+          Semantics(
+            button: !authenticated,
+            label: (!authenticated) ? l10n?.signIn : null,
+            child: Focus(
+              canRequestFocus: !authenticated,
+              onKeyEvent: (final node, final event) {
+                if (!authenticated &&
+                    event is KeyDownEvent &&
+                    (event.logicalKey == LogicalKeyboardKey.enter ||
+                        event.logicalKey == LogicalKeyboardKey.space)) {
+                  onShowAuthWidget();
+                  return KeyEventResult.handled;
+                }
+                return KeyEventResult.ignored;
+              },
+              child: DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  child: InkWell(
+                      onTap: () => authenticated ? null : onShowAuthWidget(),
+                      child: Center(
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                            getAvatarFor(userEmail, context),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(userEmail ?? '',
+                                  style: Theme.of(context)
+                                      .primaryTextTheme
+                                      .titleSmall),
+                            )
+                          ])))),
+            ),
           ),
+          if (favorites.isEmpty)
+            ListTile(
+              enabled: false,
+              title: Text(
+                l10n?.noFavoritesYet ?? '',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            )
+          else
+            ListView(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              children: getFavoriteWidgets(context, favorites),
+            ),
           ListTile(
             enabled: authenticated,
             title: Text(AppLocalizations.of(context)!.logout),
@@ -95,30 +141,27 @@ class DrawerWidget extends StatelessWidget {
             },
           ),
           AboutListTile(
-            applicationName: 'Lore',
+            applicationName: l10n?.appTitle ?? 'Lore',
             aboutBoxChildren: [
-              GestureDetector(
-                onTap: () async {
-                  if (await canLaunchUrlString(
-                      'https://github.com/BlakeBarrett/Lore')) {
-                    await launchUrlString(
-                        'https://github.com/BlakeBarrett/Lore');
-                  }
-                },
-                child: Image.asset('assets/Lore_app_icon.png',
-                    width: 100, height: 100),
+              Semantics(
+                button: true,
+                label: l10n?.openSourceNote,
+                child: GestureDetector(
+                  onTap: _launchGitHub,
+                  child: Image.asset('assets/Lore_app_icon.png',
+                      width: _kAvatarSize,
+                      height: _kAvatarSize,
+                      semanticLabel: l10n?.appTitle),
+                ),
               ),
-              const Text('Lore Ⓒ 2024 Blake Barrett.'),
-              const Text('Lore is Open Source, available on GitHub.'),
-              GestureDetector(
-                onTap: () async {
-                  if (await canLaunchUrlString(
-                      'https://github.com/BlakeBarrett/Lore')) {
-                    await launchUrlString(
-                        'https://github.com/BlakeBarrett/Lore');
-                  }
-                },
-                child: const Text('https://github.com/BlakeBarrett/Lore'),
+              Text(l10n?.copyright ?? ''),
+              Text(l10n?.openSourceNote ?? ''),
+              Semantics(
+                link: true,
+                child: GestureDetector(
+                  onTap: _launchGitHub,
+                  child: const Text(_kGitHubUrl),
+                ),
               ),
             ],
           ),

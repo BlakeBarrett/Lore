@@ -101,4 +101,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadingArtifact => 'Working...';
+
+  @override
+  String get errorAuth => 'Authentication failed. Please try again.';
+
+  @override
+  String imagePreviewLabel(String name) {
+    return '$name preview';
+  }
+
+  @override
+  String get onboardingFirst => 'First!';
+
+  @override
+  String get onboardingHowDidIGetHere => 'How did I get here?';
+
+  @override
+  String get onboardingHowDoesItWork => 'This is cool, how does it work?';
+
+  @override
+  String get onboardingDropHint =>
+      'Drop a file from anywhere on your computer into this window to start the conversation around it.';
+
+  @override
+  String get onboardingWhatHappensToFile => 'What happens to my file?';
+
+  @override
+  String get onboardingFileStaysLocal => 'Your file stays on your computer.';
+
+  @override
+  String get onboardingHashExplainer =>
+      'A hash is generated and used as a stand in for the file. That\'s what the \"md5\" field is.';
+
+  @override
+  String get onboardingSeeYouInTheComments =>
+      'Cool! I\'ll see you in the comments.';
 }

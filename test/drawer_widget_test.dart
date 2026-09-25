@@ -115,8 +115,35 @@ void main() {
       // Tap the header.
       await tester.tap(find.byType(DrawerHeader));
 
-      // Verify that the onShowAuthWidget function is not called.
+      // Verify that onShowAuthWidget function is not called.
       verifyNever(onShowAuthWidget());
+    });
+
+    testWidgets(
+        'unauthenticated header is announced as a labelled Sign in button '
+        'and favorites-empty state is visible',
+        (final WidgetTester tester) async {
+      final SemanticsHandle semantics = tester.ensureSemantics();
+      await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: DrawerWidget(
+            userEmail: '',
+            authenticated: false,
+            favorites: const [],
+            onShowAuthWidget: MockFunction().call,
+            onLogout: MockFunction().call,
+            onShowArtifact: (final _) => MockFunction().call,
+          ),
+        ),
+      ));
+
+      // WCAG 4.1.2: sign-in control has an accessible name.
+      expect(find.bySemanticsLabel('Sign in'), findsWidgets);
+      // Empty state instead of a silent blank list.
+      expect(find.text('No favorite artifacts yet.'), findsOneWidget);
+      semantics.dispose();
     });
   });
 }

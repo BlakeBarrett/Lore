@@ -32,6 +32,75 @@ void main() {
       expect(find.byType(RemarkList), findsOneWidget);
     });
 
+    testWidgets('shows the localized no-remarks empty state',
+        (final WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              RemarkList(
+                remarks: const <Remark>[],
+                userId: 'user-id',
+                onDeleteRemark: (final _) {},
+                emptyMessage: 'No remarks yet.',
+              ),
+            ],
+          ),
+        ),
+      ));
+
+      expect(find.text('No remarks yet.'), findsOneWidget);
+    });
+
+    testWidgets('localizes the onboarding dummy conversation',
+        (final WidgetTester tester) async {
+      await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (final context) {
+              final remarks =
+                  localizedOnboardingRemarks(AppLocalizations.of(context)!);
+              expect(remarks.length, Remark.dummyData.length);
+              expect(remarks.first.text, 'First!');
+              expect(remarks[3].text, contains('Drop a file'));
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      ));
+    });
+
+    testWidgets('delete menu button exposes a tooltip label (WCAG 4.1.2)',
+        (final WidgetTester tester) async {
+      final Remark own = Remark('mine', 'me', DateTime.utc(2026), 1);
+
+      await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              RemarkList(
+                remarks: <Remark>[own],
+                userId: 'me',
+                onDeleteRemark: (final _) {},
+              ),
+            ],
+          ),
+        ),
+      ));
+
+      final PopupMenuButton<String> menu =
+          tester.widget<PopupMenuButton<String>>(
+              find.byType(PopupMenuButton<String>));
+      // The icon-only menu button carries the required accessible tooltip.
+      expect(menu.tooltip, 'Delete remark');
+    });
+
     group('CommentInputArea', () {
       testWidgets('CommentInputArea calls onSubmitted with correct value',
           (final WidgetTester tester) async {

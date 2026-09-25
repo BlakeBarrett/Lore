@@ -1,3 +1,4 @@
+import 'package:Lore/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -39,10 +40,11 @@ class AuthWidget extends StatefulWidget {
           // the page may already have been popped, and its captured
           // pageBuilder context may be defunct by then.
           if (!context.mounted) return;
-          // Hardcoded English for now; U6 wires the ARB keys.
+          final String message = AppLocalizations.of(context)?.errorAuth ??
+              'Authentication failed. Please try again.';
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Sign-in failed. Please try again. $error'),
+              content: Text('$message $error'),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -53,7 +55,8 @@ class AuthWidget extends StatefulWidget {
             appBar: AppBar(
               backgroundColor: Theme.of(context).primaryColor,
               iconTheme: Theme.of(context).primaryIconTheme,
-              title: Text('Authenticate',
+              title: Text(
+                  AppLocalizations.of(context)?.authenticate ?? 'Authenticate',
                   overflow: TextOverflow.fade,
                   style: Theme.of(context).primaryTextTheme.displaySmall),
             ),
@@ -93,6 +96,7 @@ class _AuthWidgetState extends State<AuthWidget> {
 
   @override
   Widget build(final BuildContext context) {
+    final AppLocalizations? l10n = AppLocalizations.of(context);
     return Material(
       color: Theme.of(context).colorScheme.surface,
       child: Container(
@@ -105,7 +109,8 @@ class _AuthWidgetState extends State<AuthWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'To which e-mail address should we send a one time password?',
+                  l10n?.emailPrompt ??
+                      'To which e-mail address should we send a one time password?',
                   style: Theme.of(context).textTheme.labelMedium,
                 ),
                 TextField(
@@ -118,9 +123,11 @@ class _AuthWidgetState extends State<AuthWidget> {
                     });
                     widget.onEmailSubmitted(value);
                   },
-                  decoration: const InputDecoration(
-                    hintText: 'e-mail address',
-                    border: OutlineInputBorder(),
+                  // WCAG 3.3.2: persistent labelText; the hint stays.
+                  decoration: InputDecoration(
+                    labelText: l10n?.emailAddress ?? 'e-mail address',
+                    hintText: l10n?.emailAddress ?? 'e-mail address',
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ],
@@ -130,7 +137,7 @@ class _AuthWidgetState extends State<AuthWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Now enter the one-time-password we sent.',
+                  l10n?.otpPrompt ?? 'Now enter the one-time-password we sent.',
                   style: Theme.of(context).textTheme.labelMedium,
                 ),
                 TextField(
@@ -139,9 +146,12 @@ class _AuthWidgetState extends State<AuthWidget> {
                   enabled: _email != '',
                   readOnly: _email == '',
                   onSubmitted: widget.onOtpSubmitted,
-                  decoration: const InputDecoration(
-                    hintText: 'One Time Password...',
-                    border: OutlineInputBorder(),
+                  // The ARB value stays 'One Time Password...' so existing
+                  // tests asserting the rendered hint keep passing.
+                  decoration: InputDecoration(
+                    labelText: l10n?.oneTimePassword ?? 'One Time Password...',
+                    hintText: l10n?.oneTimePassword ?? 'One Time Password...',
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ],
