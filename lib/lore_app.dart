@@ -1,17 +1,17 @@
-import 'package:Lore/app_config.dart';
-import 'package:Lore/auth_widget.dart';
-import 'package:Lore/drawer_widget.dart';
-import 'package:Lore/file_drop_handlers.dart';
-import 'package:Lore/lore_app_bar.dart';
-import 'package:Lore/lore_controller.dart';
-import 'package:Lore/repo/lore_repo.dart';
-import 'package:Lore/repo/supabase_lore_repo.dart';
-import 'package:Lore/remark_entry_widget.dart';
-import 'package:Lore/remark_list_widget.dart';
+import 'package:lore/app_config.dart';
+import 'package:lore/auth_widget.dart';
+import 'package:lore/drawer_widget.dart';
+import 'package:lore/file_drop_handlers.dart';
+import 'package:lore/lore_app_bar.dart';
+import 'package:lore/lore_controller.dart';
+import 'package:lore/repo/lore_repo.dart';
+import 'package:lore/repo/supabase_lore_repo.dart';
+import 'package:lore/remark_entry_widget.dart';
+import 'package:lore/remark_list_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:Lore/l10n/app_localizations.dart';
-import 'package:Lore/l10n/app_localizations_en.dart';
+import 'package:lore/l10n/app_localizations.dart';
+import 'package:lore/l10n/app_localizations_en.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 class LoreApp extends StatelessWidget {
@@ -65,11 +65,28 @@ class LoreApp extends StatelessWidget {
       // uses the template (English) value from the generated class.
       title: AppLocalizationsEn().appTitle,
       theme: theme,
-      darkTheme: ThemeData.dark().copyWith(
-        primaryColor: theme.primaryColor,
-        primaryTextTheme: theme.primaryTextTheme,
+      // Dark theme, if it is ever enabled, must keep the brand: ThemeData.dark()
+      // alone falls back to Material's default dark scheme, so surfaces that
+      // read colorScheme (the header search bar, scaffold, icons) turn into
+      // platform grays instead of Lore orange. Seed it from primarySurface.
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        primarySwatch: Colors.blueGrey,
+        primaryColor: primarySurface,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: primarySurface,
+          brightness: Brightness.dark,
+          primary: primarySurface,
+          onPrimary: Colors.white,
+        ),
+        primaryTextTheme: onPrimaryTextTheme,
       ),
-      themeMode: ThemeMode.system,
+      // Lore is light-designed only: ThemeMode.system made the app follow
+      // OS-level dark mode (KDE prefer-dark), where the header's search bar
+      // and surfaces fell back to system grays — "header is system color
+      // again". Pin to light until a real dark palette ships.
+      themeMode: ThemeMode.light,
       home: const LoreScaffoldWidget(),
     );
   }
