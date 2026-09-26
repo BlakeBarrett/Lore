@@ -1,6 +1,6 @@
-import 'package:Lore/artifact.dart';
-import 'package:Lore/repo/lore_repo.dart';
-import 'package:Lore/remark.dart';
+import 'package:lore/artifact.dart';
+import 'package:lore/repo/lore_repo.dart';
+import 'package:lore/remark.dart';
 import 'package:mockito/mockito.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'
     show AuthResponse, GoTrueClient, OtpChannel, OtpType, Session;

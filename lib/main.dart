@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:Lore/app_config.dart';
-import 'package:Lore/lore_app.dart';
-import 'package:Lore/lore_console.dart';
+import 'package:lore/app_config.dart';
+import 'package:lore/lore_app.dart';
+import 'package:lore/lore_console.dart';
 import 'package:desktop_window/desktop_window.dart' as window_size;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';

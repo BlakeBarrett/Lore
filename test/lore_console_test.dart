@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:Lore/artifact.dart';
-import 'package:Lore/lore_console.dart';
-import 'package:Lore/repo/lore_repo.dart';
-import 'package:Lore/remark.dart';
+import 'package:lore/artifact.dart';
+import 'package:lore/lore_console.dart';
+import 'package:lore/repo/lore_repo.dart';
+import 'package:lore/remark.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';

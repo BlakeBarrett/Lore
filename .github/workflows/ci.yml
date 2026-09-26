@@ -29,9 +29,6 @@ jobs:
         run: dart format --output=none --set-exit-if-changed .
 
       - name: Analyze
-        # One accepted info remains (package_names: the package is 'Lore';
-        # renaming it is a separate mechanical sweep). Errors and warnings
-        # remain fatal.
         run: flutter analyze --no-fatal-infos --fatal-warnings
 
       - name: Test

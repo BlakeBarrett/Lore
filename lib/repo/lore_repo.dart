@@ -1,5 +1,5 @@
-import 'package:Lore/artifact.dart';
-import 'package:Lore/remark.dart';
+import 'package:lore/artifact.dart';
+import 'package:lore/remark.dart';
 
 /// Data-access seam for all Lore persistence and auth state.
 ///

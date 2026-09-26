@@ -1,4 +1,4 @@
-import 'package:Lore/file_drop_handlers.dart';
+import 'package:lore/file_drop_handlers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
