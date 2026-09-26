@@ -1,6 +1,6 @@
-import 'package:Lore/l10n/app_localizations.dart';
-import 'package:Lore/remark.dart';
-import 'package:Lore/remark_widget.dart';
+import 'package:lore/l10n/app_localizations.dart';
+import 'package:lore/remark.dart';
+import 'package:lore/remark_widget.dart';
 import 'package:flutter/material.dart';
 
 /// Reserve at the bottom of the list so the floating remark field never

@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:Lore/hash_utils.dart';
-import 'package:Lore/md5_utils.dart';
-import 'package:Lore/remark.dart';
+import 'package:lore/hash_utils.dart';
+import 'package:lore/md5_utils.dart';
+import 'package:lore/remark.dart';
 
 class Artifact {
   Artifact({

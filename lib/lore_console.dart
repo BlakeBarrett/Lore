@@ -1,11 +1,11 @@
 import 'dart:io' as io show IOSink, exit, stdout;
 
-import 'package:Lore/app_config.dart';
-import 'package:Lore/artifact.dart';
-import 'package:Lore/md5_utils.dart';
-import 'package:Lore/repo/lore_repo.dart';
-import 'package:Lore/repo/supabase_lore_repo.dart';
-import 'package:Lore/remark.dart';
+import 'package:lore/app_config.dart';
+import 'package:lore/artifact.dart';
+import 'package:lore/md5_utils.dart';
+import 'package:lore/repo/lore_repo.dart';
+import 'package:lore/repo/supabase_lore_repo.dart';
+import 'package:lore/remark.dart';
 import 'package:regexpattern/regexpattern.dart';
 
 typedef LoreExit = void Function(int code);

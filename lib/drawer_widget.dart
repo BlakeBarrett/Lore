@@ -1,9 +1,9 @@
-import 'package:Lore/artifact.dart';
-import 'package:Lore/md5_utils.dart';
+import 'package:lore/artifact.dart';
+import 'package:lore/md5_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, LogicalKeyboardKey;
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:Lore/l10n/app_localizations.dart';
+import 'package:lore/l10n/app_localizations.dart';
 
 /// Avatar diameter in the drawer header (also the Gravatar request size).
 const double _kAvatarSize = 100.0;

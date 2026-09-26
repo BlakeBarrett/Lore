@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:Lore/artifact.dart';
+import 'package:lore/artifact.dart';
 import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, LogicalKeyboardKey;
-import 'package:Lore/l10n/app_localizations.dart';
+import 'package:lore/l10n/app_localizations.dart';
 import 'package:like_button/like_button.dart';
 import 'package:regexpattern/regexpattern.dart';
 

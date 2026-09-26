@@ -8,9 +8,9 @@ import 'dart:async' as _i4;
 import 'dart:convert' as _i2;
 import 'dart:io' as _i7;
 
-import 'package:Lore/artifact.dart' as _i5;
-import 'package:Lore/remark.dart' as _i6;
-import 'package:Lore/repo/lore_repo.dart' as _i3;
+import 'package:lore/artifact.dart' as _i5;
+import 'package:lore/remark.dart' as _i6;
+import 'package:lore/repo/lore_repo.dart' as _i3;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint

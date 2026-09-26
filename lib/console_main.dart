@@ -1,5 +1,5 @@
-import 'package:Lore/app_config.dart';
-import 'package:Lore/lore_console.dart';
+import 'package:lore/app_config.dart';
+import 'package:lore/lore_console.dart';
 
 Future<void> main(final List<String> args) async {
   await AppConfig.init(desktop: true);

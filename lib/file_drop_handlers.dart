@@ -1,4 +1,4 @@
-import 'package:Lore/artifact.dart';
+import 'package:lore/artifact.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';

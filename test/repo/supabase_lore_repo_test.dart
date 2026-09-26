@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:Lore/app_config.dart';
-import 'package:Lore/artifact.dart';
-import 'package:Lore/repo/supabase_lore_repo.dart';
-import 'package:Lore/remark.dart';
+import 'package:lore/app_config.dart';
+import 'package:lore/artifact.dart';
+import 'package:lore/repo/supabase_lore_repo.dart';
+import 'package:lore/remark.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nock/nock.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

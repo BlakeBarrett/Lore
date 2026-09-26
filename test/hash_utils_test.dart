@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:Lore/hash_utils.dart';
-import 'package:Lore/md5_utils.dart';
+import 'package:lore/hash_utils.dart';
+import 'package:lore/md5_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
