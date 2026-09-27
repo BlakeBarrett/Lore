@@ -35,7 +35,10 @@ void main() {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: AuthWidget(
-            onEmailSubmitted: mockOnEmailSubmitted.call,
+            onEmailSubmitted: (final String value) async {
+              mockOnEmailSubmitted(value);
+              return true;
+            },
             onOtpSubmitted: mockOnOtpSubmitted.call,
           ),
         ),
@@ -46,6 +49,7 @@ void main() {
 
       // Submit the email.
       await tester.testTextInput.receiveAction(TextInputAction.send);
+      await tester.pump();
 
       // Verify that onEmailSubmitted was called with the correct email.
       verify(mockOnEmailSubmitted('test@example.com')).called(1);
@@ -62,7 +66,10 @@ void main() {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(
           body: AuthWidget(
-            onEmailSubmitted: mockOnEmailSubmitted.call,
+            onEmailSubmitted: (final String value) async {
+              mockOnEmailSubmitted(value);
+              return true;
+            },
             onOtpSubmitted: (final String value) async {
               mockOnOtpSubmitted(value);
             },
@@ -199,6 +206,13 @@ void main() {
           findsOneWidget);
       // The sheet survives the failure: still on screen, no unhandled throw.
       expect(find.byType(AuthWidget), findsOneWidget);
+      // A failed send means NO OTP exists: the email field must unlock for a
+      // corrected retry, and the OTP field must lock again.
+      final emailField =
+          tester.widget(find.byType(TextField).first) as TextField;
+      expect(emailField.readOnly, isFalse);
+      expect(otpField(tester).enabled, isFalse);
+      expect(otpField(tester).readOnly, isTrue);
       // Let the SnackBar auto-dismiss so no timer is pending at teardown.
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
