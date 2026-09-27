@@ -129,13 +129,30 @@ class LoreController extends ChangeNotifier {
   int _errorSerial = 0;
   int get errorSerial => _errorSerial;
 
+  /// Generation token for [select]: concurrent selections (rapid search
+  /// submissions, a drop racing a picker) can complete out of order, and an
+  /// older completion must not clobber a newer artifact. Each run captures
+  /// the current value and only publishes while it still matches.
+  int _selectGeneration = 0;
+
+  /// Identity the in-flight [_loadFavorites] belongs to. Results are
+  /// published only while it still matches [repo.userId], so a load for a
+  /// previous account can never repopulate favorites after sign-out or a
+  /// user switch.
+  String? _favoritesOwner;
+
   StreamSubscription<AuthState>? _authSubscription;
   bool _disposed = false;
 
   void _onAuthEvent(final AuthState data) {
     debugPrint('Supabase AuthChangeEvent: ${data.event}');
     session = data.session;
-    if (data.event == AuthChangeEvent.initialSession ||
+    if (data.event == AuthChangeEvent.signedOut) {
+      // Drop the previous account's state so the drawer can't render
+      // another user's favorites, and invalidate any in-flight load.
+      _favorites.clear();
+      _favoritesOwner = null;
+    } else if (data.event == AuthChangeEvent.initialSession ||
         data.event == AuthChangeEvent.signedIn) {
       // Fire-and-forget, like the old widget listener; loadFavorites
       // captures its own failures into [lastError].
@@ -149,17 +166,27 @@ class LoreController extends ChangeNotifier {
   /// and publishes it. On any failure [lastError] is set and the previously
   /// selected artifact stays untouched.
   Future<void> select(final dynamic value) async {
+    final generation = ++_selectGeneration;
     setCalculating(true);
     try {
       final artifact = await artifactFromInput(value, repo);
       await repo.saveArtifact(artifact);
       artifact.remarks = await repo.loadRemarks(md5sum: artifact.md5sum);
+      // Stale-run guard: a newer select (or sign-out) superseded this one
+      // while the awaits ran — publishing now would show the wrong artifact.
+      if (generation != _selectGeneration) return;
       _artifact = artifact;
       _lastError = null;
     } catch (e) {
-      _fail('Could not open that artifact.', LoreErrorKind.load, e);
+      if (generation == _selectGeneration) {
+        _fail('Could not open that artifact.', LoreErrorKind.load, e);
+      }
     } finally {
-      setCalculating(false);
+      // Only the newest run owns the busy flag; older completions must not
+      // clear it while a newer selection is still loading.
+      if (generation == _selectGeneration) {
+        setCalculating(false);
+      }
     }
   }
 
@@ -240,15 +267,22 @@ class LoreController extends ChangeNotifier {
   }
 
   Future<void> loadFavorites() async {
-    if (repo.userId == null) return;
+    final owner = repo.userId;
+    if (owner == null) return;
+    _favoritesOwner = owner;
     try {
-      final favorites = await repo.loadFavoritesArtifacts(userId: repo.userId);
+      final favorites = await repo.loadFavoritesArtifacts(userId: owner);
+      // Stale-run guard: sign-out (or switching accounts) during the await
+      // means these favorites belong to nobody (or somebody else) now.
+      if (_favoritesOwner != owner) return;
       _favorites
         ..clear()
         ..addAll(favorites);
       _lastError = null;
     } catch (e) {
-      _fail('Could not load favorites.', LoreErrorKind.load, e);
+      if (_favoritesOwner == owner) {
+        _fail('Could not load favorites.', LoreErrorKind.load, e);
+      }
     }
     _notify();
   }

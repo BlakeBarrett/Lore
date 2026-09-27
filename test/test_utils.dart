@@ -39,6 +39,11 @@ class FakeLoreRepo implements LoreRepo {
   /// test hold the load open across a concurrent select (stale-write race).
   Future<void>? loadRemarksGate;
 
+  /// When set, [loadFavoritesArtifacts] awaits this future before returning
+  /// — lets a test hold the load open across a sign-out (stale-favorites
+  /// race).
+  Future<void>? loadFavoritesGate;
+
   final List<String> loadedMd5s = [];
   final List<Artifact> savedArtifacts = [];
   final List<Remark> savedRemarks = [];
@@ -114,6 +119,7 @@ class FakeLoreRepo implements LoreRepo {
       {required final String? userId}) async {
     if (throwOnLoadFavorites != null) throw throwOnLoadFavorites!;
     loadFavoritesCalls++;
+    if (loadFavoritesGate != null) await loadFavoritesGate;
     return favoritesToReturn;
   }
 

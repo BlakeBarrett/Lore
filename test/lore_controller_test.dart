@@ -37,6 +37,11 @@ class FakeLoreRepo implements LoreRepo {
   /// test hold the load open across a concurrent select (stale-write race).
   Future<void>? loadRemarksGate;
 
+  /// When set, [loadFavoritesArtifacts] awaits this future before returning
+  /// — lets a test hold the load open across a sign-out (stale-favorites
+  /// race).
+  Future<void>? loadFavoritesGate;
+
   final List<String> loadedMd5s = [];
   final List<Artifact> savedArtifacts = [];
   final List<Remark> savedRemarks = [];
@@ -112,6 +117,7 @@ class FakeLoreRepo implements LoreRepo {
       {required final String? userId}) async {
     if (throwOnLoadFavorites != null) throw throwOnLoadFavorites!;
     loadFavoritesCalls++;
+    if (loadFavoritesGate != null) await loadFavoritesGate;
     return favoritesToReturn;
   }
 
@@ -382,6 +388,65 @@ void main() {
       await Future<void>.microtask(() {});
       expect(repo.loadFavoritesCalls, 1);
       await auth.close();
+    });
+
+    test(
+        'signedOut clears favorites so the next account never sees them, '
+        'and an in-flight load cannot repopulate them', () async {
+      final repo = FakeLoreRepo()..favoritesToReturn = [knownArtifact];
+      final auth = StreamController<AuthState>();
+      addTearDown(auth.close);
+      final controller = LoreController(repo: repo, authEvents: auth.stream);
+      addTearDown(controller.dispose);
+
+      // Sign-in while the favorites load is parked on a gate.
+      final gate = Completer<void>();
+      repo.loadFavoritesGate = gate.future;
+      auth.add(const AuthState(AuthChangeEvent.signedIn, null));
+      await Future<void>.microtask(() {});
+      expect(repo.loadFavoritesCalls, 1);
+
+      // Sign-out mid-flight: the list clears and the load is invalidated.
+      auth.add(const AuthState(AuthChangeEvent.signedOut, null));
+      await Future<void>.microtask(() {});
+      expect(controller.favorites, isEmpty);
+
+      // The parked load completes with the OLD account's favorites.
+      repo.loadFavoritesGate = null;
+      gate.complete();
+      await Future<void>.microtask(() {});
+      await Future<void>.microtask(() {});
+      expect(controller.favorites, isEmpty);
+    });
+
+    test(
+        'concurrent selects: an older run finishing later must not clobber '
+        'the newer selection', () async {
+      final repo = FakeLoreRepo();
+      final controller = LoreController(repo: repo);
+      addTearDown(controller.dispose);
+
+      // Park the FIRST select inside its loadRemarks. (Two microtask hops:
+      // select awaits artifactFromInput, then saveArtifact, then reaches
+      // loadRemarks — where it reads the gate.)
+      final gate = Completer<void>();
+      repo.loadRemarksGate = gate.future;
+      final firstPending = controller.select('first');
+      await Future<void>.microtask(() {});
+      await Future<void>.microtask(() {});
+
+      // Free subsequent loads, then start a second select that runs to
+      // completion while the first is still parked.
+      repo.loadRemarksGate = null;
+      await controller.select('second');
+      expect(controller.artifact?.md5sum, md5SumFor('second'));
+
+      // Now the stale first run finishes: it must NOT publish.
+      gate.complete();
+      await firstPending;
+      expect(controller.artifact?.md5sum, md5SumFor('second'));
+      expect(controller.isCalculating, isFalse);
+      expect(controller.lastError, isNull);
     });
 
     test('setCalculating notifies listeners with the busy flag', () async {
