@@ -97,7 +97,11 @@ class _LoreAppBarState extends State<LoreAppBar> {
   /// so Enter/Space toggle exactly like a pointer tap.
   Widget _buildFavoriteToggle(final BuildContext context) {
     final AppLocalizations? l10n = AppLocalizations.of(context);
-    final String label = l10n?.addToFavorites ?? 'Add to favorites';
+    // State-aware name (WCAG 4.1.2): activation toggles, so the label must
+    // describe the action that WILL happen — "Remove..." when favorited.
+    final String label = widget.isFavorite
+        ? l10n?.removeFromFavorites ?? 'Remove from favorites'
+        : l10n?.addToFavorites ?? 'Add to favorites';
     final Color? iconColor = Theme.of(context).primaryIconTheme.color;
 
     return SizedBox(

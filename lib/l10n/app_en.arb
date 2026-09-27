@@ -15,6 +15,10 @@
     "@addToFavorites": {
         "description": "Button label for adding to favorites"
     },
+    "removeFromFavorites": "Remove from favorites",
+    "@removeFromFavorites": {
+        "description": "Button label for removing from favorites"
+    },
     "addRemark": "Add a remark",
     "@addRemark": {
         "description": "Hint text for adding a remark"

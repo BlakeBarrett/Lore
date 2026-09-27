@@ -21,6 +21,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addToFavorites => 'Add to favorites';
 
   @override
+  String get removeFromFavorites => 'Remove from favorites';
+
+  @override
   String get addRemark => 'Add a remark';
 
   @override
