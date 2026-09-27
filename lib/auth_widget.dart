@@ -8,7 +8,12 @@ class AuthWidget extends StatefulWidget {
     required this.onEmailSubmitted,
     required this.onOtpSubmitted,
   });
-  final void Function(String email) onEmailSubmitted;
+
+  /// Notified when the user submits an e-mail. Returns whether the OTP was
+  /// actually sent: on `false` the widget UNLOCKS the e-mail field again so
+  /// the user can correct the address and retry (a failed send means no OTP
+  /// exists to type, so keeping the field locked would trap them).
+  final Future<bool> Function(String email) onEmailSubmitted;
   final void Function(String otp) onOtpSubmitted;
 
   @override
@@ -71,7 +76,9 @@ class AuthWidget extends StatefulWidget {
               } catch (e) {
                 debugPrint('signInWithOtp failed: $e');
                 showError();
+                return false; // no OTP sent — unlock the e-mail field
               }
+              return true;
             }, onOtpSubmitted: (final String otp) async {
               try {
                 final AuthResponse res = await supabaseInstance.auth.verifyOTP(
@@ -95,6 +102,9 @@ class AuthWidget extends StatefulWidget {
 }
 
 class _AuthWidgetState extends State<AuthWidget> {
+  /// The e-mail the OTP was (attempted to be) sent for. Non-empty while the
+  /// OTP stage is active; cleared again when a send fails so the user can
+  /// correct the address and retry.
   String _email = '';
 
   @override
@@ -120,11 +130,20 @@ class _AuthWidgetState extends State<AuthWidget> {
                   style: Theme.of(context).textTheme.labelLarge,
                   textInputAction: TextInputAction.send,
                   readOnly: _email != '',
-                  onSubmitted: (final value) {
+                  onSubmitted: (final value) async {
+                    // Placeholder == submitted value: the field locks while
+                    // the send is in flight. If the send fails the callback
+                    // resolves false and we roll back to editable, so a
+                    // typo'd address can be corrected and retried.
                     setState(() {
                       _email = value;
                     });
-                    widget.onEmailSubmitted(value);
+                    final sent = await widget.onEmailSubmitted(value);
+                    if (mounted && !sent) {
+                      setState(() {
+                        _email = '';
+                      });
+                    }
                   },
                   // WCAG 3.3.2: persistent labelText; the hint stays.
                   decoration: InputDecoration(
