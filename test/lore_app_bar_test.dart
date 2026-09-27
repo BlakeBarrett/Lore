@@ -165,6 +165,33 @@ void main() {
       // "Add to favorites\nAdd to favorites" and double-read).
       expect(find.bySemanticsLabel('Add to favorites', skipOffstage: false),
           findsOneWidget);
+
+      // State-aware (WCAG 4.1.2): when the artifact IS a favorite the
+      // toggle removes it, so the name must say "Remove from favorites".
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                LoreAppBar(
+                  artifact: Artifact(path: '', md5sum: ''),
+                  onOpenFileTap: () {},
+                  onSearch: (final String query) {},
+                  onFavoriteTap: () {},
+                  isFavorite: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      expect(
+          find.bySemanticsLabel('Remove from favorites', skipOffstage: false),
+          findsOneWidget);
+      expect(find.bySemanticsLabel('Add to favorites', skipOffstage: false),
+          findsNothing);
       semantics.dispose();
     });
 

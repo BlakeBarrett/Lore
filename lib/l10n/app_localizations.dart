@@ -118,6 +118,12 @@ abstract class AppLocalizations {
   /// **'Add to favorites'**
   String get addToFavorites;
 
+  /// Button label for removing from favorites
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from favorites'**
+  String get removeFromFavorites;
+
   /// Hint text for adding a remark
   ///
   /// In en, this message translates to:
