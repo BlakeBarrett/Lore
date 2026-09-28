@@ -94,12 +94,6 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[Locale('en')];
 
-  /// The conventional newborn programmer greeting
-  ///
-  /// In en, this message translates to:
-  /// **'Hello World!'**
-  String get helloWorld;
-
   /// Text for browse file button
   ///
   /// In en, this message translates to:
@@ -141,18 +135,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Logout'**
   String get logout;
-
-  /// Label for author field
-  ///
-  /// In en, this message translates to:
-  /// **'Author'**
-  String get author;
-
-  /// No description provided for @timeStamp.
-  ///
-  /// In en, this message translates to:
-  /// **'Time Stamp'**
-  String get timeStamp;
 
   /// The application title
   ///
@@ -261,12 +243,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete remark'**
   String get deleteMenu;
-
-  /// Accessibility label prefix for the remark author
-  ///
-  /// In en, this message translates to:
-  /// **'Author'**
-  String get authorLabel;
 
   /// Loading indicator text while an artifact is being processed
   ///

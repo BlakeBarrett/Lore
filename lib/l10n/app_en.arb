@@ -1,8 +1,4 @@
 {
-    "helloWorld": "Hello World!",
-    "@helloWorld": {
-        "description": "The conventional newborn programmer greeting"
-    },
     "browseForFile": "Browse for file",
     "@browseForFile": {
         "description": "Text for browse file button"
@@ -31,11 +27,6 @@
     "@logout": {
         "description": "Text for logout button"
     },
-    "author": "Author",
-    "@author": {
-        "description": "Label for author field"
-    },
-    "timeStamp": "Time Stamp",
     "appTitle": "Lore",
     "@appTitle": {
         "description": "The application title"
@@ -107,10 +98,6 @@
     "deleteMenu": "Delete remark",
     "@deleteMenu": {
         "description": "Tooltip for the delete menu button"
-    },
-    "authorLabel": "Author",
-    "@authorLabel": {
-        "description": "Accessibility label prefix for the remark author"
     },
     "loadingArtifact": "Working...",
     "@loadingArtifact": {

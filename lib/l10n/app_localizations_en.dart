@@ -9,9 +9,6 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get helloWorld => 'Hello World!';
-
-  @override
   String get browseForFile => 'Browse for file';
 
   @override
@@ -31,12 +28,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get logout => 'Logout';
-
-  @override
-  String get author => 'Author';
-
-  @override
-  String get timeStamp => 'Time Stamp';
 
   @override
   String get appTitle => 'Lore';
@@ -92,9 +83,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteMenu => 'Delete remark';
-
-  @override
-  String get authorLabel => 'Author';
 
   @override
   String get loadingArtifact => 'Working...';
