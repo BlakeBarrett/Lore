@@ -133,4 +133,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingSeeYouInTheComments =>
       'Cool! I\'ll see you in the comments.';
+
+  @override
+  String get sendCode => 'Send code';
+
+  @override
+  String get verifyCode => 'Verify';
+
+  @override
+  String codeSentTo(String email) {
+    return 'Code sent to $email';
+  }
+
+  @override
+  String get useDifferentEmail => 'Use a different address?';
+
+  @override
+  String get errorInvalidEmail => 'That doesn\'t look like an e-mail address.';
 }

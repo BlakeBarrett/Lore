@@ -333,6 +333,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cool! I\'ll see you in the comments.'**
   String get onboardingSeeYouInTheComments;
+
+  /// Primary action label that emails the one-time password
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get sendCode;
+
+  /// Primary action label that verifies the entered one-time password
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get verifyCode;
+
+  /// Confirmation shown after a one-time password was sent
+  ///
+  /// In en, this message translates to:
+  /// **'Code sent to {email}'**
+  String codeSentTo(String email);
+
+  /// Action to unlock the e-mail field and change the address after a code was sent
+  ///
+  /// In en, this message translates to:
+  /// **'Use a different address?'**
+  String get useDifferentEmail;
+
+  /// Inline validation error for a malformed e-mail address
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like an e-mail address.'**
+  String get errorInvalidEmail;
 }
 
 class _AppLocalizationsDelegate

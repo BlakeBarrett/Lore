@@ -139,5 +139,30 @@
     "onboardingSeeYouInTheComments": "Cool! I'll see you in the comments.",
     "@onboardingDropHint": {
         "description": "Onboarding remark explaining drag-and-drop"
+    },
+    "sendCode": "Send code",
+    "@sendCode": {
+    "description": "Primary action label that emails the one-time password"
+},
+    "verifyCode": "Verify",
+    "@verifyCode": {
+    "description": "Primary action label that verifies the entered one-time password"
+},
+    "codeSentTo": "Code sent to {email}",
+    "@codeSentTo": {
+    "description": "Confirmation shown after a one-time password was sent",
+    "placeholders": {
+        "email": {
+            "type": "String"
+        }
     }
+},
+    "useDifferentEmail": "Use a different address?",
+    "@useDifferentEmail": {
+    "description": "Action to unlock the e-mail field and change the address after a code was sent"
+},
+    "errorInvalidEmail": "That doesn't look like an e-mail address.",
+    "@errorInvalidEmail": {
+    "description": "Inline validation error for a malformed e-mail address"
+}
 }

@@ -250,5 +250,77 @@ void main() {
       expect(find.text('open-auth'), findsOneWidget);
       expect(find.byType(SnackBar), findsNothing);
     });
+
+    testWidgets(
+        'a malformed e-mail is rejected inline without calling '
+        'signInWithOtp (WCAG 3.3.1/3.3.3)',
+        (final WidgetTester tester) async {
+      await openAuthRoute(tester);
+
+      await submitEmail(tester, 'not-an-email');
+      await tester.pump();
+
+      // The field-level error is shown; the server is never consulted.
+      expect(
+          find.text("That doesn't look like an e-mail address."),
+          findsOneWidget);
+      expect(auth.signInEmails, isEmpty);
+      // And the failure is NOT the generic auth SnackBar.
+      expect(find.byType(SnackBar), findsNothing);
+      // The step-1 button is still there to retry after correcting.
+      expect(find.widgetWithText(FilledButton, 'Send code'), findsOneWidget);
+    });
+
+    testWidgets('the Send code button drives the send (visible primary action)',
+        (final WidgetTester tester) async {
+      await openAuthRoute(tester);
+
+      await tester.enterText(find.byType(TextField).first, 'test@example.com');
+      await tester.tap(find.widgetWithText(FilledButton, 'Send code'));
+      await tester.pump();
+
+      expect(auth.signInEmails, ['test@example.com']);
+      // Success confirmation names the address (WCAG 4.1.3) and offers the
+      // change-address escape hatch.
+      expect(find.text('Code sent to test@example.com'), findsOneWidget);
+      expect(find.text('Use a different address?'), findsOneWidget);
+    });
+
+    testWidgets(
+        '"Use a different address?" unlocks the e-mail field again so a '
+        'corrected address can be sent',
+        (final WidgetTester tester) async {
+      await openAuthRoute(tester);
+      await submitEmail(tester, 'wrong@example.com');
+
+      await tester.tap(find.text('Use a different address?'));
+      await tester.pump();
+
+      final emailField =
+          tester.widget(find.byType(TextField).first) as TextField;
+      expect(emailField.readOnly, isFalse);
+      // OTP stage is over: the field re-locks and the send is repeatable.
+      expect(otpField(tester).enabled, isFalse);
+
+      await submitEmail(tester, 'right@example.com');
+      expect(auth.signInEmails, ['wrong@example.com', 'right@example.com']);
+    });
+
+    testWidgets('the Verify button drives verifyOTP',
+        (final WidgetTester tester) async {
+      await openAuthRoute(tester);
+      await submitEmail(tester, 'test@example.com');
+
+      await tester.enterText(
+          find.byWidgetPredicate((final widget) =>
+              widget is TextField &&
+              widget.decoration?.hintText == 'One Time Password...'),
+          '123456');
+      await tester.tap(find.widgetWithText(FilledButton, 'Verify'));
+      await tester.pumpAndSettle();
+
+      expect(auth.verifyTokens, ['123456']);
+      expect(find.byType(AuthWidget), findsNothing); // popped on success
+    });
   });
 }
