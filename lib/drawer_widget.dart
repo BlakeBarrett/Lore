@@ -5,8 +5,16 @@ import 'package:flutter/services.dart' show KeyDownEvent, LogicalKeyboardKey;
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:lore/l10n/app_localizations.dart';
 
-/// Avatar diameter in the drawer header (also the Gravatar request size).
-const double _kAvatarSize = 100.0;
+/// Avatar diameter in the drawer header. 64 px, not the old 100:
+/// DrawerHeader reserves 160 - 8 margin - 16*2 padding = 120 px, and avatar
+/// + 16 px gaps + one e-mail line must fit — a 100 px avatar overflowed
+/// even WITHOUT an e-mail (measured "BOTTOM OVERFLOWED BY 1.00 PIXELS" on
+/// the live web build).
+const double _kAvatarSize = 64.0;
+
+/// Gravatar request size — larger than [_kAvatarSize] so the avatar stays
+/// crisp on HiDPI displays.
+const double _kAvatarRequestSize = 100.0;
 
 /// Lore source/release page, linked from the drawer footer.
 const String _kGitHubUrl = 'https://github.com/BlakeBarrett/Lore';
@@ -62,7 +70,7 @@ class DrawerWidget extends StatelessWidget {
         message: AppLocalizations.of(context)?.avatarsByGravatar,
         child: Image.network(
           'https://www.gravatar.com/avatar/'
-          '${md5SumFor(email)}?s=${_kAvatarSize.toInt()}',
+          '${md5SumFor(email)}?s=${_kAvatarRequestSize.toInt()}',
           fit: BoxFit.cover,
           width: _kAvatarSize,
           height: _kAvatarSize,
@@ -105,21 +113,41 @@ class DrawerWidget extends StatelessWidget {
                     color: Theme.of(context).primaryColor,
                   ),
                   child: InkWell(
-                      onTap: () => authenticated ? null : onShowAuthWidget(),
-                      child: Center(
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                            getAvatarFor(userEmail, context),
-                            const SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(userEmail ?? '',
-                                  style: Theme.of(context)
-                                      .primaryTextTheme
-                                      .titleSmall),
-                            )
-                          ])))),
+                          // Authenticated: no action — pass a null callback so
+                          // InkWell paints no splash and is not a11y-focusable
+                          // (a no-op splash reads as a live control that lies).
+                          onTap: authenticated ? null : onShowAuthWidget,
+                          child: Center(
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                getAvatarFor(userEmail, context),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  // DrawerHeader is a fixed height; a long
+                                  // e-mail wrapped onto extra lines and the
+                                  // column overflowed the header's bottom
+                                  // (measured: RenderFlex +80px at 360px wide
+                                  // with a 71-char address). One ellipsized
+                                  // line, with the full address as tooltip
+                                  // (only when non-empty: Tooltip asserts on
+                                  // an empty message).
+                                  child: (userEmail ?? '').isEmpty
+                                      ? const SizedBox.shrink()
+                                      : Tooltip(
+                                          message: userEmail!,
+                                          child: Text(
+                                            userEmail!,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .primaryTextTheme
+                                                .titleSmall,
+                                          ),
+                                        ),
+                                )
+                              ])))),
             ),
           ),
           if (favorites.isEmpty)
@@ -147,24 +175,33 @@ class DrawerWidget extends StatelessWidget {
           AboutListTile(
             applicationName: l10n?.appTitle ?? 'Lore',
             aboutBoxChildren: [
-              Semantics(
-                button: true,
-                label: l10n?.openSourceNote,
-                child: GestureDetector(
-                  onTap: _launchGitHub,
-                  child: Image.asset('assets/Lore_app_icon.png',
-                      width: _kAvatarSize,
-                      height: _kAvatarSize,
-                      semanticLabel: l10n?.appTitle),
+              // WCAG 2.1.1: these launch affordances were raw
+              // GestureDetectors — screen readers announced a button that
+              // no keyboard could press. InkWell is focusable and
+              // Enter-activatable on its own.
+              InkWell(
+                onTap: _launchGitHub,
+                child: Column(
+                  children: [
+                    Image.asset('assets/Lore_app_icon.png',
+                        width: _kAvatarSize,
+                        height: _kAvatarSize,
+                        semanticLabel: l10n?.appTitle),
+                    Text(l10n?.copyright ?? ''),
+                    Text(l10n?.openSourceNote ?? ''),
+                  ],
                 ),
               ),
-              Text(l10n?.copyright ?? ''),
-              Text(l10n?.openSourceNote ?? ''),
-              Semantics(
-                link: true,
-                child: GestureDetector(
-                  onTap: _launchGitHub,
-                  child: const Text(_kGitHubUrl),
+              InkWell(
+                onTap: _launchGitHub,
+                // Underline + click cursor: the link is not signalled by
+                // colour alone (WCAG 1.4.1).
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Text(_kGitHubUrl,
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          decoration: TextDecoration.underline)),
                 ),
               ),
             ],
