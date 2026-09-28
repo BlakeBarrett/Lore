@@ -37,7 +37,9 @@ class LoreApp extends StatelessWidget {
   Widget build(final BuildContext context) {
     final theme = ThemeData(
       useMaterial3: true,
-      primarySwatch: Colors.blueGrey,
+      // primarySwatch removed: it contradicted the orange seed and leaked
+      // blueGrey into widgets still reading it (selection handles,
+      // spinners). ColorScheme.fromSeed is the single source now.
       primaryColor: primarySurface,
       // onPrimary drives AppBar foreground/icons so its text and the md5
       // subtitle inherit the AA-passing opaque-white scheme.
@@ -72,7 +74,6 @@ class LoreApp extends StatelessWidget {
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        primarySwatch: Colors.blueGrey,
         primaryColor: primarySurface,
         colorScheme: ColorScheme.fromSeed(
           seedColor: primarySurface,
@@ -233,14 +234,27 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
               ),
             ],
           ),
-          floatingActionButton: RemarkEntryWidget(
-            enabled: repo.accessToken != null,
-            onLogin: () =>
-                AuthWidget.showAuthWidget(context, AppConfig.instance.supabase),
-            onSubmitted: _controller.addRemark,
+          // A persistent text composer is a bottom bar, not a FAB: the old
+          // floatingActionButton + centerDocked slot had no dock to sit in,
+          // so the field floated OVER the list and covered the last remark
+          // (confirmed on the live build). Scaffold lays a real
+          // bottomAppBar out and insets the scroll view above it.
+          bottomNavigationBar: BottomAppBar(
+            padding: EdgeInsets.zero,
+            height: MediaQuery.of(context).viewInsets.bottom + 96.0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: SafeArea(
+                top: false,
+                child: RemarkEntryWidget(
+                  enabled: repo.accessToken != null,
+                  onLogin: () => AuthWidget.showAuthWidget(
+                      context, AppConfig.instance.supabase),
+                  onSubmitted: _controller.addRemark,
+                ),
+              ),
+            ),
           ),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
         );
 
         return (AppConfig.instance.isDesktop)
