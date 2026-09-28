@@ -22,9 +22,14 @@ const double _kPreviewParallaxHeightFactor = 3.0;
 /// logical px (this supersedes the old 41x41).
 const double _kFavoriteButtonSize = 44.0;
 
-/// Horizontal slack kept to the right of the search bar so the bar never
-/// collides with the trailing edge while expanded.
-const double _kSearchBarTrailingInset = 100.0;
+/// Horizontal budget the app-bar actions row must keep for itself: drawer
+/// button (~56) + browse button (~48) + the "Lore" title + paddings. The
+/// search bar may claim everything left over, down to a legible floor.
+const double _kActionsRowReservedWidth = 240.0;
+
+/// Floor for the search bar: below this the bar is unusable, and letting it
+/// shrink further only defers the overflow.
+const double _kSearchBarMinWidth = 140.0;
 
 class LoreAppBar extends StatefulWidget {
   const LoreAppBar(
@@ -50,6 +55,10 @@ class _LoreAppBarState extends State<LoreAppBar> {
 
   final TextEditingController _animatedSearchBarController =
       TextEditingController();
+
+  /// True while the favorite toggle has keyboard focus — drives the focus
+  /// ring (WCAG 2.4.7) because Focus itself paints nothing.
+  bool _favoriteFocused = false;
 
   @override
   void dispose() {
@@ -91,10 +100,12 @@ class _LoreAppBarState extends State<LoreAppBar> {
     );
   }
 
-  /// Heart toggle with an accessible name, tooltip, >=44px target, and
-  /// keyboard activation (WCAG 2.1.1 / 2.5.5 / 4.1.2). The LikeButton keeps
-  /// its animation; the wrapping Semantics/Focus carry the a11y contract,
-  /// so Enter/Space toggle exactly like a pointer tap.
+  /// Heart toggle with an accessible name, tooltip, >=44px target, keyboard
+  /// activation, AND a visible focus ring (WCAG 2.1.1 / 2.4.7 / 2.5.5 /
+  /// 4.1.2). The LikeButton keeps its animation; the Focus wrapper carries
+  /// the keyboard contract and drives the ring, and the Semantics wrapper
+  /// remains the single name source (the Tooltip is excluded from
+  /// semantics so the label is never merged twice onto one node).
   Widget _buildFavoriteToggle(final BuildContext context) {
     final AppLocalizations? l10n = AppLocalizations.of(context);
     // State-aware name (WCAG 4.1.2): activation toggles, so the label must
@@ -109,23 +120,44 @@ class _LoreAppBarState extends State<LoreAppBar> {
       height: _kFavoriteButtonSize,
       child: Tooltip(
         message: label,
-        child: Semantics(
-          label: label,
-          button: true,
-          container: true,
-          enabled: true,
-          child: Focus(
-            // Keyboard: activate the same callback the pointer tap runs.
-            onKeyEvent: (final node, final event) {
-              if (event is KeyDownEvent &&
-                  (event.logicalKey == LogicalKeyboardKey.enter ||
-                      event.logicalKey == LogicalKeyboardKey.space)) {
-                widget.onFavoriteTap();
-                return KeyEventResult.handled;
-              }
-              return KeyEventResult.ignored;
-            },
+        // Hover hint only: Tooltip would otherwise inject a second copy of
+        // the same string as semantics, double-reading the merged node.
+        excludeFromSemantics: true,
+        child: Focus(
+          // Keyboard: activate the same callback the pointer tap runs.
+          onKeyEvent: (final node, final event) {
+            if (event is KeyDownEvent &&
+                (event.logicalKey == LogicalKeyboardKey.enter ||
+                    event.logicalKey == LogicalKeyboardKey.space)) {
+              widget.onFavoriteTap();
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
+          },
+          // WCAG 2.4.7: Focus paints nothing, so mirror focus into state
+          // and draw a 2px ring in the foreground icon colour.
+          onFocusChange: (final hasFocus) =>
+              setState(() => _favoriteFocused = hasFocus),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: _favoriteFocused
+                  ? Border.all(color: iconColor ?? Colors.white, width: 2)
+                  : null,
+            ),
+            child: Semantics(
+            label: label,
+            button: true,
+            container: true,
+            enabled: true,
             child: LikeButton(
+              key: ValueKey<String>(
+                  // Controlled heart: remount on artifact change or when
+                  // the MODEL's favorite state flips, so LikeButton's
+                  // internal animation state can never drift from
+                  // widget.isFavorite (e.g. after a failed save the icon
+                  // reverts with the SnackBar instead of staying liked).
+                  '${widget.artifact?.md5sum ?? ''}|${widget.isFavorite}'),
               padding: const EdgeInsets.fromLTRB(0, 0, 8.0, 0),
               circleColor: CircleColor(
                 start: Theme.of(context).iconTheme.color ??
@@ -154,9 +186,18 @@ class _LoreAppBarState extends State<LoreAppBar> {
               },
             ),
           ),
+          ),
         ),
       ),
     );
+  }
+
+  /// Search-bar width that leaves the rest of the actions row its budget.
+  double _searchBarWidth(final double fullWidth) {
+    final double available = fullWidth - _kActionsRowReservedWidth;
+    return available < _kSearchBarMinWidth
+        ? _kSearchBarMinWidth
+        : available;
   }
 
   Widget? getFlexibleSpace(final BuildContext context, final Artifact? artifact,
@@ -174,11 +215,19 @@ class _LoreAppBarState extends State<LoreAppBar> {
       centerTitle: false,
       title: ListTile(
         iconColor: Theme.of(context).appBarTheme.toolbarTextStyle?.color,
-        title: Text(
-          maxLines: 2,
-          overflow: TextOverflow.visible,
-          name,
-          style: Theme.of(context).primaryTextTheme.titleMedium,
+        // Ellipsize (not `visible`): with maxLines:2 + visible, a 3rd line
+        // PAINTED OVER the md5 subtitle (measured at 360px width). Tooltip
+        // carries the full name for pointer users.
+        title: Tooltip(
+          // No tooltip affordance when there is no name to reveal.
+          message: name.isEmpty ? ' ' : name,
+          excludeFromSemantics: true, // the Text node already names itself
+          child: Text(
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            name,
+            style: Theme.of(context).primaryTextTheme.titleMedium,
+          ),
         ),
         subtitle: SelectableText(
           md5sum,
@@ -226,8 +275,11 @@ class _LoreAppBarState extends State<LoreAppBar> {
           },
         );
       } catch (e) {
+        // Preview is NOT available on failure — the old `true` here made
+        // getBackgroundImage paint the fade gradient over a null image.
+        debugPrint('artifact preview failed: $e');
         maxSize = Size(fullWidth, _kCollapsedAppBarHeight);
-        hasImagePreview = true;
+        hasImagePreview = false;
         previewBackgroundImage = null;
       }
     } else {
@@ -251,42 +303,46 @@ class _LoreAppBarState extends State<LoreAppBar> {
       title: Text(
         l10n?.appTitle ?? 'Lore',
         overflow: TextOverflow.fade,
-        style: Theme.of(context).primaryTextTheme.displayLarge,
+        // Material app bars use titleLarge; displayLarge (~57px) ate ~140px
+        // of the actions row, crowding the search bar into overflow on
+        // narrow windows.
+        style: Theme.of(context).primaryTextTheme.titleLarge,
       ),
       actions: [
-        Tooltip(
-          message: l10n?.browseForFile,
-          child: IconButton(
-            onPressed: widget.onOpenFileTap,
-            icon: const Icon(Icons.folder_open),
-            tooltip: l10n?.browseForFile,
-          ),
+        // IconButton.tooltip names the button (WCAG 4.1.2) AND shows the
+        // hover hint — the previous outer Tooltip duplicated both (two
+        // overlapping tooltips on hover, double-read label on the node).
+        IconButton(
+          onPressed: widget.onOpenFileTap,
+          icon: const Icon(Icons.folder_open),
+          tooltip: l10n?.browseForFile,
         ),
         Padding(
           padding: const EdgeInsets.all(8),
-          // WCAG 4.1.2: AnimSearchBar maps helpText to its internal
-          // labelText; the Semantics wrapper names the composite control
-          // independently of the placeholder.
-          child: Semantics(
-            container: true,
-            textField: true,
-            label: l10n?.searchByMd5OrURL,
-            child: Tooltip(
-              message: l10n?.searchByMd5OrURL,
-              child: AnimSearchBar(
-                width: maxSize.width - _kSearchBarTrailingInset,
-                color: Theme.of(context).colorScheme.surface,
-                textFieldIconColor: Theme.of(context).primaryColor,
-                textFieldColor: Theme.of(context).colorScheme.surface,
-                searchIconColor: Theme.of(context).primaryColor,
-                textController: _animatedSearchBarController,
-                boxShadow: false,
-                helpText: l10n?.searchByMd5OrURL ?? '',
-                onSubmitted: widget.onSearch,
-                style: Theme.of(context).textTheme.titleMedium,
-                onSuffixTap: () =>
-                    setState(() => _animatedSearchBarController.clear()),
-              ),
+          // The Tooltip names the composite control (WCAG 4.1.2) and the
+          // AnimSearchBar's internal labelText carries the same string as
+          // the field's own label — the previous outer Semantics(label:)
+          // wrapper merged a THIRD copy onto the node (screen readers read
+          // "Search by MD5 or URL" repeatedly).
+          child: Tooltip(
+            message: l10n?.searchByMd5OrURL,
+            child: AnimSearchBar(
+              // The actions Row lays children out unbounded in the main
+              // axis, so a claimed width of screenWidth-100 overflowed on
+              // narrow screens once the drawer button, browse button,
+              // app title and paddings took their share (~220px total).
+              width: _searchBarWidth(fullWidth),
+              color: Theme.of(context).colorScheme.surface,
+              textFieldIconColor: Theme.of(context).primaryColor,
+              textFieldColor: Theme.of(context).colorScheme.surface,
+              searchIconColor: Theme.of(context).primaryColor,
+              textController: _animatedSearchBarController,
+              boxShadow: false,
+              helpText: l10n?.searchByMd5OrURL ?? '',
+              onSubmitted: widget.onSearch,
+              style: Theme.of(context).textTheme.titleMedium,
+              onSuffixTap: () =>
+                  setState(() => _animatedSearchBarController.clear()),
             ),
           ),
         ),
