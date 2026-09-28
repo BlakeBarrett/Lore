@@ -5,8 +5,8 @@
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
+    The path provided below has to start and end with a slash "/" in order to
+    work correctly.
 
     For more details:
     * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
@@ -32,6 +32,44 @@
     <title>Lore</title>
     <link rel="manifest" href="manifest.json" />
 
+    <style>
+      /* Splash layer (web equivalent of the flutter_native_splash screen):
+         the Lore logo full-bleed — background-size: cover preserves the
+         aspect ratio and fills the viewport, cropping the overflow —
+         painted BEHIND the Flutter view (the view is transparent while
+         the engine boots, then opaque from the first rendered frame).
+         The loader script removes the layer once runApp() has resolved,
+         which happens after the first frame, so the handoff never
+         flashes. */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        /* Brand splash color; keep in sync with
+           flutter_native_splash.color in pubspec.yaml. */
+        background-color: #ff9800;
+      }
+      #lore-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background-color: #ff9800;
+        background-image: url("Lore_app_icon.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        pointer-events: none;
+      }
+      /* Decorative while the app boots: out of the a11y tree, and the
+         Flutter surface must sit above it once it has content. */
+      flutter-view,
+      flt-glass-pane {
+        position: relative;
+        z-index: 1;
+      }
+    </style>
+
     <script>
       // The value below is injected by flutter build, do not touch.
       const serviceWorkerVersion = null;
@@ -40,6 +78,7 @@
     <script src="flutter.js" defer></script>
   </head>
   <body>
+    <div id="lore-splash" aria-hidden="true"></div>
     <script>
       window.addEventListener('load', function (ev) {
         // Download main.dart.js
@@ -49,7 +88,17 @@
           },
           onEntrypointLoaded: function (engineInitializer) {
             engineInitializer.initializeEngine().then(function (appRunner) {
-              appRunner.runApp();
+              // runApp() resolves after the framework's first frame; drop
+              // the splash one composited frame later so the opaque app
+              // surface is already over it (no background flash).
+              appRunner.runApp().then(function () {
+                requestAnimationFrame(function () {
+                  requestAnimationFrame(function () {
+                    var splash = document.getElementById('lore-splash');
+                    if (splash) splash.remove();
+                  });
+                });
+              });
             });
           },
         });

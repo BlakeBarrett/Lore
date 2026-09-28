@@ -72,9 +72,21 @@ scripts:
 flutter_native_splash:
   color: "#FF9800"  # This will be overridden by theme.primaryColor at runtime
   image: assets/Lore_app_icon.png
+  # Full-bleed logo on the splash:
+  #  - Android: fill_horizontal scales the bitmap to the window width
+  #    preserving aspect, clip_vertical crops the overflow — "cover" for
+  #    any window shape. (Plain `fill` would STRETCH the logo off-aspect;
+  #    Android gravity has no aspect-preserving cover besides this pair.)
+  #  - iOS: scaleAspectFill is UIKit's cover equivalent for the splash
+  #    UIImageView.
+  android_gravity: fill_horizontal|clip_vertical
+  ios_content_mode: scaleAspectFill
   android: true
   ios: true
-  web: false
+  # macOS keeps the stock centered launch image: flutter_native_splash's
+  # macOS support writes a fixed-size assets entry that cannot cover-crop,
+  # and a stretched square logo on a wide window reads as broken.
+  web: false  # web gets its splash layer in web/index.html (background-cover)
   fullscreen: false
 
 # For information on the generic Dart part of this file, see the
