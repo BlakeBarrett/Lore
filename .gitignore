@@ -19,6 +19,8 @@
 .history
 .svn/
 *.env
+.hermes/
+.claude/
 
 # IntelliJ related
 *.iml
