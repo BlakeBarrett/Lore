@@ -150,4 +150,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorInvalidEmail => 'That doesn\'t look like an e-mail address.';
+
+  @override
+  String remarkAuthorLabel(String author) {
+    return 'Author: $author';
+  }
+
+  @override
+  String get remarkYou => 'You';
+
+  @override
+  String get deleteRemarkConfirm => 'Delete this remark?';
+
+  @override
+  String get cancel => 'Cancel';
 }

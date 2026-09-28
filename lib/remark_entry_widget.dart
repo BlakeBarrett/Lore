@@ -57,9 +57,10 @@ class _RemarkEntryWidgetState extends State<RemarkEntryWidget> {
                 },
                 onTap: widget.onTap,
                 // WCAG 3.3.2: a persistent label, independent of the hint.
+                // The old hintText duplicated the label (Material: a hint
+                // that echoes the label is noise) — removed.
                 decoration: InputDecoration(
                   labelText: l10n?.addRemark,
-                  hintText: l10n?.addRemarkTooltip,
                   border: const OutlineInputBorder(),
                 ),
               ),

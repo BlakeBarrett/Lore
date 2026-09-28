@@ -49,8 +49,30 @@ class RemarkWidget extends StatelessWidget {
       return PopupMenuButton<String>(
         // WCAG 4.1.2: the icon-only menu button needs an accessible name.
         tooltip: AppLocalizations.of(context)?.deleteMenu,
-        onSelected: (final value) {
-          if (value == 'delete') {
+        onSelected: (final value) async {
+          if (value != 'delete') return;
+          // Destructive action: confirm first (Material: destructive
+          // actions ask before they act). No-arg callbacks (widget tests
+          // that wire no handler) are unaffected.
+          final AppLocalizations? l10n = AppLocalizations.of(context);
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (final dialogContext) => AlertDialog(
+              content: Text(l10n?.deleteRemarkConfirm ??
+                  'Delete this remark?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(l10n?.cancel ?? 'Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(l10n?.delete ?? 'Delete'),
+                ),
+              ],
+            ),
+          );
+          if (confirmed == true) {
             onDeleteRemark?.call(remark);
           }
         },
@@ -77,8 +99,15 @@ class RemarkWidget extends StatelessWidget {
   @override
   Widget build(final BuildContext context) {
     final AppLocalizations? l10n = AppLocalizations.of(context);
-    final String authorLabel =
-        '${l10n?.authorLabel ?? 'Author'}: ${remark.author ?? ''}';
+    // Placeholder message, not string concatenation: word order and
+    // punctuation belong to the locale (i18n). Own remarks render as
+    // "You" instead of announcing a raw UUID (a11y + readability).
+    final String authorDisplay =
+        (remark.author != null && remark.author == currentUser)
+            ? (l10n?.remarkYou ?? 'You')
+            : (remark.author ?? '');
+    final String authorLabel = l10n?.remarkAuthorLabel(authorDisplay) ??
+        'Author: $authorDisplay';
     return ListTile(
       title: SelectableText(remark.text),
       trailing: getContextMenu(context, remark),
@@ -86,29 +115,32 @@ class RemarkWidget extends StatelessWidget {
       // subtitled unit; the icon alone would be unnamed.
       subtitle: Semantics(
         label: authorLabel,
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 2.0, right: 8.0),
-                child: Tooltip(
-                  message: authorLabel,
-                  child: Icon(
-                    Icons.account_circle_sharp,
-                    size: 12,
-                    color: Theme.of(context).primaryColor,
-                  ),
+        // No FittedBox: scaleDown shrank the already-labelSmall (12px)
+        // date below legibility in long-locale formats (e.g.
+        // "September 28, 2026 10:41:32 PM"). The date ellipsizes instead.
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0, right: 8.0),
+              child: Tooltip(
+                message: authorLabel,
+                child: Icon(
+                  Icons.account_circle_sharp,
+                  size: 12,
+                  color: Theme.of(context).primaryColor,
                 ),
               ),
-              Text(
+            ),
+            Flexible(
+              child: Text(
                 getFormattedDate(remark, context),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelSmall,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

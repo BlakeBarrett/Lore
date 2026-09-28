@@ -363,6 +363,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That doesn\'t look like an e-mail address.'**
   String get errorInvalidEmail;
+
+  /// Accessibility/tooltip label naming the author of a remark
+  ///
+  /// In en, this message translates to:
+  /// **'Author: {author}'**
+  String remarkAuthorLabel(String author);
+
+  /// Label shown instead of the account id when the remark author is the signed-in user
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get remarkYou;
+
+  /// Confirmation question before deleting a remark
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this remark?'**
+  String get deleteRemarkConfirm;
+
+  /// Cancel action label
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
 }
 
 class _AppLocalizationsDelegate

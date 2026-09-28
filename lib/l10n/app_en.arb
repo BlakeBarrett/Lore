@@ -142,27 +142,48 @@
     },
     "sendCode": "Send code",
     "@sendCode": {
-    "description": "Primary action label that emails the one-time password"
-},
+        "description": "Primary action label that emails the one-time password"
+    },
     "verifyCode": "Verify",
     "@verifyCode": {
-    "description": "Primary action label that verifies the entered one-time password"
-},
+        "description": "Primary action label that verifies the entered one-time password"
+    },
     "codeSentTo": "Code sent to {email}",
     "@codeSentTo": {
-    "description": "Confirmation shown after a one-time password was sent",
-    "placeholders": {
-        "email": {
-            "type": "String"
+        "description": "Confirmation shown after a one-time password was sent",
+        "placeholders": {
+            "email": {
+                "type": "String"
+            }
         }
-    }
-},
+    },
     "useDifferentEmail": "Use a different address?",
     "@useDifferentEmail": {
-    "description": "Action to unlock the e-mail field and change the address after a code was sent"
-},
+        "description": "Action to unlock the e-mail field and change the address after a code was sent"
+    },
     "errorInvalidEmail": "That doesn't look like an e-mail address.",
     "@errorInvalidEmail": {
-    "description": "Inline validation error for a malformed e-mail address"
-}
+        "description": "Inline validation error for a malformed e-mail address"
+    },
+    "remarkAuthorLabel": "Author: {author}",
+    "@remarkAuthorLabel": {
+        "description": "Accessibility/tooltip label naming the author of a remark",
+        "placeholders": {
+            "author": {
+                "type": "String"
+            }
+        }
+    },
+    "remarkYou": "You",
+    "@remarkYou": {
+        "description": "Label shown instead of the account id when the remark author is the signed-in user"
+    },
+    "deleteRemarkConfirm": "Delete this remark?",
+    "@deleteRemarkConfirm": {
+        "description": "Confirmation question before deleting a remark"
+    },
+    "cancel": "Cancel",
+    "@cancel": {
+        "description": "Cancel action label"
+    }
 }

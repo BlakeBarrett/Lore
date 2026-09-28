@@ -101,6 +101,51 @@ void main() {
       expect(menu.tooltip, 'Delete remark');
     });
 
+    testWidgets('delete asks for confirmation before calling onDeleteRemark',
+        (final WidgetTester tester) async {
+      final Remark own = Remark('mine', 'me', DateTime.utc(2026), 1);
+      final List<Remark> deleted = <Remark>[];
+
+      await tester.pumpWidget(MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              RemarkList(
+                remarks: <Remark>[own],
+                userId: 'me',
+                onDeleteRemark: deleted.add,
+              ),
+            ],
+          ),
+        ),
+      ));
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete').last);
+      await tester.pumpAndSettle();
+
+      // The confirm dialog is up, nothing deleted yet.
+      expect(find.text('Delete this remark?'), findsOneWidget);
+      expect(deleted, isEmpty);
+
+      // Cancel aborts.
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(deleted, isEmpty);
+
+      // Confirm goes through.
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+      expect(deleted, [own]);
+    });
+
     group('CommentInputArea', () {
       testWidgets('CommentInputArea calls onSubmitted with correct value',
           (final WidgetTester tester) async {

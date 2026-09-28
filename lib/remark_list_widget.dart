@@ -29,10 +29,18 @@ List<Remark> localizedOnboardingRemarks(final AppLocalizations l10n) {
   final int count = dummy.length < localizedTexts.length
       ? dummy.length
       : localizedTexts.length;
+  String localizeAuthor(final String? author) {
+    // 'You' is user copy and localizes; 'Lore' is the product name and
+    // stays verbatim in every locale; '' (the opening voiceless remark)
+    // stays empty.
+    if (author == 'You') return l10n.remarkYou;
+    return author ?? '';
+  }
+
   return List<Remark>.generate(
     count,
-    (final int i) =>
-        Remark(localizedTexts[i], dummy[i].author, dummy[i].timestamp),
+    (final int i) => Remark(localizedTexts[i],
+        localizeAuthor(dummy[i].author), dummy[i].timestamp),
   );
 }
 
