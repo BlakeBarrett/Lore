@@ -26,7 +26,7 @@ class DesktopFileDropHandler extends StatelessWidget {
           final files = details.files;
           if (files.isEmpty) return;
           try {
-            final paths = files.map((d) => d.path).toList();
+            final paths = files.map((final d) => d.path).toList();
             onDrop(paths);
           } catch (e) {
             debugPrint('Dropped file could not be read: $e');

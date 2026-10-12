@@ -8,30 +8,25 @@ import 'package:lore/l10n/app_localizations.dart';
 import 'package:lore/remark.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'
-    show AuthClientOptions, SupabaseClient;
 
 import 'test_utils.dart';
 
 // Root-view tests for LoreScaffoldWidget: the widget is pumped with an
-// injected LoreController built on the hand-written FakeLoreRepo, so nothing
-// but the (inert) SupabaseClient handed to AppConfig.forTesting is real.
-// The injection seam is the `controller:` param (the widget does not dispose
-// injected controllers). Platform-bound paths (FilePicker, desktop/web drop
-// handlers) are deliberately not exercised: AppConfig.forTesting reports
-// isDesktop=false/isWeb=false, so the bare Scaffold is built.
+// injected LoreController built on the hand-written FakeLoreRepo, so no
+// backend is real — AppConfig.forTesting carries no Firebase services and
+// the repo is the fake. The injection seam is the `controller:` param (the
+// widget does not dispose injected controllers). Platform-bound paths
+// (FilePicker, desktop/web drop handlers) are deliberately not exercised:
+// AppConfig.forTesting reports isDesktop=false/isWeb=false, so the bare
+// Scaffold is built.
 void main() {
   // AppConfig.instance is read unconditionally during build (platform flags,
   // drawer/logout closures). Assign the test singleton exactly once —
-  // `static late final` tolerates a single assignment per isolate.
-  final client = SupabaseClient(
-    'https://lore-scaffold-test.supabase.co',
-    'test-anon-key',
-    // No background refresh timer: tests would hang on a pending Timer.
-    authOptions: const AuthClientOptions(autoRefreshToken: false),
-  );
-  AppConfig.instance = AppConfig.forTesting(client);
-  tearDownAll(client.dispose);
+  // `static late final` tolerates a single assignment per isolate. The mock
+  // auth keeps `AppConfig.isLoggedIn` (read during build) off the real
+  // FirebaseAuth.instance singleton, which is un-initialised in tests.
+  AppConfig.instance = AppConfig.forTesting();
+  AppConfig.setMockServices(auth: FakeFirebaseAuth());
 
   late FakeLoreRepo repo;
   late LoreController controller;

@@ -85,7 +85,8 @@ enum LoreErrorKind { load, save, delete, auth, unknown }
 ///   mutating any optimistic state. On success the error is cleared.
 /// * The view listens via `ListenableBuilder` and disposes this controller.
 class LoreController extends ChangeNotifier {
-  LoreController({required this.repo, final Stream<User?>? authStateChanges}) : session = null {
+  LoreController({required this.repo, final Stream<User?>? authStateChanges})
+      : session = null {
     // The Firebase auth state stream can throw on connection drops; swallow the
     // error with the same semantics as every other failure path here
     // ([lastError] + [errorSerial], no optimistic state touched); the

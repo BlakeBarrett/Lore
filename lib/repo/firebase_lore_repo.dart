@@ -25,7 +25,7 @@ class FirebaseLoreRepo implements LoreRepo {
   // --- Artifact operations ---
 
   @override
-  Future<Artifact?> loadArtifact(String md5sum) async {
+  Future<Artifact?> loadArtifact(final String md5sum) async {
     try {
       final doc = await _firestore.collection('artifacts').doc(md5sum).get();
       if (!doc.exists) return null;
@@ -34,7 +34,7 @@ class FirebaseLoreRepo implements LoreRepo {
       // Map Firestore document → Artifact model
       return Artifact(
         path: data['name'] as String, // Stored as 'name' in Firestore
-        md5sum: doc.id,               // Document ID is the md5sum
+        md5sum: doc.id, // Document ID is the md5sum
         sha256: data['sha256'] as String?,
       );
     } catch (e) {
@@ -43,13 +43,14 @@ class FirebaseLoreRepo implements LoreRepo {
   }
 
   @override
-  Future<void> saveArtifact(Artifact artifact) async {
+  Future<void> saveArtifact(final Artifact artifact) async {
     try {
       await _firestore.collection('artifacts').doc(artifact.md5sum).set({
-        'name': artifact.path,     // Firebase path = document ID + stored name
-        'md5': artifact.md5sum,    // Redundant but matches Supabase convention
-        'sha256': artifact.sha256, // Nullable SHA-256 (older rows may not have it)
-        'path': artifact.path,     // Full file path for display
+        'name': artifact.path, // Firebase path = document ID + stored name
+        'md5': artifact.md5sum, // Redundant but matches Supabase convention
+        'sha256':
+            artifact.sha256, // Nullable SHA-256 (older rows may not have it)
+        'path': artifact.path, // Full file path for display
       });
     } catch (e) {
       rethrow;
@@ -59,7 +60,7 @@ class FirebaseLoreRepo implements LoreRepo {
   // --- Remark operations ---
 
   @override
-  Future<List<Remark>> loadRemarks({required String md5sum}) async {
+  Future<List<Remark>> loadRemarks({required final String md5sum}) async {
     try {
       // Firestore doesn't support JOINs — query remarks where artifactMd5 == md5sum
       final snapshot = await _firestore
@@ -68,15 +69,16 @@ class FirebaseLoreRepo implements LoreRepo {
           .orderBy('createdAt', descending: true)
           .get();
 
-      return snapshot.docs.map((doc) {
+      return snapshot.docs.map((final doc) {
         final data = doc.data();
         // Map Firestore document → Remark model (using the positional ctor)
-        final effectiveId = int.tryParse(doc.id); // Firestore auto-generated IDs are UUIDs/strings
+        final effectiveId = int.tryParse(
+            doc.id); // Firestore auto-generated IDs are UUIDs/strings
         return Remark(
           data['text'] as String,
-          data['userId'] as String?,  // Firebase user ID or username
+          data['userId'] as String?, // Firebase user ID or username
           (data['createdAt'] as Timestamp?)?.toDate(),
-          effectiveId,                // Nullable — only valid if doc ID parses as int
+          effectiveId, // Nullable — only valid if doc ID parses as int
         );
       }).toList();
     } catch (e) {
@@ -86,15 +88,16 @@ class FirebaseLoreRepo implements LoreRepo {
 
   @override
   Future<void> saveRemark({
-    required String remark,
-    required String? md5sum,
-    required String? userId,
+    required final String remark,
+    required final String? md5sum,
+    required final String? userId,
   }) async {
     try {
       final docRef = _firestore.collection('remarks').doc(); // Auto-generate ID
       await docRef.set({
         'artifactMd5': md5sum ?? '',
-        'userId': userId ?? AppConfig.uid ?? '', // Fall back to current user UID
+        'userId':
+            userId ?? AppConfig.uid ?? '', // Fall back to current user UID
         'text': remark,
         'createdAt': FieldValue.serverTimestamp(), // Firestore server timestamp
       });
@@ -104,7 +107,7 @@ class FirebaseLoreRepo implements LoreRepo {
   }
 
   @override
-  Future<void> deleteRemark({required Remark remark}) async {
+  Future<void> deleteRemark({required final Remark remark}) async {
     try {
       // Find the document by its ID or search via composite key
       final snapshot = await _firestore
@@ -126,8 +129,8 @@ class FirebaseLoreRepo implements LoreRepo {
 
   @override
   Future<void> addToFavorites({
-    required Artifact? artifact,
-    required String? userId,
+    required final Artifact? artifact,
+    required final String? userId,
   }) async {
     try {
       if (artifact == null || userId == null) return;
@@ -155,8 +158,8 @@ class FirebaseLoreRepo implements LoreRepo {
 
   @override
   Future<void> removeFromFavorites({
-    required Artifact? artifact,
-    required String? userId,
+    required final Artifact? artifact,
+    required final String? userId,
   }) async {
     try {
       if (artifact == null || userId == null) return;
@@ -176,7 +179,8 @@ class FirebaseLoreRepo implements LoreRepo {
   }
 
   @override
-  Future<List<Artifact>> loadFavoritesArtifacts({required String? userId}) async {
+  Future<List<Artifact>> loadFavoritesArtifacts(
+      {required final String? userId}) async {
     try {
       if (userId == null) return [];
 
@@ -187,7 +191,9 @@ class FirebaseLoreRepo implements LoreRepo {
           .get();
 
       // Step 2: Extract artifact md5sums and batch-load each Artifact
-      final md5SumList = favSnap.docs.map((doc) => doc['artifactMd5'] as String).toList();
+      final md5SumList = favSnap.docs
+          .map((final doc) => doc['artifactMd5'] as String)
+          .toList();
 
       if (md5SumList.isEmpty) return [];
 
@@ -200,7 +206,8 @@ class FirebaseLoreRepo implements LoreRepo {
         final batch = md5SumList.skip(i).take(batchSize).toList();
         // Batch-read artifact documents by their md5sum IDs (Firestore document IDs)
         final docs = await Future.wait(
-          batch.map((md5) => _firestore.collection('artifacts').doc(md5).get()),
+          batch.map(
+              (final md5) => _firestore.collection('artifacts').doc(md5).get()),
         );
 
         for (final doc in docs) {
@@ -224,19 +231,18 @@ class FirebaseLoreRepo implements LoreRepo {
   // --- Authentication operations (replaces Supabase auth methods) ---
 
   @override
-  Future<String?> loginWithJwt(String jwtToken) async {
+  Future<String?> loginWithJwt(final String jwtToken) async {
     try {
       // Firebase Auth does NOT use JWT recovery tokens like Supabase.
       // Instead, we accept custom tokens from a trusted backend or use email-link flow.
-      // 
+      //
       // Option A: If jwtToken is a Firebase custom token (signed by Admin SDK):
       final credential = GoogleAuthProvider.credential(
         idToken: jwtToken, // Treat JWT as a Firebase-compatible ID token
       );
-      
+
       final userCred = await _auth.signInWithCredential(credential);
       return userCred.user?.email;
-
     } catch (e) {
       rethrow; // Token is invalid — throw to let caller handle the error
     }
@@ -256,11 +262,11 @@ class FirebaseLoreRepo implements LoreRepo {
     try {
       final user = _auth.currentUser;
       if (user == null) return null;
-      
+
       // getIdToken() is async — we can't await in a sync getter, so just check
-       // whether we have a user. The caller should use accessTokenAsync when they need the
-       // actual token string. See lore_app.dart for the isLoggedIn pattern using currentUser directly.
-       return null; 
+      // whether we have a user. The caller should use accessTokenAsync when they need the
+      // actual token string. See lore_app.dart for the isLoggedIn pattern using currentUser directly.
+      return null;
     } catch (e) {
       rethrow;
     }
@@ -281,18 +287,18 @@ class FirebaseLoreRepo implements LoreRepo {
   // --- Additional convenience methods for Firebase-specific features ---
 
   /// Subscribe to real-time changes on artifact remarks (Firestore snapshot listener).
-  Stream<List<Remark>> remarksStream({required String md5sum}) {
+  Stream<List<Remark>> remarksStream({required final String md5sum}) {
     return _firestore
         .collection('remarks')
         .where('artifactMd5', isEqualTo: md5sum)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
+        .map((final snapshot) => snapshot.docs.map((final doc) {
               final data = doc.data();
               // Map Firestore document → Remark model (positional ctor)
               return Remark(
                 data['text'] as String,
-                data['userId'] as String?,  // Firebase user ID or username
+                data['userId'] as String?, // Firebase user ID or username
                 (data['createdAt'] as Timestamp?)?.toDate(),
               );
             }).toList());
@@ -300,18 +306,21 @@ class FirebaseLoreRepo implements LoreRepo {
 
   /// Subscribe to real-time changes on all artifacts.
   Stream<List<Artifact>> artifactsStream() {
-    return _firestore.collection('artifacts').snapshots().map((snapshot) => snapshot.docs.map((doc) {
-          final data = doc.data();
-          return Artifact(
-            path: data['name'] as String,
-            md5sum: doc.id,
-            sha256: data['sha256'] as String?,
-          );
-        }).toList());
+    return _firestore
+        .collection('artifacts')
+        .snapshots()
+        .map((final snapshot) => snapshot.docs.map((final doc) {
+              final data = doc.data();
+              return Artifact(
+                path: data['name'] as String,
+                md5sum: doc.id,
+                sha256: data['sha256'] as String?,
+              );
+            }).toList());
   }
 
   /// Check if a specific user has favorited a specific artifact.
-  Future<bool> isFavorite(String userId, String md5sum) async {
+  Future<bool> isFavorite(final String userId, final String md5sum) async {
     try {
       final snapshot = await _firestore
           .collection('favorites')

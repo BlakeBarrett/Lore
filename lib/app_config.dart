@@ -18,7 +18,11 @@ class AppConfig {
   /// Test seam: construct with injected mockable [FirebaseAuth] and
   /// [FirebaseFirestore] instances. Used by unit tests so the static
   /// singletons are bypassed entirely (see `test/firebase_auth_test.dart`).
-  AppConfig.mockable({required this.isDesktop, required this.isWeb, FirebaseAuth? auth, FirebaseFirestore? firestore}) {
+  AppConfig.mockable(
+      {required this.isDesktop,
+      required this.isWeb,
+      final FirebaseAuth? auth,
+      final FirebaseFirestore? firestore}) {
     _authOverride = auth;
     _firestoreOverride = firestore;
   }
@@ -33,8 +37,8 @@ class AppConfig {
   /// Set mockable services for unit tests. Call before exercising static
   /// helpers that delegate to FirebaseAuth/FirebaseFirestore singletons.
   static void setMockServices({
-    required FirebaseAuth auth,
-    FirebaseFirestore? firestore,
+    required final FirebaseAuth auth,
+    final FirebaseFirestore? firestore,
   }) {
     _authOverride = auth;
     _firestoreOverride = firestore;
@@ -56,7 +60,8 @@ class AppConfig {
 
   /// The Firestore database instance. May be overridden by [setMockServices]
   /// for unit testing.
-  static FirebaseFirestore get firestore => _firestoreOverride ?? FirebaseFirestore.instance;
+  static FirebaseFirestore get firestore =>
+      _firestoreOverride ?? FirebaseFirestore.instance;
 
   /// Current logged-in user, or null if not signed in.
   static User? get currentUser => auth.currentUser;
@@ -96,8 +101,8 @@ class AppConfig {
 
   /// Creates a new user account with email and password.
   static Future<UserCredential> createUserWithEmailAndPassword(
-    String email,
-    String password,
+    final String email,
+    final String password,
   ) {
     return auth.createUserWithEmailAndPassword(
       email: email,
@@ -107,8 +112,8 @@ class AppConfig {
 
   /// Signs in with an existing email and password.
   static Future<UserCredential> signInWithEmailAndPassword(
-    String email,
-    String password,
+    final String email,
+    final String password,
   ) {
     return auth.signInWithEmailAndPassword(
       email: email,
@@ -122,25 +127,26 @@ class AppConfig {
   }
 
   /// Sends a password-reset email.
-  static Future<void> sendPasswordResetEmail(String email) async {
+  static Future<void> sendPasswordResetEmail(final String email) async {
     await auth.sendPasswordResetEmail(email: email);
   }
 
   /// Updates the current user's display name.
-  static Future<void> updateDisplayName(String name) async {
+  static Future<void> updateDisplayName(final String name) async {
     await auth.currentUser?.updateDisplayName(name);
   }
 
   /// Updates the current user's email address.
   /// Note: requires re-authentication before this call in most cases.
-  static Future<void> updateEmail(String newEmail) async {
+  static Future<void> updateEmail(final String newEmail) async {
     // Firebase requires re-auth before email change in production;
     // see: https://firebase.google.com/docs/auth/web/manage-users#update_an_user's_email_address
     await auth.currentUser?.verifyBeforeUpdateEmail(newEmail);
   }
 
   /// Re-authenticates the user before a sensitive operation.
-  static Future<void> reauthenticate({required String email, required String password}) async {
+  static Future<void> reauthenticate(
+      {required final String email, required final String password}) async {
     final cred = EmailAuthProvider.credential(email: email, password: password);
     await auth.currentUser?.reauthenticateWithCredential(cred);
   }
@@ -151,7 +157,7 @@ class AppConfig {
   }
 
   /// Updates the user's profile photo URL.
-  static Future<void> updatePhotoURL(String url) async {
+  static Future<void> updatePhotoURL(final String url) async {
     await auth.currentUser?.updatePhotoURL(url);
   }
 
@@ -173,12 +179,14 @@ class AppConfig {
 
   /// Sends a sign-in magic link to the given email.
   /// The user taps the link and Flutter handles it via dynamic links / deep linking.
-  static Future<void> sendSignInEmailLink({required String email}) async {
+  static Future<void> sendSignInEmailLink({required final String email}) async {
     final ActionCodeSettings actionCodeSettings = ActionCodeSettings(
-      url: 'https://lore.app/signin', // Replace with your authorized domain + route
+      url:
+          'https://lore.app/signin', // Replace with your authorized domain + route
       handleCodeInApp: true,
       iOSBundleId: 'com.yourbundleid.lore', // Override with actual bundle ID
-      androidPackageName: 'com.yourpackage.lore', // Override with actual package name
+      androidPackageName:
+          'com.yourpackage.lore', // Override with actual package name
       androidInstallApp: true,
       androidMinimumVersion: '12',
     );
@@ -190,14 +198,14 @@ class AppConfig {
   }
 
   /// Checks whether the provided URL is an email-link sign-in link.
-  static bool isSignInWithEmailLink(String url) {
+  static bool isSignInWithEmailLink(final String url) {
     return auth.isSignInWithEmailLink(url);
   }
 
   /// Completes sign-in using the email link that was sent to the user.
   static Future<UserCredential> signInWithEmailLink({
-    required String email,
-    required String url, // Full deep-link URL including the action code
+    required final String email,
+    required final String url, // Full deep-link URL including the action code
   }) {
     return auth.signInWithEmailLink(email: email, emailLink: url);
   }
@@ -207,7 +215,7 @@ class AppConfig {
   /// Sets the auth persistence strategy.
   /// LOCAL = persisted across app restarts (mobile: encrypted storage; web: indexedDB)
   /// NONE = only lives in memory
-  static Future<void> setPersistence(Persistence persistence) {
+  static Future<void> setPersistence(final Persistence persistence) {
     return auth.setPersistence(persistence);
   }
 }

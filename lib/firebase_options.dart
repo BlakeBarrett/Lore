@@ -1,5 +1,6 @@
 /// Stub firebase_options.dart for development.
 /// Run `flutterfire configure` to generate a real version with platform-specific configs.
+library;
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 

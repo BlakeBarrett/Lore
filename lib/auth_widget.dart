@@ -29,8 +29,10 @@ class AuthWidget extends StatefulWidget {
   ///   [AppConfig.signInWithEmailLink].
   static void showFirebaseAuthWidget(final BuildContext context) {
     Navigator.of(context).push(PageRouteBuilder(
-      transitionsBuilder: (final BuildContext context, final Animation<double> animation,
-          final Animation<double> secondaryAnimation, final Widget child) {
+      transitionsBuilder: (final BuildContext context,
+          final Animation<double> animation,
+          final Animation<double> secondaryAnimation,
+          final Widget child) {
         const begin = Offset(-1.0, 0.0);
         const end = Offset.zero;
         const curve = Curves.ease;
@@ -43,7 +45,9 @@ class AuthWidget extends StatefulWidget {
           child: child,
         );
       },
-      pageBuilder: (final BuildContext context, final Animation<double> animation, final Animation<double> secondaryAnimation) {
+      pageBuilder: (final BuildContext context,
+          final Animation<double> animation,
+          final Animation<double> secondaryAnimation) {
         String email = '';
 
         void showError(final String message) {
@@ -80,11 +84,14 @@ class AuthWidget extends StatefulWidget {
                 await AppConfig.sendSignInEmailLink(email: value);
               } catch (e) {
                 debugPrint('sendSignInEmailLink failed: $e');
-                showError(AppLocalizations.of(context)?.errorAuth ?? 'Authentication failed. Please try again.');
+                if (context.mounted) {
+                  showError(AppLocalizations.of(context)?.errorAuth ??
+                      'Authentication failed. Please try again.');
+                }
                 return false; // no link sent — unlock the e-mail field
               }
               return true;
-            }, onOtpSubmitted: (final String _input) async {
+            }, onOtpSubmitted: (final String link) async {
               // The user has tapped the magic link in their email client.
               // Firebase handles the deep-link completion automatically when
               // actionCodeSettings.handleCodeInApp is true and the URL matches.
@@ -92,12 +99,15 @@ class AuthWidget extends StatefulWidget {
               try {
                 final userCred = await AppConfig.signInWithEmailLink(
                   email: email,
-                  url: _input,
+                  url: link,
                 );
                 debugPrint('Signed in via email link: ${userCred.user?.email}');
               } catch (e) {
                 debugPrint('signInWithEmailLink failed: $e');
-                showError(AppLocalizations.of(context)?.errorAuth ?? 'Authentication failed. Please try again.');
+                if (context.mounted) {
+                  showError(AppLocalizations.of(context)?.errorAuth ??
+                      'Authentication failed. Please try again.');
+                }
                 return;
               }
               if (context.mounted) {
