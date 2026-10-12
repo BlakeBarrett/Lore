@@ -37,6 +37,7 @@ dependencies:
   desktop_drop: ^0.8.4
   desktop_window: ^0.4.0
   crypto: ^3.0.3
+  http: ^1.6.0
   flutter_dotenv: ^6.0.1
   url_launcher: ^6.3.3
   # Kept in sync with the intl version pinned by flutter_localizations (0.20.x).

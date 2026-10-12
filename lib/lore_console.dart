@@ -1,10 +1,8 @@
 import 'dart:io' as io show IOSink, exit, stdout;
 
-import 'package:lore/app_config.dart';
 import 'package:lore/artifact.dart';
 import 'package:lore/md5_utils.dart';
 import 'package:lore/repo/lore_repo.dart';
-import 'package:lore/repo/firebase_lore_repo.dart';
 import 'package:lore/remark.dart';
 import 'package:regexpattern/regexpattern.dart';
 
@@ -12,11 +10,19 @@ typedef LoreExit = void Function(int code);
 
 /// Command-line front-end for Lore.
 ///
-/// All side effects go through injectable seams so the console is testable:
-/// * [LoreConsole.api] — the [LoreRepo] data seam (bound to
-///   [FirebaseLoreRepo] via [LoreConsole.bindDefaults] in real entry points),
-/// * [LoreConsole.stdout] — the output sink (defaults to real stdout),
-/// * [LoreConsole.exit] — the process-exit callback (defaults to `exit`).
+/// Deliberately free of `package:flutter` imports: `tool/build_console.dart`
+/// AOT-compiles this into a standalone `bin/lore`, and the Dart VM cannot
+/// embed Flutter. Entry points assign the seam before constructing the
+/// console:
+///
+/// * `lib/console_main.dart` (standalone CLI) binds the pure-Dart
+///   `RestLoreRepo` (Firestore/Identity-Toolkit REST — the Firebase SDK
+///   plugins have no Linux implementation and no standalone-VM path),
+/// * `lib/main.dart` (desktop app with args) binds `FirebaseLoreRepo`,
+/// * tests assign a mock/`FakeLoreRepo` directly.
+///
+/// Other seams: [LoreConsole.stdout] (output, defaults to real stdout) and
+/// [LoreConsole.exit] (process exit, defaults to `exit`).
 class LoreConsole {
   LoreConsole([this.args = const []]) {
     done = _handleArgs();
@@ -28,16 +34,10 @@ class LoreConsole {
   /// constructor cannot be awaited).
   late final Future<void> done;
 
-  /// Injectable seams; set these before constructing [LoreConsole] in tests.
+  /// Injectable seams; set [api] before constructing [LoreConsole] in tests.
   static late LoreRepo api;
   static io.IOSink stdout = io.stdout;
   static LoreExit exit = (final int code) => io.exit(code);
-
-  /// Wires the default [api] seam from a booted [AppConfig]. Call once after
-  /// `AppConfig.init()` in a real entry point.
-  static void bindDefaults(final AppConfig config) {
-    api = FirebaseLoreRepo();
-  }
 
   Future<void> _handleArgs() async {
     if (args.isEmpty) {

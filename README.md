@@ -11,7 +11,7 @@ The shared, single source of truth for everything.
 - [Setup Flutter](#setup-flutter)
 - [Clone the Repository](#clone-the-repository)
 - [Install dependencies](#install-dependencies)
-- [Set up Supabase credentials](#set-up-supabase-credentials)
+- [Set up Firebase](#set-up-firebase)
 - [Run the App](#run-the-app)
   - [Linux Desktop](#linux-desktop)
   - [Chrome Web App](#chrome-web-app)
@@ -28,7 +28,7 @@ Lore is a repository of knowledge. It is a shared, single source of truth for an
 
 ## Where is the data stored?
 
-At present, the plan is to store the data in Supabase. In the future data could be hosted in a managed or on-prem db.
+At present, the data lives in **Cloud Firestore** (Firebase); authentication is Firebase Auth (email-link and Google). The earlier Supabase backend has been removed. See `.hermes/FIREBASE_MIGRATION_INSTRUCTIONS.md` for the step-by-step Firebase console setup.
 
 ## Setup Flutter
 
@@ -51,16 +51,23 @@ To do so, run:
 flutter pub get
 ```
 
-## Set up Supabase credentials
+## Set up Firebase
 
-Lore connects to a Supabase backend. Create a `supabase.env` file in the project root with:
+Lore connects to a Firebase project (Cloud Firestore + Firebase Auth).
+`lib/firebase_options.dart` is a **stub** until you provision one:
 
+1. Follow `.hermes/FIREBASE_MIGRATION_INSTRUCTIONS.md` (create project, web
+   app, Firestore collections `artifacts` / `remarks` / `favorites`, enable
+   the Email-link and Google auth providers, deploy Hosting).
+2. Generate the real options file with the FlutterFire CLI:
+
+```bash
+dart pub global activate flutterfire_cli
+flutterfire configure --project=<your-project-id> --platforms=web
 ```
-SUPABASE_URL=https://<your-project-ref>.supabase.co
-SUPABASE_ANON_KEY=<your-anon-key>
-```
 
-Obtain both values from your Supabase dashboard: **Settings → API**. The file is ignored by git (listed in `.gitignore`).
+The CLI app reads `FIREBASE_PROJECT_ID` (and `FIREBASE_WEB_API_KEY` for
+`lore login`) from the environment instead of an options file.
 
 ## Run the App
 
@@ -72,7 +79,11 @@ Navigate to the Lore project directory and run the app for your target platform:
 flutter run -d linux
 ```
 
-> **Note:** The Supabase credentials in `supabase.env` must be valid for the app to launch successfully.
+> **Note:** the federated Firebase SDKs (`firebase_auth`, `cloud_firestore`)
+> support web, Android, iOS, macOS and Windows — **not Linux**. The Linux
+> desktop build compiles, but sign-in/Firestore calls fail there at runtime;
+> use Chrome web (`flutter run -d chrome`) or the standalone CLI
+> (REST-based, works on Linux) until desktop Linux support lands upstream.
 
 ### Chrome Web App
 
@@ -121,7 +132,16 @@ Navigate to the Lore project directory and build the console app:
 dart tool/build_console.dart
 ```
 
-This will create an executable in `bin/lore` that you can run directly.
+This AOT-compiles `lib/console_main.dart` into a standalone `bin/lore`
+executable (pure Dart — it talks to Firebase over its public REST APIs, so
+it works on Linux where the Flutter Firebase plugins don't exist).
+
+Configure it via the environment:
+
+```bash
+export FIREBASE_PROJECT_ID=<your-project-id>       # required
+export FIREBASE_WEB_API_KEY=<your-web-api-key>     # only for `lore login`
+```
 
 ### Installing the Console App System-wide
 
@@ -143,8 +163,8 @@ lore help
 lore get d3486ae9136e7856bc42212385ea797e
 lore get "Hello, world!"
 
-# Log in with a JWT token
-lore login <your-jwt-token>
+# Log in with a Google ID token (session persists to ~/.config/lore/cli-session.json)
+lore login <your-google-id-token>
 
 # Add a remark to an artifact
 lore add-remark d3486ae9136e7856bc42212385ea797e "This is an important artifact"

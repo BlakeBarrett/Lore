@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:lore/app_config.dart';
 import 'package:lore/lore_app.dart';
 import 'package:lore/lore_console.dart';
+import 'package:lore/repo/firebase_lore_repo.dart';
 import 'package:desktop_window/desktop_window.dart' as window_size;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -46,7 +47,7 @@ void main(final List<String> args) async {
     }
     runApp(const LoreApp());
   } else {
-    LoreConsole.bindDefaults(AppConfig.instance);
+    LoreConsole.api = FirebaseLoreRepo();
     await LoreConsole(args).done;
   }
 }

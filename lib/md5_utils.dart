@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:core';
+import 'dart:developer' as developer;
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
 
 Future<String> calculateMD5(final Stream<List<int>> byteStream) async {
   // Public-API replacement for crypto's private DigestSink: the callback
@@ -18,7 +18,7 @@ Future<String> calculateMD5(final Stream<List<int>> byteStream) async {
     }
     input.close();
   } catch (e) {
-    debugPrint('Error calculating MD5 checksum: $e');
+    developer.log('Error calculating MD5 checksum: $e');
     return '';
   }
   return digest?.toString() ?? '';
