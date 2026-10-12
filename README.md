@@ -28,7 +28,7 @@ Lore is a repository of knowledge. It is a shared, single source of truth for an
 
 ## Where is the data stored?
 
-At present, the data lives in **Cloud Firestore** (Firebase); authentication is Firebase Auth (email-link and Google). The earlier Supabase backend has been removed. See `.hermes/FIREBASE_MIGRATION_INSTRUCTIONS.md` for the step-by-step Firebase console setup.
+At present, the data lives in **Cloud Firestore** (Firebase); authentication is Firebase Auth (email-link and Google). The earlier Supabase backend has been removed. See `FIREBASE_MIGRATION_INSTRUCTIONS.md` (repo root, untracked) for the step-by-step Firebase console setup.
 
 ## Setup Flutter
 
@@ -56,7 +56,7 @@ flutter pub get
 Lore connects to a Firebase project (Cloud Firestore + Firebase Auth).
 `lib/firebase_options.dart` is a **stub** until you provision one:
 
-1. Follow `.hermes/FIREBASE_MIGRATION_INSTRUCTIONS.md` (create project, web
+1. Follow `FIREBASE_MIGRATION_INSTRUCTIONS.md` (repo root) — create project, web
    app, Firestore collections `artifacts` / `remarks` / `favorites`, enable
    the Email-link and Google auth providers, deploy Hosting).
 2. Generate the real options file with the FlutterFire CLI:
