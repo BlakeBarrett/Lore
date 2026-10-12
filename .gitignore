@@ -1,7 +1,13 @@
+### AI Agents ###
+.claude
+.openai
+.hermes
+
 ### Firebase ###
 .idea
 **/node_modules/*
 **/.firebaserc
+*FIREBASE*.md
 
 ### Firebase Patch ###
 .runtimeconfig.json
