@@ -1,17 +1,11 @@
-import 'package:lore/artifact.dart';
 import 'package:desktop_drop/desktop_drop.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
 
-/// Desktop drag-and-drop wrapper. Pure view: the dropped file is reshaped
-/// into a [PlatformFile] and handed to the controller's `select` pipeline
-/// — hashing via [Artifact.fromFile], saving, remark loading, and the
-/// `isCalculating` try/finally all live there, so every failure path
-/// resets the busy flag. (Previously this widget did its own
-/// `Artifact.fromFile` I/O and left `isCalculating == true` forever when
-/// hashing threw.)
+/// Desktop drag-and-drop wrapper. Pure view: the dropped file path is
+/// extracted and sent to the controller as a String — the controller resolves
+/// it (path -> `Artifact.fromFile`) and manages the busy flag.
 class DesktopFileDropHandler extends StatelessWidget {
   const DesktopFileDropHandler(
       {super.key,
@@ -19,9 +13,8 @@ class DesktopFileDropHandler extends StatelessWidget {
       required this.onCalculating,
       required this.child});
 
-  /// Receives the dropped file reshaped as a [PlatformFile]; the controller
-  /// resolves it (path -> `Artifact.fromFile`) and manages the busy flag.
-  final void Function(List<PlatformFile> values) onDrop;
+  /// Receives the dropped file path as a String (resolved from DropInfo);
+  final void Function(List<String> values) onDrop;
   final void Function(bool artifactsCalculating) onCalculating;
   final Widget child;
 
@@ -32,18 +25,10 @@ class DesktopFileDropHandler extends StatelessWidget {
         onDragDone: (final details) async {
           final files = details.files;
           if (files.isEmpty) return;
-          final dropped = files.first;
           try {
-            onDrop([
-              PlatformFile(
-                name: dropped.name,
-                size: await dropped.length(),
-                path: dropped.path,
-              )
-            ]);
+            final paths = files.map((d) => d.path).toList();
+            onDrop(paths);
           } catch (e) {
-            // e.g. the file vanished between drag and drop: nothing was
-            // handed to the controller, so nothing is left busy.
             debugPrint('Dropped file could not be read: $e');
           }
         });

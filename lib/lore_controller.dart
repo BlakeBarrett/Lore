@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:lore/artifact.dart';
-import 'package:lore/hash_utils.dart';
-import 'package:lore/md5_utils.dart';
-import 'package:lore/repo/lore_repo.dart';
-import 'package:lore/remark.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:regexpattern/regexpattern.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'artifact.dart';
+import 'hash_utils.dart';
+import 'md5_utils.dart';
+import 'repo/lore_repo.dart';
+import 'remark.dart';
 
 /// Resolves the loosely-typed `dynamic` that arrives from the UI (search bar,
 /// app links, file pickers, drag-and-drop) into an [Artifact].
@@ -24,14 +25,16 @@ Future<Artifact> artifactFromInput(
   if (value is Artifact) {
     return value;
   } else if (value is PlatformFile) {
-    if (value.bytes != null) {
-      final bytes = value.bytes!;
+    // file_picker v12+ removed .bytes/.size — must read from stream.
+    // If reading fails or yields empty data we fall back to the on-disk path.
+    final bytes = await value.readAsBytes();
+    if (bytes.isNotEmpty) {
       final md5sum = await calculateMD5(Stream.fromIterable([bytes]));
       final sha256sum = await sha256FromStream(Stream.fromIterable([bytes]));
       return Artifact(path: value.name, md5sum: md5sum, sha256: sha256sum);
-    } else {
-      return Artifact.fromFile(File(value.path!));
     }
+    // File on disk but no in-memory bytes — let the artifact do its own I/O.
+    return Artifact.fromFile(File(value.path!));
   } else if (value is String) {
     if (value.isMD5()) {
       return await repo.loadArtifact(value) ??
@@ -73,8 +76,8 @@ enum LoreErrorKind { load, save, delete, auth, unknown }
 /// Design notes:
 /// * `repo` is constructor-injected ([LoreRepo]); the auth event stream is
 ///   injected as a plain `Stream<AuthState>` seam so unit tests never touch
-///   Supabase. The view wires it from `AppConfig.instance.supabase
-///   .auth.onAuthStateChange`, replacing the manual subscription that used to
+///   Firebase. The view wires it from `AppConfig.instance.currentUser`
+///   .auth.onAuthStateChange, replacing the manual subscription that used to
 ///   live in `_LoreScaffoldWidgetState.initState`.
 /// * Every repo call is wrapped in try/catch. On failure the controller sets
 ///   [lastError] (a human-readable message; the view shows it verbatim for
@@ -82,18 +85,12 @@ enum LoreErrorKind { load, save, delete, auth, unknown }
 ///   mutating any optimistic state. On success the error is cleared.
 /// * The view listens via `ListenableBuilder` and disposes this controller.
 class LoreController extends ChangeNotifier {
-  LoreController({
-    required this.repo,
-    final Stream<AuthState>? authEvents,
-    final Session? initialSession,
-  }) : session = initialSession {
-    // The gotrue auth stream (a ReplaySubject) rethrows as an *unhandled
-    // zone exception* — i.e. a crash — when a listener omits onError, which
-    // happens on network errors during offline token refresh. Swallow the
+  LoreController({required this.repo, final Stream<User?>? authStateChanges}) : session = null {
+    // The Firebase auth state stream can throw on connection drops; swallow the
     // error with the same semantics as every other failure path here
     // ([lastError] + [errorSerial], no optimistic state touched); the
     // subscription stays alive unless the source itself closes.
-    _authSubscription = authEvents?.listen(
+    _authSubscription = authStateChanges?.listen(
       _onAuthEvent,
       onError: (final Object e, final StackTrace st) {
         _fail('Auth event stream error.', LoreErrorKind.auth, e);
@@ -104,10 +101,10 @@ class LoreController extends ChangeNotifier {
 
   final LoreRepo repo;
 
-  /// Latest auth session, kept in sync from [authEvents]. The view still
+  /// Latest auth session, kept in sync from [authStateChanges]. The view still
   /// reads e-mail/token through [repo] (unchanged behaviour); this is the
   /// reactive hook that replaces the widget-level subscription.
-  Session? session;
+  User? session;
 
   Artifact? _artifact;
   Artifact? get artifact => _artifact;
@@ -141,21 +138,20 @@ class LoreController extends ChangeNotifier {
   /// user switch.
   String? _favoritesOwner;
 
-  StreamSubscription<AuthState>? _authSubscription;
+  StreamSubscription<User?>? _authSubscription;
   bool _disposed = false;
 
-  void _onAuthEvent(final AuthState data) {
-    debugPrint('Supabase AuthChangeEvent: ${data.event}');
-    session = data.session;
-    if (data.event == AuthChangeEvent.signedOut) {
-      // Drop the previous account's state so the drawer can't render
+  void _onAuthEvent(final User? user) {
+    debugPrint('Firebase auth state change: ${user?.email ?? "signed out"}');
+    session = user;
+    if (user == null) {
+      // Signed out: drop the previous account's state so the drawer can't render
       // another user's favorites, and invalidate any in-flight load.
       _favorites.clear();
       _favoritesOwner = null;
-    } else if (data.event == AuthChangeEvent.initialSession ||
-        data.event == AuthChangeEvent.signedIn) {
-      // Fire-and-forget, like the old widget listener; loadFavorites
-      // captures its own failures into [lastError].
+    } else {
+      // Signed in (or session restored): fire-and-forget, like the old widget listener.
+      // loadFavorites captures its own failures into [lastError].
       loadFavorites();
     }
     _notify();
@@ -195,10 +191,10 @@ class LoreController extends ChangeNotifier {
   /// Opens the platform file picker and selects the chosen file.
   Future<void> openFile() async {
     try {
-      final result = await FilePicker.platform
-          .pickFiles(type: FileType.any, allowMultiple: false);
-      if (result == null) return;
-      await select(result.files.first);
+      final file = await FilePicker.pickFile();
+      if (file != null) {
+        await select(file);
+      }
     } catch (e) {
       _fail('Could not open the file picker.', LoreErrorKind.load, e);
     }
@@ -308,7 +304,10 @@ class LoreController extends ChangeNotifier {
   }
 
   void _fail(
-      final String context, final LoreErrorKind kind, final Object error) {
+    final String context,
+    final LoreErrorKind kind,
+    final Object error,
+  ) {
     _lastErrorKind = kind;
     _lastError = '$context $error';
     _errorSerial++;

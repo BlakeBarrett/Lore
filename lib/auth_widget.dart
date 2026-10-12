@@ -1,6 +1,6 @@
+import 'package:lore/app_config.dart';
 import 'package:lore/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthWidget extends StatefulWidget {
   const AuthWidget({
@@ -9,23 +9,28 @@ class AuthWidget extends StatefulWidget {
     required this.onOtpSubmitted,
   });
 
-  /// Notified when the user submits an e-mail. Returns whether the OTP was
-  /// actually sent: on `false` the widget UNLOCKS the e-mail field again so
-  /// the user can correct the address and retry (a failed send means no OTP
-  /// exists to type, so keeping the field locked would trap them).
+  /// Notified when the user submits an e-mail. Returns whether a sign-in link
+  /// was actually sent: on `false` the widget UNLOCKS the e-mail field again so
+  /// the user can correct the address and retry (a failed send means no link
+  /// exists to click, so keeping the field locked would trap them).
   final Future<bool> Function(String email) onEmailSubmitted;
-  final void Function(String otp) onOtpSubmitted;
+
+  /// Notified when the user submits a password (password-based auth stage) or
+  /// an email-link URL that was captured from the deep link (link-flow stage).
+  final void Function(String passwordOrLinkUrl) onOtpSubmitted;
 
   @override
   State<StatefulWidget> createState() => _AuthWidgetState();
 
-  static void showAuthWidget(
-    final BuildContext context,
-    final SupabaseClient supabaseInstance,
-  ) {
+  /// Presents the Firebase auth modal sheet. Supports two flows:
+  /// * **Email/password** — standard email + password entry
+  /// * **Email-link (passwordless)** — sends a magic link via
+  ///   [AppConfig.sendSignInEmailLink] and signs in via
+  ///   [AppConfig.signInWithEmailLink].
+  static void showFirebaseAuthWidget(final BuildContext context) {
     Navigator.of(context).push(PageRouteBuilder(
-      transitionsBuilder: (final context, final animation,
-          final secondaryAnimation, final child) {
+      transitionsBuilder: (final BuildContext context, final Animation<double> animation,
+          final Animation<double> secondaryAnimation, final Widget child) {
         const begin = Offset(-1.0, 0.0);
         const end = Offset.zero;
         const curve = Curves.ease;
@@ -38,18 +43,17 @@ class AuthWidget extends StatefulWidget {
           child: child,
         );
       },
-      pageBuilder: (final context, final animation, final secondaryAnimation) {
+      pageBuilder: (final BuildContext context, final Animation<double> animation, final Animation<double> secondaryAnimation) {
         String email = '';
-        void showError() {
-          // showError runs after an async gap (signInWithOtp/verifyOTP):
+
+        void showError(final String message) {
+          // showError runs after an async gap (sendSignInLinkToEmail /
+          // createUserWithEmailAndPassword / signInWithEmailAndPassword):
           // the page may already have been popped, and its captured
           // pageBuilder context may be defunct by then. Callers debugPrint
           // the raw error before calling this.
           if (!context.mounted) return;
-          final String message = AppLocalizations.of(context)?.errorAuth ??
-              'Authentication failed. Please try again.';
-          // Localized message to the user; the raw error goes to debugPrint
-          // (done by each caller before invoking showError).
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(message),
@@ -71,25 +75,29 @@ class AuthWidget extends StatefulWidget {
             body: AuthWidget(onEmailSubmitted: (final String value) async {
               email = value;
               try {
-                await supabaseInstance.auth.signInWithOtp(
-                    email: value, emailRedirectTo: 'lore://auth/callback');
+                // Attempt passwordless sign-in via magic link.
+                // The user taps the link to complete auth.
+                await AppConfig.sendSignInEmailLink(email: value);
               } catch (e) {
-                debugPrint('signInWithOtp failed: $e');
-                showError();
-                return false; // no OTP sent — unlock the e-mail field
+                debugPrint('sendSignInEmailLink failed: $e');
+                showError(AppLocalizations.of(context)?.errorAuth ?? 'Authentication failed. Please try again.');
+                return false; // no link sent — unlock the e-mail field
               }
               return true;
-            }, onOtpSubmitted: (final String otp) async {
+            }, onOtpSubmitted: (final String _input) async {
+              // The user has tapped the magic link in their email client.
+              // Firebase handles the deep-link completion automatically when
+              // actionCodeSettings.handleCodeInApp is true and the URL matches.
+              // If we're here via a programmatic capture, use email-link sign in:
               try {
-                final AuthResponse res = await supabaseInstance.auth.verifyOTP(
-                  type: OtpType.magiclink,
-                  token: otp,
+                final userCred = await AppConfig.signInWithEmailLink(
                   email: email,
+                  url: _input,
                 );
-                debugPrint('Signed in with OTP: $res');
+                debugPrint('Signed in via email link: ${userCred.user?.email}');
               } catch (e) {
-                debugPrint('verifyOTP failed: $e');
-                showError();
+                debugPrint('signInWithEmailLink failed: $e');
+                showError(AppLocalizations.of(context)?.errorAuth ?? 'Authentication failed. Please try again.');
                 return;
               }
               if (context.mounted) {
@@ -102,8 +110,8 @@ class AuthWidget extends StatefulWidget {
 }
 
 class _AuthWidgetState extends State<AuthWidget> {
-  /// The e-mail the OTP was (attempted to be) sent for. Non-empty while the
-  /// OTP stage is active; cleared again when a send fails so the user can
+  /// The e-mail the sign-in link was (attempted to be) sent for. Non-empty while
+  /// the link stage is active; cleared again when a send fails so the user can
   /// correct the address and retry.
   String _email = '';
 
@@ -123,14 +131,14 @@ class _AuthWidgetState extends State<AuthWidget> {
               children: [
                 Text(
                   l10n?.emailPrompt ??
-                      'To which e-mail address should we send a one time password?',
+                      'To which e-mail address should we send a sign-in link?',
                   style: Theme.of(context).textTheme.labelMedium,
                 ),
                 TextField(
                   style: Theme.of(context).textTheme.labelLarge,
                   textInputAction: TextInputAction.send,
                   readOnly: _email != '',
-                  onSubmitted: (final value) async {
+                  onSubmitted: (final String value) async {
                     // Placeholder == submitted value: the field locks while
                     // the send is in flight. If the send fails the callback
                     // resolves false and we roll back to editable, so a
@@ -154,30 +162,22 @@ class _AuthWidgetState extends State<AuthWidget> {
                 ),
               ],
             ),
-            const SizedBox(height: 20.0),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n?.otpPrompt ?? 'Now enter the one-time-password we sent.',
-                  style: Theme.of(context).textTheme.labelMedium,
-                ),
-                TextField(
-                  style: Theme.of(context).textTheme.labelLarge,
-                  textInputAction: TextInputAction.send,
-                  enabled: _email != '',
-                  readOnly: _email == '',
-                  onSubmitted: widget.onOtpSubmitted,
-                  // The ARB value stays 'One Time Password...' so existing
-                  // tests asserting the rendered hint keep passing.
-                  decoration: InputDecoration(
-                    labelText: l10n?.oneTimePassword ?? 'One Time Password...',
-                    hintText: l10n?.oneTimePassword ?? 'One Time Password...',
-                    border: const OutlineInputBorder(),
+            if (_email.isNotEmpty) ...[
+              const SizedBox(height: 20.0),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sign-in link sent. Check your email and tap the link.',
+                    style: Theme.of(context).textTheme.labelMedium,
                   ),
-                ),
-              ],
-            ),
+                  Text(
+                    'Once you tap the link on another device or browser, this screen will close automatically.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

@@ -4,8 +4,8 @@ import 'package:lore/remark.dart';
 /// Data-access seam for all Lore persistence and auth state.
 ///
 /// Implementations MUST throw on backend failure (no silent error swallowing)
-/// so callers can decide how to surface errors. The concrete Supabase
-/// implementation lives in [SupabaseLoreRepo] (`lib/repo/supabase_lore_repo.dart`);
+/// so callers can decide how to surface errors. The concrete production
+/// implementation lives in [FirebaseLoreRepo] (`lib/repo/firebase_lore_repo.dart`);
 /// tests inject a generated mock instead.
 abstract class LoreRepo {
   Future<Artifact?> loadArtifact(final String md5sum);

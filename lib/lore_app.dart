@@ -4,8 +4,7 @@ import 'package:lore/drawer_widget.dart';
 import 'package:lore/file_drop_handlers.dart';
 import 'package:lore/lore_app_bar.dart';
 import 'package:lore/lore_controller.dart';
-import 'package:lore/repo/lore_repo.dart';
-import 'package:lore/repo/supabase_lore_repo.dart';
+import 'package:lore/repo/firebase_lore_repo.dart';
 import 'package:lore/remark_entry_widget.dart';
 import 'package:lore/remark_list_widget.dart';
 import 'package:flutter/foundation.dart';
@@ -121,11 +120,9 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
       _controller = injected;
       _ownsController = false;
     } else {
-      final LoreRepo repo = SupabaseLoreRepo(AppConfig.instance);
+      final FirebaseLoreRepo repo = FirebaseLoreRepo();
       _controller = LoreController(
         repo: repo,
-        initialSession: AppConfig.instance.supabase.auth.currentSession,
-        authEvents: AppConfig.instance.supabase.auth.onAuthStateChange,
       );
     }
     _controller.addListener(_showErrorIfNeeded);
@@ -187,13 +184,13 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
         final artifact = _controller.artifact;
         final scaffold = Scaffold(
           drawer: DrawerWidget(
-            authenticated: repo.accessToken != null,
+            authenticated: AppConfig.isLoggedIn,
             userEmail: repo.userEmail,
             favorites: _controller.favorites,
-            onLogout: () => AppConfig.instance.supabase.auth.signOut(),
+            onLogout: () => AppConfig.signOut(),
             onShowAuthWidget: () {
               Navigator.of(context).pop();
-              AuthWidget.showAuthWidget(context, AppConfig.instance.supabase);
+              AuthWidget.showFirebaseAuthWidget(context);
             },
             onShowArtifact: (final artifact) async {
               Navigator.of(context).pop();
@@ -234,9 +231,8 @@ class _LoreScaffoldWidgetState extends State<LoreScaffoldWidget> {
             ],
           ),
           floatingActionButton: RemarkEntryWidget(
-            enabled: repo.accessToken != null,
-            onLogin: () =>
-                AuthWidget.showAuthWidget(context, AppConfig.instance.supabase),
+            enabled: AppConfig.isLoggedIn,
+            onLogin: () => AuthWidget.showFirebaseAuthWidget(context),
             onSubmitted: _controller.addRemark,
           ),
           floatingActionButtonLocation:

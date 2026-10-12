@@ -4,7 +4,7 @@ import 'package:lore/app_config.dart';
 import 'package:lore/artifact.dart';
 import 'package:lore/md5_utils.dart';
 import 'package:lore/repo/lore_repo.dart';
-import 'package:lore/repo/supabase_lore_repo.dart';
+import 'package:lore/repo/firebase_lore_repo.dart';
 import 'package:lore/remark.dart';
 import 'package:regexpattern/regexpattern.dart';
 
@@ -14,7 +14,7 @@ typedef LoreExit = void Function(int code);
 ///
 /// All side effects go through injectable seams so the console is testable:
 /// * [LoreConsole.api] — the [LoreRepo] data seam (bound to
-///   [SupabaseLoreRepo] via [LoreConsole.bindDefaults] in real entry points),
+///   [FirebaseLoreRepo] via [LoreConsole.bindDefaults] in real entry points),
 /// * [LoreConsole.stdout] — the output sink (defaults to real stdout),
 /// * [LoreConsole.exit] — the process-exit callback (defaults to `exit`).
 class LoreConsole {
@@ -36,7 +36,7 @@ class LoreConsole {
   /// Wires the default [api] seam from a booted [AppConfig]. Call once after
   /// `AppConfig.init()` in a real entry point.
   static void bindDefaults(final AppConfig config) {
-    api = SupabaseLoreRepo(config);
+    api = FirebaseLoreRepo();
   }
 
   Future<void> _handleArgs() async {
@@ -216,7 +216,7 @@ class LoreConsole {
 
       case 'login':
         stdout.writeln('Usage: lore login <jwt>');
-        stdout.writeln('  Authenticates using a JWT token from Supabase.');
+        stdout.writeln('  Authenticates using a Firebase auth token.');
     }
   }
 }

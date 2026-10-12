@@ -34,18 +34,21 @@ dependencies:
     sdk: flutter
 
   flutter_dropzone: ^4.0.0
-  desktop_drop: ^0.6.0
+  desktop_drop: ^0.8.4
   desktop_window: ^0.4.0
   crypto: ^3.0.3
-  flutter_dotenv: ^5.1.0
-  url_launcher: ^6.2.3
+  flutter_dotenv: ^6.0.1
+  url_launcher: ^6.3.3
   # Kept in sync with the intl version pinned by flutter_localizations (0.20.x).
   intl: ^0.20.3
   anim_search_bar: ^2.0.3
   regexpattern: ^2.6.0
-  file_picker: ^10.1.2
+  file_picker: ^13.1.0
   like_button: ^2.0.5
-  supabase_flutter: ^2.17.2
+  # NEW: Firebase SDK (replaces supabase_flutter)
+  firebase_core: ^4.15.0
+  firebase_auth: ^6.7.0
+  cloud_firestore: ^6.10.0
   flutter_native_splash: ^2.3.10
 
 dev_dependencies:
@@ -59,7 +62,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   msix: ^3.16.7
-  build_runner: ^2.4.6
+  build_runner: ^2.16.1
   # Test-only / tooling dependencies (were mistakenly in `dependencies`).
   mockito: ^5.4.4
   nock: ^1.2.3
